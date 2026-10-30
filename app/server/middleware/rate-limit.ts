@@ -1,3 +1,4 @@
+import { getClientIP } from './client-ip';
 import {
   createMemoryPenaltyBox,
   createRedisPenaltyBox,
@@ -28,64 +29,16 @@ type Ctx = Context<{ Variables: Variables }>;
 // ============================================================================
 
 /**
- * Trusted proxy headers in order of preference.
- * Only trust these headers when running behind a known load balancer.
+ * Client IP when no session subject is available. Without one, every such
+ * request shares the 'unknown' bucket, which is worth a warning.
  */
-const PROXY_HEADERS = [
-  'CF-Connecting-IP', // Cloudflare
-  'X-Real-IP', // Nginx
-  'X-Forwarded-For', // Standard (take first IP)
-] as const;
-
-/**
- * Extract client IP address from request headers.
- * Handles various proxy configurations safely.
- */
-function getClientIP(c: Context<{ Variables: Variables }>): string {
-  // In development, trust any header for easier testing
-  const isDev = process.env.NODE_ENV === 'development';
-
-  // Try each proxy header in order of trust
-  for (const header of PROXY_HEADERS) {
-    const value = c.req.header(header);
-    if (value) {
-      // X-Forwarded-For can contain multiple IPs: client, proxy1, proxy2
-      // The first one is the original client IP
-      const ip = header === 'X-Forwarded-For' ? value.split(',')[0]?.trim() : value.trim();
-
-      if (ip && isValidIP(ip)) {
-        return ip;
-      }
-    }
-  }
-
-  // Fallback: In production without proxy headers, we can't reliably get the IP
-  // Use a placeholder that won't provide per-user limiting but prevents crashes
-  if (!isDev) {
+function clientIPOrFallback(c: Ctx): string {
+  const ip = getClientIP(c);
+  if (ip) return ip;
+  if (process.env.NODE_ENV !== 'development') {
     logger.warn('[rate-limit] Could not determine client IP, using fallback');
   }
-
   return 'unknown';
-}
-
-/**
- * Basic IP validation to prevent header injection attacks.
- */
-function isValidIP(ip: string): boolean {
-  // IPv4: 1.2.3.4
-  const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
-  // IPv6: simplified check for common formats
-  const ipv6Regex = /^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$/;
-
-  if (ipv4Regex.test(ip)) {
-    // Validate each octet is 0-255
-    return ip.split('.').every((octet) => {
-      const num = parseInt(octet, 10);
-      return num >= 0 && num <= 255;
-    });
-  }
-
-  return ipv6Regex.test(ip);
 }
 
 /**
@@ -93,7 +46,7 @@ function isValidIP(ip: string): boolean {
  */
 function defaultKeyGenerator(c: Context<{ Variables: Variables }>): string {
   const session = c.get('session');
-  return session?.sub ?? getClientIP(c);
+  return session?.sub ?? clientIPOrFallback(c);
 }
 
 // ============================================================================

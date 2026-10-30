@@ -1,4 +1,5 @@
 import { isEmailNotVerifiedDenial } from '@/features/account/email-verification/email-verification-error';
+import { getClientIP } from '@/server/middleware/client-ip';
 import { extractQuotaDenialLabels, quotaDeniedTotal } from '@/server/observability/quota-metrics';
 import type { Variables } from '@/server/types';
 import { AuthService } from '@/utils/auth';
@@ -35,8 +36,9 @@ proxyRoutes.all('/*', async (c) => {
       controller.abort();
     });
 
-    // Resolve the real client IP from X-Forwarded-For set by Envoy Gateway.
-    const clientIP = c.req.header('X-Forwarded-For')?.split(',')[0]?.trim();
+    // The address Envoy Gateway appended to X-Forwarded-For; the leftmost
+    // entry is whatever the client sent.
+    const clientIP = getClientIP(c);
 
     const upstreamHeaders: Record<string, string> = {
       Authorization: `Bearer ${session.accessToken}`,
