@@ -47,6 +47,7 @@ export function ProxySparkline({ projectId, proxyId, className }: ProxySparkline
     ['proxy-sparkline', projectId, proxyId],
     {
       type: 'chart',
+      projectId,
       query,
       timeRange: {
         start: startTime,

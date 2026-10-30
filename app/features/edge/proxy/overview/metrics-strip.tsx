@@ -48,6 +48,7 @@ export function HttpProxyMetricsStrip({
     <section aria-label="Live metrics">
       <div className="grid grid-cols-2 gap-4">
         <SparklineStatCard
+          projectId={projectId}
           title="Requests"
           href={`${metricsBase}#traffic`}
           query={albRpsQuery(scope, range.step)}
@@ -59,6 +60,7 @@ export function HttpProxyMetricsStrip({
           idle={idle}
         />
         <SparklineStatCard
+          projectId={projectId}
           title="Error rate"
           href={`${metricsBase}#traffic`}
           query={albErrorRateQuery(scope, range.step)}
@@ -70,6 +72,7 @@ export function HttpProxyMetricsStrip({
           idle={idle}
         />
         <SparklineStatCard
+          projectId={projectId}
           title="p95 latency"
           href={`${metricsBase}#latency`}
           query={albLatencyPercentilesQuery(scope, range.shortLabel)}
@@ -82,6 +85,7 @@ export function HttpProxyMetricsStrip({
           idle={idle}
         />
         <SparklineStatCard
+          projectId={projectId}
           title="WAF blocked"
           href={`${metricsBase}#protection`}
           query={albWafIncreaseQuery(wafScope, range.step)}

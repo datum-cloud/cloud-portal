@@ -3,6 +3,7 @@
  */
 import { usePrometheusAPIQuery } from './usePrometheusApi';
 import type { MultiSelectOption } from '@/components/multi-select/multi-select';
+import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import { useMemo } from 'react';
 
 export interface UsePrometheusLabelsOptions {
@@ -90,6 +91,7 @@ export function usePrometheusLabels({
   filter,
   sort,
 }: UsePrometheusLabelsOptions): UsePrometheusLabelsResult {
+  const { projectId } = useMetrics();
   const {
     data: values = [],
     isLoading,
@@ -100,6 +102,7 @@ export function usePrometheusLabels({
     ['prometheus-api', 'labels', label, match],
     {
       type: 'labels',
+      projectId,
       label,
       ...(match && { match }),
     },

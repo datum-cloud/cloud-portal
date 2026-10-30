@@ -237,8 +237,9 @@ const ActivityChart = () => {
 };
 
 export const ExportPolicyActivityCard = () => {
+  const { projectId = '' } = useParams();
   return (
-    <MetricsProvider>
+    <MetricsProvider projectId={projectId}>
       <ActivityChart />
     </MetricsProvider>
   );

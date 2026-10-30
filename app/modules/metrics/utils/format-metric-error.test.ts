@@ -21,6 +21,18 @@ describe('formatMetricError', () => {
     );
   });
 
+  it('maps queryapi 422 (response too large)', () => {
+    expect(formatMetricError(new PrometheusError('too many series', 'query', 422))).toBe(
+      'This chart has too much data to show. Try a shorter time range or fewer filters.'
+    );
+  });
+
+  it('maps queryapi 503 (query timeout)', () => {
+    expect(formatMetricError(PrometheusError.network('service unavailable', 503))).toBe(
+      'This chart took too long to load. Try a shorter time range.'
+    );
+  });
+
   it('maps query failures without dumping PromQL', () => {
     expect(formatMetricError(PrometheusError.query('parse error at 1:12'))).toBe(
       "Couldn't calculate this chart for the current filters."

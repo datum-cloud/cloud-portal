@@ -61,7 +61,6 @@ LOG_REDACT_TOKENS=true   # Hide sensitive tokens in logs
 
 # Observability (for local stack)
 OTEL_ENABLED=false
-PROMETHEUS_URL=http://localhost:9090
 GRAFANA_URL=http://localhost:3002
 ```
 

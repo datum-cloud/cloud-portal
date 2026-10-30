@@ -3,7 +3,6 @@ import { fraudStatusRoutes } from './fraud-status';
 import { grafanaRoutes } from './grafana';
 import { graphqlRoutes } from './graphql';
 import { permissionsRoutes } from './permissions';
-import { prometheusRoutes } from './prometheus';
 import { proxyRoutes } from './proxy';
 import { usageRoutes } from './usage';
 import { userRoutes } from './user';
@@ -47,7 +46,6 @@ export function createApiApp() {
   api.route('/fraud-status', fraudStatusRoutes);
   api.route('/proxy', proxyRoutes);
   api.route('/graphql', graphqlRoutes);
-  api.route('/prometheus', prometheusRoutes);
   api.route('/usage', usageRoutes);
   api.route('/grafana', grafanaRoutes);
   api.route('/permissions', permissionsRoutes);

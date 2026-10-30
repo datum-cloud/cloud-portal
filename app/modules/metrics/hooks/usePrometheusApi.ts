@@ -10,19 +10,21 @@ import type {
 import { resolveChartStep } from '@/modules/metrics/utils/chart-axis';
 import { parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
 import {
-  type FormattedMetricData,
-  type MetricCardData,
-  type MetricFormat,
-  type PrometheusQueryOptions,
-  type TimeRange,
+  executePrometheusRequest,
+  shouldRetryMetricsQuery,
+  type PrometheusAPIRequest,
+} from '@/modules/metrics/utils/prometheus-request';
+import type {
+  FormattedMetricData,
+  MetricCardData,
+  MetricFormat,
   PrometheusError,
+  PrometheusQueryOptions,
 } from '@/modules/prometheus';
-import { gatedFetch } from '@/modules/rate-limit';
+import { createO11yMetricsService } from '@/resources/o11y-metrics';
 import { useQuery, type QueryKey, type UseQueryResult } from '@tanstack/react-query';
 import { useQueryState } from 'nuqs';
 import React from 'react';
-
-const PROMETHEUS_ROUTE_PATH = '/api/prometheus' as const;
 
 const prometheusQueryKeys = {
   all: ['prometheus-api'] as const,
@@ -53,61 +55,7 @@ const prometheusQueryKeys = {
 // #region API Layer
 // =======================================================================================
 
-interface PrometheusAPIRequest {
-  type: 'chart' | 'card' | 'connection' | 'buildinfo' | 'labels';
-  query?: string;
-  timeRange?: TimeRange | { start: number; end: number }; // Accept both Date objects and timestamps
-  step?: string;
-  metricFormat?: MetricFormat;
-  label?: string; // For labels API calls
-  match?: string; // For labels API: series selector to scope label values
-  // Additional API parameters for custom configurations
-  [key: string]: any;
-}
-
-interface PrometheusAPIResponse<T> {
-  success: boolean;
-  data: T;
-  error?: string;
-  type?: string;
-  details?: unknown;
-}
-
-async function makePrometheusAPIRequest<T>(request: PrometheusAPIRequest): Promise<T> {
-  // Convert TimeRange Date objects to Unix timestamps before sending
-  const requestBody: any = { ...request };
-
-  if (requestBody.timeRange) {
-    const { timeRange } = requestBody;
-    // Check if timeRange contains Date objects (has getTime method)
-    if ('start' in timeRange && timeRange.start instanceof Date) {
-      requestBody.timeRange = {
-        start: Math.floor(timeRange.start.getTime() / 1000),
-        end: Math.floor(timeRange.end.getTime() / 1000),
-      };
-    }
-    // If already timestamps (numbers), use as-is
-  }
-
-  const response = await gatedFetch(PROMETHEUS_ROUTE_PATH, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(requestBody),
-  });
-
-  const data: PrometheusAPIResponse<T> = await response.json();
-
-  if (!response.ok || !data.success) {
-    throw new PrometheusError(
-      data.error || 'API request failed',
-      (data.type as PrometheusError['type']) || 'network',
-      response.status,
-      typeof data.details === 'string' ? data.details : JSON.stringify(data.details)
-    );
-  }
-
-  return data.data;
-}
+const metricsService = createO11yMetricsService();
 
 // #endregion
 
@@ -123,20 +71,14 @@ export function usePrometheusAPIQuery<T>(
   options: { enabled?: boolean; refetchInterval?: number | false }
 ): UseQueryResult<T, PrometheusError> {
   return useQuery<T, PrometheusError>({
-    queryKey,
-    queryFn: () => makePrometheusAPIRequest<T>(request),
+    // queryapi scopes results to the project, so the cache must too.
+    queryKey: [...queryKey, request.projectId],
+    queryFn: () => executePrometheusRequest<T>(request, metricsService),
     enabled: options.enabled,
     refetchInterval: options.refetchInterval,
     staleTime: 30000, // 30 seconds
     gcTime: 300000, // 5 minutes
-    retry: (failureCount: number, error: PrometheusError) => {
-      // Permission/auth failures (403/401) and malformed queries won't change on
-      // retry — fail fast instead of hammering the telemetry endpoint.
-      if (error.type === 'query' || error.statusCode === 403 || error.statusCode === 401) {
-        return false;
-      }
-      return failureCount < 3;
-    },
+    retry: shouldRetryMetricsQuery,
     retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
@@ -201,7 +143,7 @@ export function usePrometheusChart(
     ...additionalParams
   } = options;
   const metricsContext = useMetrics();
-  const { refreshInterval, buildQueryContext } = metricsContext;
+  const { refreshInterval, buildQueryContext, projectId } = metricsContext;
 
   // Direct URL state access for reactivity
   const [urlTimeRange] = useQueryState('timeRange');
@@ -236,6 +178,7 @@ export function usePrometheusChart(
     queryKey,
     {
       type: 'chart',
+      projectId,
       query: resolvedQuery,
       timeRange: queryContext.timeRange,
       step: queryContext.step,
@@ -263,7 +206,7 @@ export function usePrometheusCard(
     ...additionalParams
   } = options;
   const metricsContext = useMetrics();
-  const { refreshInterval, buildQueryContext } = metricsContext;
+  const { refreshInterval, buildQueryContext, projectId } = metricsContext;
 
   // Direct URL state access for reactivity
   const [urlTimeRange] = useQueryState('timeRange');
@@ -297,6 +240,7 @@ export function usePrometheusCard(
     queryKey,
     {
       type: 'card',
+      projectId,
       query: resolvedQuery,
       timeRange: queryContext.timeRange,
       metricFormat,

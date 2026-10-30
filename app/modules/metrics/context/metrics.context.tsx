@@ -18,6 +18,9 @@ import React, { createContext, useContext, useMemo, useCallback, useState, useRe
 
 // Enhanced context type with URL state management
 interface EnhancedMetricsContextType {
+  /** Project whose metrics every query in this provider reads. */
+  projectId: string;
+
   // Core Controls
   timeRange: TimeRange;
   /** Relative range used when the URL has no `timeRange` (e.g. `now-1h`). */
@@ -55,6 +58,8 @@ export const MetricsContext = createContext<EnhancedMetricsContextType | null>(n
 // Provider props
 export interface MetricsProviderProps {
   children: React.ReactNode;
+  /** Project whose metrics to read. queryapi scopes every query to it. */
+  projectId: string;
   defaultTimeRange?: string;
   defaultStep?: string;
   defaultRefreshInterval?: string;
@@ -69,6 +74,7 @@ export interface MetricsProviderProps {
 
 export function MetricsProvider({
   children,
+  projectId,
   defaultTimeRange = DEFAULT_TIME_RANGE,
   defaultStep = 'auto',
   defaultRefreshInterval = 'off',
@@ -345,6 +351,8 @@ export function MetricsProvider({
   // Memoize enhanced context value
   const contextValue = useMemo(
     (): EnhancedMetricsContextType => ({
+      projectId,
+
       // Core Controls (backward compatibility)
       timeRange: currentTimeRange,
       defaultTimeRange,
@@ -373,6 +381,7 @@ export function MetricsProvider({
       buildQueryContext,
     }),
     [
+      projectId,
       currentTimeRange,
       defaultTimeRange,
       setTimeRange,

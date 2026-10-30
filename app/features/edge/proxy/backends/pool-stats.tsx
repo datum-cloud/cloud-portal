@@ -58,7 +58,13 @@ function useThroughput(projectId: string, proxyName: string) {
   );
   return usePrometheusAPIQuery<MetricCardData>(
     ['alb-pool-throughput', query, range.timeRange.end.getTime()],
-    { type: 'card', query, timeRange: range.timeRange, metricFormat: 'requestsPerSecond' },
+    {
+      type: 'card',
+      projectId,
+      query,
+      timeRange: range.timeRange,
+      metricFormat: 'requestsPerSecond',
+    },
     { enabled: !!projectId && !!proxyName, refetchInterval: 30_000 }
   );
 }

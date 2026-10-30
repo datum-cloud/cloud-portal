@@ -60,9 +60,6 @@ export interface ServerEnv {
   sessionSecret: string;
   authOidcClientId: string;
 
-  // Required: Feature Services
-  prometheusUrl: string;
-
   // Optional: Observability
   otelExporterEndpoint?: string;
   otelExporterTimeout?: number;
