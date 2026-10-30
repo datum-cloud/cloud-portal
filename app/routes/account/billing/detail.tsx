@@ -7,12 +7,16 @@ import {
   BILLING_ACCOUNT_DISPLAY_NAME_ANNOTATION,
   BillingAddressFieldsCard,
   BillingAddressForm,
+  DiscountsCard,
   DisplayNameFormCard,
   InvoiceEmailCard,
   PastInvoicesCard,
   PaymentMethodsCard,
   PaymentTermsCard,
+  PaymentTermsPrompt,
   getBillingAccountDisplayName,
+  accountDiscounts,
+  summarizeDiscounts,
   toPastInvoiceRow,
   type BillingAccount,
   type BillingAccountAssignment,
@@ -31,11 +35,7 @@ import type {
   CreatePaymentMethodResult,
 } from '@/features/billing/dialogs/add-payment-method-dialog';
 import { withInvoiceEmail } from '@/features/billing/invoice-email';
-import {
-  applicationPhase,
-  latestApplication,
-  paymentTermsSummary,
-} from '@/features/billing/payment-terms';
+import { latestApplication, paymentTermsSummary } from '@/features/billing/payment-terms';
 import { requireBillingForAnyOrg } from '@/modules/feature-flags/billing-gate.server';
 import { logger } from '@/modules/logger';
 import { RbacProvider, usePermission } from '@/modules/rbac';
@@ -417,6 +417,9 @@ function AccountBillingAccountDetailPageInner() {
         .map(toPastInvoiceRow),
     [invoicesQuery.data, initialInvoices, accountName]
   );
+  // Billing copies the account's Offer discounts onto its status, so they
+  // follow the account watch like everything else on the page.
+  const discounts = useMemo(() => accountDiscounts(account), [account]);
   const allBindings = bindingsQuery.data ?? initialAllBindings;
   const ourBindings = useMemo(
     () =>
@@ -769,17 +772,11 @@ function AccountBillingAccountDetailPageInner() {
 
   const paymentTerms = paymentTermsSummary(account);
   // Only org owners apply, and only while PAYMENT_TERMS_ENABLED is on.
-  // Otherwise the section only reports terms or an application that
-  // already exist.
+  // Otherwise the payment methods section only reports terms or an
+  // application that already exist.
   const canApplyForPaymentTerms = env.public.paymentTermsEnabled && isOrgOwner;
-  const paymentTermsPhase = paymentTermsApplication
-    ? applicationPhase(paymentTermsApplication)
-    : undefined;
-  const showPaymentTerms =
-    canApplyForPaymentTerms ||
-    !!paymentTerms ||
-    paymentTermsPhase === 'Pending' ||
-    paymentTermsPhase === 'Declined';
+  // The application pages are for owners, so others get no links.
+  const paymentTermsOrgId = isOrgOwner ? orgId : undefined;
 
   const handleDownloadInvoice = useCallback((invoice: PastInvoiceRow) => {
     if (!invoice.downloadUrl) return;
@@ -792,27 +789,6 @@ function AccountBillingAccountDetailPageInner() {
       <PageTitle title={displayName} titleClassName="text-3xl" />
 
       <div className="border-border border-t">
-        {showPaymentTerms ? (
-          <Section
-            title="Payment terms"
-            description={
-              paymentTerms
-                ? 'The payment terms our team approved for this billing account. To change them, contact support.'
-                : 'Pay by invoice instead of by card. Our team reviews every application.'
-            }>
-            <PaymentTermsCard
-              // The application pages are for owners, so others get no links.
-              orgId={isOrgOwner ? orgId : undefined}
-              billingAccountName={accountName}
-              terms={paymentTerms}
-              application={paymentTermsApplication}
-              currency={account.spec?.currencyCode ?? 'USD'}
-              canApply={canApplyForPaymentTerms}
-              now={renderedAt}
-            />
-          </Section>
-        ) : null}
-
         <Section title="Name" description="Change the display name of this billing account">
           <DisplayNameFormCard
             defaultDisplayName={currentDisplayNameAnnotation}
@@ -833,8 +809,33 @@ function AccountBillingAccountDetailPageInner() {
 
         <Section
           title="Payment methods"
-          description="Payments for your subscription are made using the default card">
+          description={
+            paymentTerms
+              ? 'This account pays by invoice under the payment terms our team approved. To change them, contact support.'
+              : 'Payments for your subscription are made using the default card'
+          }>
+          {/* Terms in effect or an application under review. Renders
+              nothing otherwise. */}
+          <PaymentTermsCard
+            orgId={paymentTermsOrgId}
+            billingAccountName={accountName}
+            terms={paymentTerms}
+            application={paymentTermsApplication}
+            currency={account.spec?.currencyCode ?? 'USD'}
+            canApply={canApplyForPaymentTerms}
+            now={renderedAt}
+          />
           <PaymentMethodsCard
+            footerNote={
+              paymentTerms ? undefined : (
+                <PaymentTermsPrompt
+                  orgId={paymentTermsOrgId}
+                  billingAccountName={accountName}
+                  application={paymentTermsApplication}
+                  canApply={canApplyForPaymentTerms}
+                />
+              )
+            }
             paymentMethods={paymentMethods}
             billingAccount={account}
             stripePublishableKey={stripePublishableKey}
@@ -856,6 +857,14 @@ function AccountBillingAccountDetailPageInner() {
         <Section title="Invoices" description="Past invoices for this billing account.">
           <PastInvoicesCard invoices={pastInvoices} onDownload={handleDownloadInvoice} />
         </Section>
+
+        {summarizeDiscounts(discounts) ? (
+          <Section
+            title="Discounts"
+            description="Discounts that apply to this billing account's usage.">
+            <DiscountsCard discounts={discounts} />
+          </Section>
+        ) : null}
 
         <Section
           title="Invoice email"

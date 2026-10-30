@@ -6,6 +6,7 @@ export {
   type BillingAddressValues,
 } from './billing-address-card';
 export { CreditsCard } from './credits-card';
+export { DiscountsCard } from './discounts-card';
 export {
   DisplayNameFormCard,
   displayNameFormSchema,
@@ -16,4 +17,4 @@ export { InvoicePreviewCard } from './invoice-preview-card';
 export { LinkedProjectsCard, type ProjectBillingBinding } from './linked-projects-card';
 export { PastInvoicesCard } from './past-invoices-card';
 export { PaymentMethodsCard } from './payment-methods-card';
-export { PaymentTermsCard } from './payment-terms-card';
+export { PaymentTermsCard, PaymentTermsPrompt } from './payment-terms-card';

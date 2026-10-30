@@ -32,6 +32,9 @@ import type {
   CreateBillingMiloapisComV1Alpha1NamespacedBillingEntitlementData,
   CreateBillingMiloapisComV1Alpha1NamespacedBillingEntitlementErrors,
   CreateBillingMiloapisComV1Alpha1NamespacedBillingEntitlementResponses,
+  CreateBillingMiloapisComV1Alpha1NamespacedCreditGrantData,
+  CreateBillingMiloapisComV1Alpha1NamespacedCreditGrantErrors,
+  CreateBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
   CreateBillingMiloapisComV1Alpha1NamespacedInvoiceData,
   CreateBillingMiloapisComV1Alpha1NamespacedInvoiceErrors,
   CreateBillingMiloapisComV1Alpha1NamespacedInvoiceResponses,
@@ -71,6 +74,9 @@ import type {
   DeleteBillingMiloapisComV1Alpha1CollectionNamespacedBillingEntitlementData,
   DeleteBillingMiloapisComV1Alpha1CollectionNamespacedBillingEntitlementErrors,
   DeleteBillingMiloapisComV1Alpha1CollectionNamespacedBillingEntitlementResponses,
+  DeleteBillingMiloapisComV1Alpha1CollectionNamespacedCreditGrantData,
+  DeleteBillingMiloapisComV1Alpha1CollectionNamespacedCreditGrantErrors,
+  DeleteBillingMiloapisComV1Alpha1CollectionNamespacedCreditGrantResponses,
   DeleteBillingMiloapisComV1Alpha1CollectionNamespacedInvoiceData,
   DeleteBillingMiloapisComV1Alpha1CollectionNamespacedInvoiceErrors,
   DeleteBillingMiloapisComV1Alpha1CollectionNamespacedInvoiceResponses,
@@ -110,6 +116,9 @@ import type {
   DeleteBillingMiloapisComV1Alpha1NamespacedBillingEntitlementData,
   DeleteBillingMiloapisComV1Alpha1NamespacedBillingEntitlementErrors,
   DeleteBillingMiloapisComV1Alpha1NamespacedBillingEntitlementResponses,
+  DeleteBillingMiloapisComV1Alpha1NamespacedCreditGrantData,
+  DeleteBillingMiloapisComV1Alpha1NamespacedCreditGrantErrors,
+  DeleteBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
   DeleteBillingMiloapisComV1Alpha1NamespacedInvoiceData,
   DeleteBillingMiloapisComV1Alpha1NamespacedInvoiceErrors,
   DeleteBillingMiloapisComV1Alpha1NamespacedInvoiceResponses,
@@ -143,6 +152,9 @@ import type {
   ListBillingMiloapisComV1Alpha1BillingEntitlementForAllNamespacesData,
   ListBillingMiloapisComV1Alpha1BillingEntitlementForAllNamespacesErrors,
   ListBillingMiloapisComV1Alpha1BillingEntitlementForAllNamespacesResponses,
+  ListBillingMiloapisComV1Alpha1CreditGrantForAllNamespacesData,
+  ListBillingMiloapisComV1Alpha1CreditGrantForAllNamespacesErrors,
+  ListBillingMiloapisComV1Alpha1CreditGrantForAllNamespacesResponses,
   ListBillingMiloapisComV1Alpha1InvoiceForAllNamespacesData,
   ListBillingMiloapisComV1Alpha1InvoiceForAllNamespacesErrors,
   ListBillingMiloapisComV1Alpha1InvoiceForAllNamespacesResponses,
@@ -170,6 +182,9 @@ import type {
   ListBillingMiloapisComV1Alpha1NamespacedBillingEntitlementData,
   ListBillingMiloapisComV1Alpha1NamespacedBillingEntitlementErrors,
   ListBillingMiloapisComV1Alpha1NamespacedBillingEntitlementResponses,
+  ListBillingMiloapisComV1Alpha1NamespacedCreditGrantData,
+  ListBillingMiloapisComV1Alpha1NamespacedCreditGrantErrors,
+  ListBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
   ListBillingMiloapisComV1Alpha1NamespacedInvoiceData,
   ListBillingMiloapisComV1Alpha1NamespacedInvoiceErrors,
   ListBillingMiloapisComV1Alpha1NamespacedInvoiceResponses,
@@ -236,6 +251,12 @@ import type {
   PatchBillingMiloapisComV1Alpha1NamespacedBillingEntitlementStatusData,
   PatchBillingMiloapisComV1Alpha1NamespacedBillingEntitlementStatusErrors,
   PatchBillingMiloapisComV1Alpha1NamespacedBillingEntitlementStatusResponses,
+  PatchBillingMiloapisComV1Alpha1NamespacedCreditGrantData,
+  PatchBillingMiloapisComV1Alpha1NamespacedCreditGrantErrors,
+  PatchBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
+  PatchBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusData,
+  PatchBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusErrors,
+  PatchBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusResponses,
   PatchBillingMiloapisComV1Alpha1NamespacedInvoiceData,
   PatchBillingMiloapisComV1Alpha1NamespacedInvoiceErrors,
   PatchBillingMiloapisComV1Alpha1NamespacedInvoiceResponses,
@@ -311,6 +332,12 @@ import type {
   ReadBillingMiloapisComV1Alpha1NamespacedBillingEntitlementStatusData,
   ReadBillingMiloapisComV1Alpha1NamespacedBillingEntitlementStatusErrors,
   ReadBillingMiloapisComV1Alpha1NamespacedBillingEntitlementStatusResponses,
+  ReadBillingMiloapisComV1Alpha1NamespacedCreditGrantData,
+  ReadBillingMiloapisComV1Alpha1NamespacedCreditGrantErrors,
+  ReadBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
+  ReadBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusData,
+  ReadBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusErrors,
+  ReadBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusResponses,
   ReadBillingMiloapisComV1Alpha1NamespacedInvoiceData,
   ReadBillingMiloapisComV1Alpha1NamespacedInvoiceErrors,
   ReadBillingMiloapisComV1Alpha1NamespacedInvoiceResponses,
@@ -386,6 +413,12 @@ import type {
   ReplaceBillingMiloapisComV1Alpha1NamespacedBillingEntitlementStatusData,
   ReplaceBillingMiloapisComV1Alpha1NamespacedBillingEntitlementStatusErrors,
   ReplaceBillingMiloapisComV1Alpha1NamespacedBillingEntitlementStatusResponses,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedCreditGrantData,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedCreditGrantErrors,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusData,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusErrors,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusResponses,
   ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceData,
   ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceErrors,
   ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceResponses,
@@ -558,6 +591,24 @@ export const listBillingMiloapisComV1Alpha1BillingEntitlementForAllNamespaces = 
     ListBillingMiloapisComV1Alpha1BillingEntitlementForAllNamespacesErrors,
     ThrowOnError
   >({ url: '/apis/billing.miloapis.com/v1alpha1/billingentitlements', ...options });
+
+/**
+ * list objects of kind CreditGrant
+ */
+export const listBillingMiloapisComV1Alpha1CreditGrantForAllNamespaces = <
+  ThrowOnError extends boolean = false,
+>(
+  options?: Options<ListBillingMiloapisComV1Alpha1CreditGrantForAllNamespacesData, ThrowOnError>
+): RequestResult<
+  ListBillingMiloapisComV1Alpha1CreditGrantForAllNamespacesResponses,
+  ListBillingMiloapisComV1Alpha1CreditGrantForAllNamespacesErrors,
+  ThrowOnError
+> =>
+  (options?.client ?? client).get<
+    ListBillingMiloapisComV1Alpha1CreditGrantForAllNamespacesResponses,
+    ListBillingMiloapisComV1Alpha1CreditGrantForAllNamespacesErrors,
+    ThrowOnError
+  >({ url: '/apis/billing.miloapis.com/v1alpha1/creditgrants', ...options });
 
 /**
  * list objects of kind Invoice
@@ -2451,6 +2502,237 @@ export const replaceBillingMiloapisComV1Alpha1NamespacedBillingEntitlementStatus
     ThrowOnError
   >({
     url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/billingentitlements/{name}/status',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * delete collection of CreditGrant
+ */
+export const deleteBillingMiloapisComV1Alpha1CollectionNamespacedCreditGrant = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<
+    DeleteBillingMiloapisComV1Alpha1CollectionNamespacedCreditGrantData,
+    ThrowOnError
+  >
+): RequestResult<
+  DeleteBillingMiloapisComV1Alpha1CollectionNamespacedCreditGrantResponses,
+  DeleteBillingMiloapisComV1Alpha1CollectionNamespacedCreditGrantErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).delete<
+    DeleteBillingMiloapisComV1Alpha1CollectionNamespacedCreditGrantResponses,
+    DeleteBillingMiloapisComV1Alpha1CollectionNamespacedCreditGrantErrors,
+    ThrowOnError
+  >({ url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/creditgrants', ...options });
+
+/**
+ * list objects of kind CreditGrant
+ */
+export const listBillingMiloapisComV1Alpha1NamespacedCreditGrant = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ListBillingMiloapisComV1Alpha1NamespacedCreditGrantData, ThrowOnError>
+): RequestResult<
+  ListBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
+  ListBillingMiloapisComV1Alpha1NamespacedCreditGrantErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).get<
+    ListBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
+    ListBillingMiloapisComV1Alpha1NamespacedCreditGrantErrors,
+    ThrowOnError
+  >({ url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/creditgrants', ...options });
+
+/**
+ * create a CreditGrant
+ */
+export const createBillingMiloapisComV1Alpha1NamespacedCreditGrant = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<CreateBillingMiloapisComV1Alpha1NamespacedCreditGrantData, ThrowOnError>
+): RequestResult<
+  CreateBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
+  CreateBillingMiloapisComV1Alpha1NamespacedCreditGrantErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).post<
+    CreateBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
+    CreateBillingMiloapisComV1Alpha1NamespacedCreditGrantErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/creditgrants',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * delete a CreditGrant
+ */
+export const deleteBillingMiloapisComV1Alpha1NamespacedCreditGrant = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<DeleteBillingMiloapisComV1Alpha1NamespacedCreditGrantData, ThrowOnError>
+): RequestResult<
+  DeleteBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
+  DeleteBillingMiloapisComV1Alpha1NamespacedCreditGrantErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).delete<
+    DeleteBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
+    DeleteBillingMiloapisComV1Alpha1NamespacedCreditGrantErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/creditgrants/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * read the specified CreditGrant
+ */
+export const readBillingMiloapisComV1Alpha1NamespacedCreditGrant = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReadBillingMiloapisComV1Alpha1NamespacedCreditGrantData, ThrowOnError>
+): RequestResult<
+  ReadBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
+  ReadBillingMiloapisComV1Alpha1NamespacedCreditGrantErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).get<
+    ReadBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
+    ReadBillingMiloapisComV1Alpha1NamespacedCreditGrantErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/creditgrants/{name}',
+    ...options,
+  });
+
+/**
+ * partially update the specified CreditGrant
+ */
+export const patchBillingMiloapisComV1Alpha1NamespacedCreditGrant = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PatchBillingMiloapisComV1Alpha1NamespacedCreditGrantData, ThrowOnError>
+): RequestResult<
+  PatchBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
+  PatchBillingMiloapisComV1Alpha1NamespacedCreditGrantErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).patch<
+    PatchBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
+    PatchBillingMiloapisComV1Alpha1NamespacedCreditGrantErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/creditgrants/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json-patch+json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * replace the specified CreditGrant
+ */
+export const replaceBillingMiloapisComV1Alpha1NamespacedCreditGrant = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReplaceBillingMiloapisComV1Alpha1NamespacedCreditGrantData, ThrowOnError>
+): RequestResult<
+  ReplaceBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedCreditGrantErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).put<
+    ReplaceBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
+    ReplaceBillingMiloapisComV1Alpha1NamespacedCreditGrantErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/creditgrants/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * read status of the specified CreditGrant
+ */
+export const readBillingMiloapisComV1Alpha1NamespacedCreditGrantStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReadBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusData, ThrowOnError>
+): RequestResult<
+  ReadBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusResponses,
+  ReadBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).get<
+    ReadBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusResponses,
+    ReadBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/creditgrants/{name}/status',
+    ...options,
+  });
+
+/**
+ * partially update status of the specified CreditGrant
+ */
+export const patchBillingMiloapisComV1Alpha1NamespacedCreditGrantStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PatchBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusData, ThrowOnError>
+): RequestResult<
+  PatchBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusResponses,
+  PatchBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).patch<
+    PatchBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusResponses,
+    PatchBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/creditgrants/{name}/status',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json-patch+json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * replace status of the specified CreditGrant
+ */
+export const replaceBillingMiloapisComV1Alpha1NamespacedCreditGrantStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReplaceBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusData, ThrowOnError>
+): RequestResult<
+  ReplaceBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusResponses,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).put<
+    ReplaceBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusResponses,
+    ReplaceBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/creditgrants/{name}/status',
     ...options,
     headers: {
       'Content-Type': 'application/json',

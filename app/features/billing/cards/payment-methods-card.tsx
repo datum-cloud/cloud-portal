@@ -20,7 +20,7 @@ import { Card, CardContent, CardFooter, CardTitle } from '@datum-cloud/datum-ui/
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 
 // Active is the happy path — every healthy card lives there — so we skip the
 // badge in that case and only surface a pill when the row actually carries
@@ -199,6 +199,8 @@ interface PaymentMethodsCardProps {
   billingDetailsPrefill?: StripeBillingDetailsPrefill;
   /** Shown instead of "No payment methods" when the list is empty. */
   emptyMessage?: string;
+  /** Shown in the footer, left of "Add a payment method". */
+  footerNote?: ReactNode;
 }
 
 export const PaymentMethodsCard = ({
@@ -211,6 +213,7 @@ export const PaymentMethodsCard = ({
   onRemove,
   billingDetailsPrefill,
   emptyMessage = 'No payment methods',
+  footerNote,
 }: PaymentMethodsCardProps) => {
   const [open, setOpen] = useState(false);
   const hasMethods = paymentMethods.length > 0;
@@ -237,7 +240,8 @@ export const PaymentMethodsCard = ({
             </CardTitle>
           </CardContent>
         )}
-        <CardFooter bordered className="flex justify-end">
+        <CardFooter bordered className="flex flex-wrap items-center justify-end gap-2">
+          {footerNote ? <div className="mr-auto min-w-0">{footerNote}</div> : null}
           <Button
             htmlType="button"
             type="quaternary"

@@ -11,10 +11,14 @@ export function ContentWrapper({
   const scrollRef = useContentScroll<HTMLDivElement>();
 
   return (
+    // `relative` makes this scroll container the containing block for
+    // absolutely positioned descendants, such as the hidden native <select>
+    // behind each Form.Select. Without it they escape the scroll area and
+    // stretch the document past the h-svh shell, so the whole layout scrolls.
     <div
       ref={scrollRef}
       className={cn(
-        'bg-card mx-auto flex h-full w-full flex-col gap-3 p-4 py-7 md:p-6',
+        'bg-card relative mx-auto flex h-full w-full flex-col gap-3 p-4 py-7 md:p-6',
         containerClassName
       )}>
       <Breadcrumb className="mx-auto w-full max-w-[1800px]" />

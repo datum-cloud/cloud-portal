@@ -60,8 +60,9 @@ export interface PaymentTermsCardProps {
 }
 
 /**
- * Billing settings' "Payment terms" section: the invoice terms in effect,
- * an application under review, or a way to apply.
+ * The invoice terms in effect, or an application under review, shown in
+ * billing settings' "Payment methods" section. Renders nothing otherwise;
+ * `PaymentTermsPrompt` covers applying and a declined application.
  */
 export const PaymentTermsCard = ({
   orgId,
@@ -195,32 +196,57 @@ export const PaymentTermsCard = ({
     );
   }
 
-  // Nothing to show and no way to apply.
-  if (phase !== 'Declined' && !canApply) return null;
+  return null;
+};
+
+export interface PaymentTermsPromptProps {
+  orgId?: string;
+  billingAccountName: string;
+  /** The account's most recent application for payment terms. */
+  application?: BillingArrangementApplication;
+  /** Whether customers can apply (`PAYMENT_TERMS_ENABLED`). */
+  canApply?: boolean;
+}
+
+/**
+ * One line for the "Payment methods" card's footer: a way to apply for
+ * payment terms, or why the last application was declined. Renders nothing
+ * while an application is under review, or when there is no way to apply.
+ */
+export const PaymentTermsPrompt = ({
+  orgId,
+  billingAccountName,
+  application,
+  canApply = true,
+}: PaymentTermsPromptProps) => {
+  const phase = application ? applicationPhase(application) : undefined;
+  const applyPath = orgId
+    ? paymentTermsPath({ orgId, billingAccountName, entry: 'settings' })
+    : undefined;
+
+  if (phase === 'Declined') {
+    return (
+      <Text as="p" size="sm" data-e2e="payment-terms-prompt">
+        We couldn&apos;t approve your last application for payment terms.{' '}
+        {applyPath ? (
+          <Link to={applyPath} className={linkClassName}>
+            See why
+          </Link>
+        ) : null}
+      </Text>
+    );
+  }
+
+  if (!canApply || phase === 'Pending') return null;
 
   return (
-    <Card size="sm" sectioned data-e2e="payment-terms-card">
-      <CardContent className="flex flex-col gap-2">
-        {phase === 'Declined' ? (
-          <Text as="p" size="sm">
-            We couldn&apos;t approve your last application for payment terms.{' '}
-            {applyPath ? (
-              <Link to={applyPath} className={linkClassName}>
-                See why
-              </Link>
-            ) : null}
-          </Text>
-        ) : (
-          <Text as="p" size="sm">
-            Want to pay by invoice?{' '}
-            {applyPath ? (
-              <Link to={applyPath} className={linkClassName} data-e2e="payment-terms-apply">
-                Apply for payment terms
-              </Link>
-            ) : null}
-          </Text>
-        )}
-      </CardContent>
-    </Card>
+    <Text as="p" size="sm" data-e2e="payment-terms-prompt">
+      Want to pay by invoice?{' '}
+      {applyPath ? (
+        <Link to={applyPath} className={linkClassName} data-e2e="payment-terms-apply">
+          Apply for payment terms
+        </Link>
+      ) : null}
+    </Text>
   );
 };
