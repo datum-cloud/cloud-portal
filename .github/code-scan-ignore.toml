@@ -1,0 +1,26 @@
+# Reviewed exceptions for the shared code scan (datum-cloud/actions code-scan).
+# Each entry is one rule on one exact path. Review before renewing.
+
+[[Ignore]]
+rule = "process-execution"
+path = "app/modules/plugins/server/kubeconfig.ts"
+reason = "Runs the kubeconfig exec credential plugin (execFile with a 30s timeout and 1 MiB output cap) to get a bearer token for the plugin dev registry, as kubectl does. The command comes from the operator's own kubeconfig, not from request input."
+ignoreUntil = 2027-04-29
+
+[[Ignore]]
+rule = "process-execution"
+path = "observability/dev-start.js"
+reason = "Dev-only launcher: Bun.spawn runs a fixed `bunx --bun vite` to start the dev server, and forwards signals to it. No external input reaches the command."
+ignoreUntil = 2027-04-29
+
+[[Ignore]]
+rule = "process-execution"
+path = "scripts/graphql.ts"
+reason = "Spawns `bun node_modules/@gqlts/cli/dist/cli.js` to generate the GraphQL client for `bun run graphql`; build-time only, fixed arguments."
+ignoreUntil = 2027-04-29
+
+[[Ignore]]
+rule = "process-execution"
+path = "scripts/lighthouse-authed.mjs"
+reason = "Dev tool: spawns a local headless Chrome and `bunx lighthouse` to audit an authenticated page. Chrome path is the developer's CHROME_PATH or the default macOS location; run manually, never in the app or CI."
+ignoreUntil = 2027-04-29
