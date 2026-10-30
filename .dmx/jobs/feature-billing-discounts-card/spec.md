@@ -24,6 +24,7 @@ Staff can set discounts on billing Offers (`billing.miloapis.com/v1alpha1`) in t
 - A "Discounts" section on the billing account detail page (`app/routes/account/billing/detail.tsx`), next to Invoices, rendered only when at least one discount is above 0%.
 - Read the discounts from `BillingAccount.status.discounts` (milo-os/billing#185) through the regenerated billing client.
 - Unit tests for the summary logic and Cypress component tests for the card.
+- Payment terms move into the "Payment methods" section (developer asked for this on 2026-10-30, to ship in the same PR). The separate "Payment terms" section is removed: active terms and an application under review render above the card list, and the apply and declined prompts (`PaymentTermsPrompt`) go in the `PaymentMethodsCard` footer next to "Add a payment method".
 
 ## Out of Scope
 

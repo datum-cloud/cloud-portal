@@ -1,5 +1,5 @@
 import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { PaymentTermsCard } from '@/features/billing/cards/payment-terms-card';
+import { PaymentTermsCard, PaymentTermsPrompt } from '@/features/billing/cards/payment-terms-card';
 import { PaymentTermsApplicationForm } from '@/features/onboarding/payment-terms/application-form';
 import {
   ApplicationApproved,
@@ -422,8 +422,25 @@ describe('Payment terms in billing settings', () => {
     endsAt: endingSoon,
   };
 
+  const prompt = { orgId: 'acme', billingAccountName: 'acme-billing' };
+  const applicationIn = (phase: 'Pending' | 'Declined') => ({
+    metadata: { name: 'apply-acme-billing-abc', creationTimestamp: '2026-10-02T09:00:00Z' },
+    spec: {
+      billingAccountRef: { name: 'acme-billing' },
+      paymentOption: 'Invoice' as const,
+      organization: {
+        legalName: 'Acme Corp',
+        type: 'Company' as const,
+        website: 'https://acme.com',
+      },
+      situation: 'We pay by PO.',
+      authorized: true,
+    },
+    status: { phase },
+  });
+
   it('offers to apply when turned on', () => {
-    cy.mountRemixRoute(withProviders(<PaymentTermsCard {...card} />));
+    cy.mountRemixRoute(withProviders(<PaymentTermsPrompt {...prompt} />));
     cy.get('[data-e2e="payment-terms-apply"]').should(
       'have.attr',
       'href',
@@ -432,7 +449,39 @@ describe('Payment terms in billing settings', () => {
   });
 
   it('shows nothing to apply with while turned off', () => {
-    cy.mountRemixRoute(withProviders(<PaymentTermsCard {...card} canApply={false} />));
+    cy.mountRemixRoute(withProviders(<PaymentTermsPrompt {...prompt} canApply={false} />));
+    cy.get('[data-e2e="payment-terms-prompt"]').should('not.exist');
+  });
+
+  it('points to a declined application, even while turned off', () => {
+    cy.mountRemixRoute(
+      withProviders(
+        <PaymentTermsPrompt {...prompt} application={applicationIn('Declined')} canApply={false} />
+      )
+    );
+    cy.get('[data-e2e="payment-terms-prompt"]').should(
+      'contain.text',
+      "We couldn't approve your last application for payment terms."
+    );
+    cy.contains('a', 'See why').should('exist');
+  });
+
+  it('leaves an application under review to the card', () => {
+    const application = applicationIn('Pending');
+    cy.mountRemixRoute(
+      withProviders(
+        <>
+          <PaymentTermsPrompt {...prompt} application={application} />
+          <PaymentTermsCard {...card} application={application} />
+        </>
+      )
+    );
+    cy.get('[data-e2e="payment-terms-prompt"]').should('not.exist');
+    cy.get('[data-e2e="payment-terms-card"]').should('contain.text', 'Application under review');
+  });
+
+  it('has no card without terms or an application under review', () => {
+    cy.mountRemixRoute(withProviders(<PaymentTermsCard {...card} />));
     cy.get('[data-e2e="payment-terms-card"]').should('not.exist');
   });
 

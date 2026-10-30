@@ -17,3 +17,10 @@
 - [x] Regenerate the billing client from staging (developer ran `bun run openapi`)
 - [x] Replace the `loadAccountDiscounts` stub with `accountDiscounts(account)` reading `status.discounts`, with Bun tests
 - [x] Run typecheck, lint and tests
+
+## Phase 4 — Payment terms in Payment methods
+
+- [x] Split the apply and declined lines out of `PaymentTermsCard` into `PaymentTermsPrompt`
+- [x] Add a `footerNote` slot to `PaymentMethodsCard`
+- [x] Remove the "Payment terms" section and render both inside "Payment methods"
+- [x] Update the payment terms Cypress component tests
