@@ -39,7 +39,14 @@ Staff can set discounts on billing Offers (`billing.miloapis.com/v1alpha1`) in t
 
 ### Data dependency
 
-There is no customer-readable API for resolved discounts yet. The stub in `detail.tsx` (`loadAccountDiscounts`) is marked with a TODO. It waits on milo-os/billing to publish `BillingAccount.status.discounts` (milo-os/billing#185, not yet merged): one entry per service pricing in the account's Offer, with `name`, `serviceRef`, `displayName` and `percentage`, set only while at least one is above 0%. Customers' Billing Viewer role already reads `BillingAccount` status; `BillingEntitlement` was ruled out because customers can't read it and its spec names the Offer. The portal's billing client needs regenerating once that lands. Discounts are only charged once milo-os/openmeter-provider#61 reaches production, so the card should not be wired to real data before then.
+There is no customer-readable API for resolved discounts yet. The stub in `detail.tsx` (`loadAccountDiscounts`) is marked with a TODO. It waits on milo-os/billing to publish `BillingAccount.status.discounts` (milo-os/billing#185, merged 2026-10-29, not yet released or deployed): one entry per service pricing in the account's Offer, with `name`, `serviceRef`, `displayName` and `percentage`, set only while at least one is above 0%. Customers' Billing Viewer role already reads `BillingAccount` status; `BillingEntitlement` was ruled out because customers can't read it and its spec names the Offer. The portal's billing client needs regenerating once that lands. Discounts are only charged once milo-os/openmeter-provider#61 reaches production, so the card should not be wired to real data before then.
+
+Remaining steps, in order:
+
+1. Billing with #185 is released and deployed to staging.
+2. The developer runs `bun run openapi` against staging to regenerate the billing client (it needs their token).
+3. Replace `loadAccountDiscounts` with a typed read of `account.status.discounts` (`displayName`, falling back to `name`, plus `percentage`).
+4. Confirm milo-os/openmeter-provider#61 (merged 2026-10-27) is in production before this ships.
 
 "All usage" is decided from the services listed: when every listed service has the same percentage, the card shows one line. Billing lists every pricing in the Offer, including those at 0%, so the list is complete.
 
