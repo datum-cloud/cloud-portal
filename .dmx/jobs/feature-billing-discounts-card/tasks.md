@@ -24,3 +24,8 @@
 - [x] Add a `footerNote` slot to `PaymentMethodsCard`
 - [x] Remove the "Payment terms" section and render both inside "Payment methods"
 - [x] Update the payment terms Cypress component tests
+
+## Phase 5 — Page scrolls past its content
+
+- [x] Find the cause: hidden native selects from `Form.Select` escape the scroll container
+- [x] Make `ContentWrapper`'s scroll container `relative`

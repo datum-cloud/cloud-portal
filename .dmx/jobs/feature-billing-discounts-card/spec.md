@@ -25,6 +25,7 @@ Staff can set discounts on billing Offers (`billing.miloapis.com/v1alpha1`) in t
 - Read the discounts from `BillingAccount.status.discounts` (milo-os/billing#185) through the regenerated billing client.
 - Unit tests for the summary logic and Cypress component tests for the card.
 - Payment terms move into the "Payment methods" section (developer asked for this on 2026-10-30, to ship in the same PR). The separate "Payment terms" section is removed: active terms and an application under review render above the card list, and the apply and declined prompts (`PaymentTermsPrompt`) go in the `PaymentMethodsCard` footer next to "Add a payment method".
+- Fix the billing account page scrolling past its content (developer asked for this on 2026-10-30, in the same PR). The hidden native `<select>` behind each `Form.Select` is absolutely positioned and escaped the page's scroll container, stretching the document past the `h-svh` shell. `ContentWrapper` is now `relative`, which fixes every page that uses it.
 
 ## Out of Scope
 
