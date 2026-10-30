@@ -178,8 +178,8 @@ app.onError(errorHandler);
 // ============================================================================
 // Plugin Routes (registered BEFORE the guarded /api sub-app)
 // ============================================================================
-// The asset proxy must serve plugin bundles without a session, so plugin routes
-// escape the blanket API auth guard and gate themselves per-route. The
+// The plugin router applies the session guard and traffic-class limiter itself,
+// which is why it is mounted here rather than inside the /api sub-app. The
 // dev-session token exchange is mounted only when explicitly enabled in dev.
 app.route('/api/plugins', createPluginRoutes());
 

@@ -31,7 +31,9 @@
  * forwards to Milo. If the assistant repo ever changes the wire protocol
  * behind that endpoint, this file does not need to change.
  */
+import { logger } from '@/modules/logger';
 import type { Variables } from '@/server/types';
+import { encodePathSegments, isDns1123Label, isLowercaseUuid } from '@/server/upstream-params';
 import { env } from '@/utils/env/env.server';
 import { Hono } from 'hono';
 
@@ -44,6 +46,10 @@ export const assistantChatRoutes = new Hono<{ Variables: Variables }>();
  * `POST /chat/conversations/:contextId/sendmessage`, same body, same
  * `projectId` query param, same bearer token. Streams the response back
  * unmodified.
+ *
+ * `contextId` must be a lowercase UUID and `projectId` a project name (an
+ * RFC 1123 label). Anything else is refused before the upstream URL is built,
+ * and only `projectId` is forwarded as a query.
  */
 assistantChatRoutes.post('/conversations/:contextId/sendmessage', async (c) => {
   const session = c.get('session');
@@ -55,7 +61,19 @@ assistantChatRoutes.post('/conversations/:contextId/sendmessage', async (c) => {
   }
 
   const contextId = c.req.param('contextId');
-  const queryString = new URL(c.req.url).search;
+  // The assistant issues UUID context ids (assistant repo, internal/patchcli/chat_tui.go).
+  if (!isLowercaseUuid(contextId)) {
+    return c.json({ error: 'Invalid conversation id' }, 400);
+  }
+  const projectId = c.req.query('projectId');
+  if (projectId !== undefined && !isDns1123Label(projectId)) {
+    return c.json({ error: 'Invalid project id' }, 400);
+  }
+
+  const upstreamUrl = new URL(
+    `${env.server.assistantA2aUrl}${encodePathSegments('chat', 'conversations', contextId, 'sendmessage')}`
+  );
+  if (projectId !== undefined) upstreamUrl.searchParams.set('projectId', projectId);
 
   const controller = new AbortController();
   c.req.raw.signal?.addEventListener('abort', () => controller.abort());
@@ -66,24 +84,23 @@ assistantChatRoutes.post('/conversations/:contextId/sendmessage', async (c) => {
 
   let upstream: Response;
   try {
-    upstream = await fetch(
-      `${env.server.assistantA2aUrl}/chat/conversations/${contextId}/sendmessage${queryString}`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-          'Content-Type': 'application/json',
-          Accept: 'text/event-stream',
-        },
-        body: requestBody,
-        signal: controller.signal,
-      }
-    );
+    upstream = await fetch(upstreamUrl.toString(), {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${session.accessToken}`,
+        'Content-Type': 'application/json',
+        Accept: 'text/event-stream',
+      },
+      body: requestBody,
+      signal: controller.signal,
+    });
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
       return new Response(null, { status: 499 });
     }
-    console.error('[assistant-chat] upstream fetch failed:', error);
+    logger.error('[assistant-chat] upstream fetch failed', error as Error, {
+      requestId: c.get('requestId'),
+    });
     return c.json({ error: 'Could not reach the assistant' }, 502);
   }
 
