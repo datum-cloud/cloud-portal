@@ -7,7 +7,11 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
-    include: ['app/**/*.test.{ts,tsx}', 'cypress/support/**/*.test.ts'],
+    include: [
+      'app/**/*.test.{ts,tsx}',
+      'observability/**/*.test.ts',
+      'cypress/support/**/*.test.ts',
+    ],
     environment: 'node',
     coverage: {
       provider: 'v8',
