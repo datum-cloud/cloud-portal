@@ -53,7 +53,6 @@ export const paths = {
       general: '/account/general',
       security: '/account/security',
       activeSessions: '/account/active-sessions',
-      accessTokens: '/account/access-tokens',
       notifications: '/account/notifications',
       activity: '/account/activity',
     },
@@ -86,14 +85,8 @@ export const paths = {
       // Org-wide metering dashboard. Aggregates usage across every billing
       // account in the org's namespace.
       usage: '/org/[orgId]/usage',
-      policyBindings: {
-        root: '/org/[orgId]/policy-bindings',
-        new: '/org/[orgId]/policy-bindings/new',
-        edit: '/org/[orgId]/policy-bindings/[policyBindingId]/edit',
-      },
       settings: {
         general: '/org/[orgId]/general',
-        notifications: '/org/[orgId]/notifications',
         quotas: '/org/[orgId]/quotas',
         activity: '/org/[orgId]/activity',
       },
@@ -141,7 +134,6 @@ export const paths = {
         root: '/project/[projectId]/dns-zones',
         detail: {
           root: '/project/[projectId]/dns-zones/[dnsZoneId]',
-          // overview: '/project/[projectId]/dns-zones/[dnsZoneId]/overview',
           discovery: '/project/[projectId]/dns-zones/[dnsZoneId]/discovery',
           dnsRecords: '/project/[projectId]/dns-zones/[dnsZoneId]/dns-records',
           nameservers: '/project/[projectId]/dns-zones/[dnsZoneId]/nameservers',
@@ -173,7 +165,6 @@ export const paths = {
       quotas: '/project/[projectId]/quotas',
       settings: {
         general: '/project/[projectId]/general',
-        notifications: '/project/[projectId]/notifications',
         quotas: '/project/[projectId]/quotas',
         billing: '/project/[projectId]/billing',
         activity: '/project/[projectId]/activity',
