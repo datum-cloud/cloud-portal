@@ -4,6 +4,7 @@ import { ClientHintCheck, getHints } from '@/components/misc/client-hints';
 import { DynamicFaviconLinks } from '@/components/misc/dynamic-favicon';
 import { useNonce } from '@/hooks/useNonce';
 import { GraphQLProvider } from '@/modules/graphql/provider';
+import { loadReplayWhenIdle } from '@/modules/sentry/replay';
 import { preloadStripeWhenIdle } from '@/modules/stripe/preload';
 import { getQueryClient } from '@/modules/tanstack/query';
 // Import global CSS styles for the application
@@ -241,6 +242,8 @@ export default function AppWithProviders() {
   }, []);
 
   useEffect(() => preloadStripeWhenIdle(), []);
+
+  useEffect(() => loadReplayWhenIdle(nonce), [nonce]);
 
   useEffect(() => {
     if (state === 'loading') {
