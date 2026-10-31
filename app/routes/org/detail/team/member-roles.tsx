@@ -1,7 +1,8 @@
 import { ProfileIdentity } from '@/components/profile-identity';
 import { RestrictedState } from '@/components/restricted-state/restricted-state';
-import type { UserRoleAssignment, PendingRemove } from '@/features/organization/team/roles';
+import type { UserRoleAssignment } from '@/features/organization/team/roles';
 import {
+  commitAssignments,
   useRolesEditor,
   RolesPanel,
   PermissionsPanel,
@@ -329,24 +330,11 @@ function MemberRolesEditor({
       // Build committed state: start from effectiveAssignments (all changes applied), then
       // revert any failed project changes — failed adds were never created on the server,
       // and failed removes were never deleted, so they must be added back.
-      const failedAddIds = new Set(
+      const committedAssignments = commitAssignments(
+        state.serverAssignments,
+        state.pendingChanges,
         failedProjectChanges
-          .filter((c) => c.op === 'add')
-          .map(
-            (c) =>
-              `pending-add-${c.role.name}-${c.scope.kind === 'project' ? `project-${c.scope.projectId}` : 'org'}`
-          )
       );
-      const failedRemoveIds = new Set(
-        failedProjectChanges
-          .filter((c): c is PendingRemove => c.op === 'remove')
-          .map((c) => c.assignmentId)
-      );
-
-      const committedAssignments: UserRoleAssignment[] = [
-        ...effectiveAssignments.filter((a) => !failedAddIds.has(a.id)),
-        ...state.serverAssignments.filter((a) => failedRemoveIds.has(a.id)),
-      ];
 
       dispatch({ type: 'COMMIT_SUCCESS', payload: { serverAssignments: committedAssignments } });
 

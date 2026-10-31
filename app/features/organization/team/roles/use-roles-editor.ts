@@ -2,6 +2,7 @@ import type {
   EditorState,
   PendingChange,
   PendingAdd,
+  PendingRemove,
   UserRoleAssignment,
 } from './roles-editor.types';
 import { useReducer, useMemo } from 'react';
@@ -19,24 +20,31 @@ type Action =
   | { type: 'DISCARD' }
   | { type: 'COMMIT_SUCCESS'; payload: { serverAssignments: UserRoleAssignment[] } };
 
+/**
+ * The id a staged add carries in editor state, and still carries after a save
+ * commits it. Rollback finds failed adds by this id, so build it only here.
+ */
+export function pendingAddId(change: Pick<PendingAdd, 'role' | 'scope'>): string {
+  const scopePart = change.scope.kind === 'project' ? `project-${change.scope.projectId}` : 'org';
+  return `pending-add-${change.role.name}-${scopePart}`;
+}
+
+function toPendingAssignments(pendingChanges: PendingChange[]): UserRoleAssignment[] {
+  return pendingChanges
+    .filter((c): c is PendingAdd => c.op === 'add')
+    .map((c) => ({ id: pendingAddId(c), role: c.role, scope: c.scope }));
+}
+
 // Returns all assignments shown in the roles panel — includes pending-removes (shown as struck-through)
-function computeVisibleAssignments(
+export function computeVisibleAssignments(
   serverAssignments: UserRoleAssignment[],
   pendingChanges: PendingChange[]
 ): UserRoleAssignment[] {
-  const added: UserRoleAssignment[] = pendingChanges
-    .filter((c): c is PendingAdd => c.op === 'add')
-    .map((c) => ({
-      id: `pending-add-${c.role.name}-${c.scope.kind === 'project' ? `project-${c.scope.projectId}` : 'org'}`,
-      role: c.role,
-      scope: c.scope,
-    }));
-
-  return [...serverAssignments, ...added];
+  return [...serverAssignments, ...toPendingAssignments(pendingChanges)];
 }
 
 // Returns assignments after removes are applied — used for permission calculations
-function computeEffectiveAssignments(
+export function computeEffectiveAssignments(
   serverAssignments: UserRoleAssignment[],
   pendingChanges: PendingChange[]
 ): UserRoleAssignment[] {
@@ -44,18 +52,38 @@ function computeEffectiveAssignments(
     pendingChanges.filter((c) => c.op === 'remove').map((c) => c.assignmentId)
   );
 
-  const added: UserRoleAssignment[] = pendingChanges
-    .filter((c): c is PendingAdd => c.op === 'add')
-    .map((c) => ({
-      id: `pending-add-${c.role.name}-${c.scope.kind === 'project' ? `project-${c.scope.projectId}` : 'org'}`,
-      role: c.role,
-      scope: c.scope,
-    }));
-
-  return [...serverAssignments.filter((a) => !removedIds.has(a.id)), ...added];
+  return [
+    ...serverAssignments.filter((a) => !removedIds.has(a.id)),
+    ...toPendingAssignments(pendingChanges),
+  ];
 }
 
-function reducer(state: EditorState, action: Action): EditorState {
+/**
+ * The assignments to commit after a save where some changes failed. Starts from
+ * every change applied, then reverts the failures: a failed add was never
+ * created, so it is dropped; a failed remove was never deleted, so it comes back.
+ */
+export function commitAssignments(
+  serverAssignments: UserRoleAssignment[],
+  pendingChanges: PendingChange[],
+  failedChanges: PendingChange[]
+): UserRoleAssignment[] {
+  const failedAddIds = new Set(
+    failedChanges.filter((c): c is PendingAdd => c.op === 'add').map(pendingAddId)
+  );
+  const failedRemoveIds = new Set(
+    failedChanges.filter((c): c is PendingRemove => c.op === 'remove').map((c) => c.assignmentId)
+  );
+
+  return [
+    ...computeEffectiveAssignments(serverAssignments, pendingChanges).filter(
+      (a) => !failedAddIds.has(a.id)
+    ),
+    ...serverAssignments.filter((a) => failedRemoveIds.has(a.id)),
+  ];
+}
+
+export function rolesEditorReducer(state: EditorState, action: Action): EditorState {
   switch (action.type) {
     case 'STAGE_ADD': {
       const { role, scope } = action.payload;
@@ -130,7 +158,7 @@ function reducer(state: EditorState, action: Action): EditorState {
 }
 
 export function useRolesEditor(initialAssignments: UserRoleAssignment[]) {
-  const [state, dispatch] = useReducer(reducer, {
+  const [state, dispatch] = useReducer(rolesEditorReducer, {
     serverAssignments: initialAssignments,
     pendingChanges: [],
     selectedAssignmentId: null,

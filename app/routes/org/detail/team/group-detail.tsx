@@ -1,7 +1,8 @@
 import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { GroupHeader } from '@/features/organization/team/group-header';
-import type { UserRoleAssignment, PendingRemove } from '@/features/organization/team/roles';
+import type { UserRoleAssignment } from '@/features/organization/team/roles';
 import {
+  commitAssignments,
   useRolesEditor,
   RolesPanel,
   PermissionsPanel,
@@ -289,24 +290,11 @@ function GroupDetailEditor({
 
       // Build committed state: apply all changes then revert failures — failed adds were never
       // created on the server; failed removes were never deleted so must be added back.
-      const failedAddIds = new Set(
+      const committedAssignments = commitAssignments(
+        state.serverAssignments,
+        state.pendingChanges,
         failedChanges
-          .filter((c) => c.op === 'add')
-          .map(
-            (c) =>
-              `pending-add-${c.role.name}-${c.scope.kind === 'project' ? `project-${c.scope.projectId}` : 'org'}`
-          )
       );
-      const failedRemoveIds = new Set(
-        failedChanges
-          .filter((c): c is PendingRemove => c.op === 'remove')
-          .map((c) => c.assignmentId)
-      );
-
-      const committedAssignments: UserRoleAssignment[] = [
-        ...effectiveAssignments.filter((a) => !failedAddIds.has(a.id)),
-        ...state.serverAssignments.filter((a) => failedRemoveIds.has(a.id)),
-      ];
 
       dispatch({ type: 'COMMIT_SUCCESS', payload: { serverAssignments: committedAssignments } });
 
