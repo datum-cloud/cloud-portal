@@ -55,10 +55,10 @@ independent of the portal. It declares its own dependencies (`react`,
 isolation:
 
 ```bash
-bun install
-bun run dev      # Vite dev server (:7777, HMR) — standalone/direct
-bun run preview  # built dist/ served (:7777) — proxy-safe
-bun run build    # static dist/ (remoteEntry.js + plugin-manifest.json + chunks)
+npm install
+npm run dev      # Vite dev server (:7777, HMR) — standalone/direct
+npm run preview  # built dist/ served (:7777) — proxy-safe
+npm run build    # static dist/ (remoteEntry.js + plugin-manifest.json + chunks)
 ```
 
 From the repo root: `task plugin:dev`, `task plugin:preview`, `task plugin:build`.
@@ -194,16 +194,16 @@ pages render — then that deleting the CR unloads the plugin. It is generic and
   `PORTAL_REPO_DIR=/path/to/cloud-portal` from your own repo.
 - `task`, `kubectl`, and outbound access for the portal's `task devenv:up` to
   fetch its pinned `kwokctl` (no Docker needed).
-- Chromium once: `bunx playwright install chromium`.
+- Chromium once: `npx playwright install chromium`.
 
 **Run**
 
 ```bash
-bun run test:e2e
+npm run test:e2e
 ```
 
 `e2e/global-setup.ts` fetches a datumctl token, aligns the portal's `API_URL` to
-it, brings up the kwok registry, serves your built plugin (`bun run preview`),
+it, brings up the kwok registry, serves your built plugin (`npm run preview`),
 starts the portal watching that registry, and exchanges the token for a session
 cookie. `e2e/plugin.spec.ts` then applies your CR and asserts discovery → nav →
 pages → unload. `e2e/global-teardown.ts` stops everything and runs

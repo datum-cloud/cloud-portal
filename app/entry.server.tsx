@@ -12,8 +12,7 @@ import { PassThrough } from 'node:stream';
 // `renderToPipeableStream` from it fails at load time, not build time.
 // The Node renderer is required here because Sentry's `getMetaTagTransformer`
 // takes a `PassThrough`, so the distributed-tracing meta tags can only be
-// injected on the Node stream path. Bun implements `node:stream`, so this build
-// runs fine under the Bun adapter.
+// injected on the Node stream path.
 import { renderToPipeableStream } from 'react-dom/server.node';
 import type { EntryContext, HandleErrorFunction, RouterContextProvider } from 'react-router';
 import { ServerRouter, isRouteErrorResponse } from 'react-router';

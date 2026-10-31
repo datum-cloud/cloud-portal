@@ -1,5 +1,5 @@
 import { buildQuotaIncreaseRequest, isBucketExhausted } from './build-quota-increase-request';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 describe('buildQuotaIncreaseRequest', () => {
   test('builds the HelpScout prefill', () => {

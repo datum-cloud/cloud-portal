@@ -1,6 +1,5 @@
-/// <reference types="bun-types/test" />
 import { validateManifest } from './manifest.schema';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 function baseManifest(overrides: Record<string, unknown> = {}) {
   return {

@@ -11,7 +11,7 @@ Generate typed SDK modules for control-plane APIs.
 ### Usage
 
 ```bash
-bun run openapi
+npm run openapi
 ```
 
 ### What it does
@@ -25,7 +25,7 @@ bun run openapi
 ### Example Session
 
 ```
-$ bun run openapi
+$ npm run openapi
 
 OpenAPI Control-Plane Generator
 

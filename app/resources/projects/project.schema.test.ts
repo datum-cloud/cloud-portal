@@ -1,5 +1,5 @@
 import { updateProjectSchema } from './project.schema';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('updateProjectSchema', () => {
   it('rejects an empty project name so Save cannot silently no-op', () => {

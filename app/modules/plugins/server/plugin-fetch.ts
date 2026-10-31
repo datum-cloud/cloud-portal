@@ -3,17 +3,36 @@
  *
  * Plugin assets and manifests are always fetched by the portal server, never
  * the browser. When a plugin's `assets.caBundle` is set (an internal CA fronting
- * the asset origin), it is passed to the runtime's TLS layer. This relies on
- * Bun's non-standard `tls` fetch option — the portal server runs on Bun
- * (`react-router-hono-server/bun`).
+ * the asset origin), it is handed to the TLS layer through an undici
+ * dispatcher, which Node's `fetch` accepts as the `dispatcher` init option.
  */
+import { Agent, type Dispatcher } from 'undici';
 
-/** Bun extends `fetch` init with a `tls` option; typed loosely to stay portable. */
+export interface TlsOptions {
+  ca?: string;
+  cert?: string;
+  key?: string;
+  rejectUnauthorized?: boolean;
+}
+
 export interface TlsFetchInit extends RequestInit {
-  tls?: {
-    ca?: string;
-    rejectUnauthorized?: boolean;
-  };
+  dispatcher?: Dispatcher;
+}
+
+const dispatchers = new Map<string, Agent>();
+
+/**
+ * Returns a shared dispatcher that connects with the given TLS options, so
+ * repeated requests with the same trust and identity reuse one connection pool.
+ */
+export function tlsDispatcher(tls: TlsOptions): Agent {
+  const key = JSON.stringify([tls.ca, tls.cert, tls.key, tls.rejectUnauthorized]);
+  let dispatcher = dispatchers.get(key);
+  if (!dispatcher) {
+    dispatcher = new Agent({ connect: { ...tls } });
+    dispatchers.set(key, dispatcher);
+  }
+  return dispatcher;
 }
 
 /**
@@ -23,5 +42,5 @@ export interface TlsFetchInit extends RequestInit {
 export function withCaBundle(init: RequestInit, caBundle?: string): TlsFetchInit {
   const trimmed = caBundle?.trim();
   if (!trimmed) return init;
-  return { ...init, tls: { ca: trimmed } };
+  return { ...init, dispatcher: tlsDispatcher({ ca: trimmed }) };
 }

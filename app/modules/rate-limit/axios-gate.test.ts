@@ -1,7 +1,7 @@
 import { axiosRequestPath, gateAxiosRequest, rateLimitErrorFromAxios } from './axios-gate';
 import { notePaused, pausedFor, resetRateLimitGate } from './gate';
 import { RateLimitError } from '@/utils/errors/app-error';
-import { beforeEach, describe, expect, test } from 'bun:test';
+import { beforeEach, describe, expect, test } from 'vitest';
 
 beforeEach(() => resetRateLimitGate());
 

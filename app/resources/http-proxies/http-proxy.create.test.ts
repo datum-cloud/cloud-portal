@@ -1,6 +1,6 @@
 import { toCreateHttpProxyPayload } from './http-proxy.adapter';
 import { httpProxySchema } from './http-proxy.schema';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 function backendRule(payload: ReturnType<typeof toCreateHttpProxyPayload>) {
   const rule = payload.spec.rules.find((r) => 'backends' in r);

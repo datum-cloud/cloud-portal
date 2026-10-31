@@ -1,6 +1,5 @@
-/// <reference types="bun-types/test" />
 import { assertNotRestricted } from './use-guarded-route-data';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 describe('assertNotRestricted', () => {
   test('throws when loader data is restricted', () => {

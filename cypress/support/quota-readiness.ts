@@ -9,7 +9,7 @@
  * before returning the shared project turns three unrelated assertion
  * failures into one clear "quota never provisioned" error.
  *
- * This module has no Cypress imports so it can be unit-tested with `bun test`;
+ * This module has no Cypress imports so it can be unit-tested with vitest;
  * the `cy.request` + retry orchestration lives in `e2e.ts`.
  */
 

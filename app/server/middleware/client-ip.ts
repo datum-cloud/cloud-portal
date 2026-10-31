@@ -1,5 +1,5 @@
+import { getConnInfo } from '@hono/node-server/conninfo';
 import type { Context } from 'hono';
-import { getConnInfo } from 'hono/bun';
 
 /**
  * Proxies in front of the portal that append to `X-Forwarded-For`. In every
@@ -42,7 +42,7 @@ export function trustedForwardedAddress(
   return candidate && isValidIP(candidate) ? candidate : undefined;
 }
 
-/** Peer address of the TCP connection; undefined outside Bun.serve (tests). */
+/** Peer address of the TCP connection; undefined outside the Node server (tests). */
 function socketAddress(c: Context): string | undefined {
   try {
     return getConnInfo(c).remote.address;

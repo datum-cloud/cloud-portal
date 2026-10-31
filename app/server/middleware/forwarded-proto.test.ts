@@ -1,6 +1,6 @@
 import { forwardedProtoMiddleware } from './forwarded-proto';
-import { describe, expect, it } from 'bun:test';
 import { Hono } from 'hono';
+import { describe, expect, it } from 'vitest';
 
 /**
  * Mirrors react-router-hono-server: the request handler is invoked with

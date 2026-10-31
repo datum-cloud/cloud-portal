@@ -1,6 +1,5 @@
-/// <reference types="bun-types/test" />
 import { toMemberAvatarsByOrg } from './organization.gateway';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 describe('toMemberAvatarsByOrg', () => {
   test('keys avatars by org name and drops pending invitations', () => {

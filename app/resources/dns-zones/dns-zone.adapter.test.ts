@@ -5,7 +5,7 @@ import {
   toUpdateDnsZonePayload,
 } from './dns-zone.adapter';
 import { rawMetadata } from '@/test/factories/k8s';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toDnsZone', () => {
   it('maps metadata + spec and prefers spec.domainName for displayName', () => {

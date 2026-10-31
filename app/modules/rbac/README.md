@@ -248,9 +248,9 @@ app/modules/rbac/
 
 ## Tests
 
-- Pure-logic unit tests: `bun run test:rbac` (Bun's test runner against
+- Pure-logic unit tests: `npm run test:rbac` (vitest against
   `app/modules/rbac/**/*.test.ts`).
-- React component tests: `bun run test:unit:prod` or `bun run test:unit:debug`
+- React component tests: `npm run test:unit:prod` or `npm run test:unit:debug`
   (Cypress component testing — see `cypress/component/guarded-page.cy.tsx`,
   `cypress/component/use-resource-permissions.cy.tsx`,
   `cypress/component/use-guarded-route-data.cy.tsx`,

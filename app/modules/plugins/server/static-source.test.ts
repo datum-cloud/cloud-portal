@@ -1,4 +1,3 @@
-/// <reference types="bun-types/test" />
 import { PluginRegistry } from './registry';
 import {
   composeStaticSpecs,
@@ -7,7 +6,7 @@ import {
   staticPluginSpec,
   StaticSource,
 } from './static-source';
-import { describe, expect, mock, test } from 'bun:test';
+import { describe, expect, test, vi } from 'vitest';
 
 describe('parsePortalPlugins', () => {
   test('parses a single slug=url pair', () => {
@@ -92,14 +91,14 @@ const VALID_MANIFEST = {
 
 describe('StaticSource', () => {
   test('seeds the registry with dev plugins from PORTAL_PLUGINS', async () => {
-    const fetchImpl = mock(
+    const fetchImpl = vi.fn(
       async () => new Response(JSON.stringify(VALID_MANIFEST), { status: 200 })
     );
     const registry = new PluginRegistry({ fetchImpl: fetchImpl as unknown as typeof fetch });
     const source = new StaticSource(registry, {
       raw: 'compute=http://localhost:7777',
       refreshIntervalMs: 0,
-      logger: { warn: mock(() => {}), info: mock(() => {}) },
+      logger: { warn: vi.fn(() => {}), info: vi.fn(() => {}) },
     });
 
     await source.start();
@@ -112,12 +111,12 @@ describe('StaticSource', () => {
   });
 
   test('does not seed when PORTAL_PLUGINS is empty', async () => {
-    const fetchImpl = mock(async () => new Response('{}', { status: 200 }));
+    const fetchImpl = vi.fn(async () => new Response('{}', { status: 200 }));
     const registry = new PluginRegistry({ fetchImpl: fetchImpl as unknown as typeof fetch });
     const source = new StaticSource(registry, {
       raw: '',
       refreshIntervalMs: 0,
-      logger: { warn: mock(() => {}), info: mock(() => {}) },
+      logger: { warn: vi.fn(() => {}), info: vi.fn(() => {}) },
     });
 
     await source.start();
@@ -127,7 +126,7 @@ describe('StaticSource', () => {
   });
 
   test('seeds a JSON plugin with a custom manifestPath', async () => {
-    const fetchImpl = mock(
+    const fetchImpl = vi.fn(
       async () => new Response(JSON.stringify(VALID_MANIFEST), { status: 200 })
     );
     const registry = new PluginRegistry({ fetchImpl: fetchImpl as unknown as typeof fetch });
@@ -139,7 +138,7 @@ describe('StaticSource', () => {
         },
       ]),
       refreshIntervalMs: 0,
-      logger: { warn: mock(() => {}), info: mock(() => {}) },
+      logger: { warn: vi.fn(() => {}), info: vi.fn(() => {}) },
     });
 
     await source.start();

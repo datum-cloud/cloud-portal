@@ -4,7 +4,7 @@ import {
   resolveTrafficClass,
   stripApiPrefix,
 } from './traffic-class';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 describe('resolveTrafficClass', () => {
   test.each<[string, TrafficClass]>([

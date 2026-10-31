@@ -4,8 +4,10 @@
  * This script initializes observability services before starting the development server.
  * It uses the factory pattern for clean, extensible observability management.
  */
-
 /* global process */
+import { spawn } from 'node:child_process';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
 
 // How long the dev server gets to exit on its own before we force the issue.
 // vite normally exits within ~1s of SIGTERM; this is the backstop, not the
@@ -13,7 +15,7 @@
 const SHUTDOWN_GRACE_MS = 5000;
 
 // The TTY delivers SIGINT to every process in the foreground group, and
-// `bun run` forwards it again, so a single Ctrl+C can arrive here twice.
+// `npm run` forwards it again, so a single Ctrl+C can arrive here twice.
 // Signals closer together than this are treated as one interrupt.
 const DUPLICATE_SIGNAL_MS = 500;
 
@@ -23,10 +25,16 @@ const DUPLICATE_SIGNAL_MS = 500;
 async function startDevServer() {
   console.log('🌐 Starting React Router development server...');
 
-  // Use bunx --bun vite for development (matches staff-portal)
-  const devProcess = Bun.spawn(['bunx', '--bun', 'vite'], {
+  const viteBin = join(
+    dirname(createRequire(import.meta.url).resolve('vite/package.json')),
+    'bin/vite.js'
+  );
+  const devProcess = spawn(process.execPath, [viteBin], {
     stdio: ['inherit', 'inherit', 'inherit'],
     env: { ...process.env },
+  });
+  const exited = new Promise((resolve) => {
+    devProcess.once('exit', (code, signal) => resolve(code ?? (signal ? 1 : 0)));
   });
 
   let shuttingDown = false;
@@ -79,7 +87,7 @@ async function startDevServer() {
   process.on('SIGTERM', () => handleSignal());
   process.on('SIGINT', () => handleSignal());
 
-  const exitCode = await devProcess.exited;
+  const exitCode = await exited;
   if (forceKillTimer) clearTimeout(forceKillTimer);
 
   // A signal-initiated shutdown is a normal exit, not a failure. Reporting the

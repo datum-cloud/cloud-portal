@@ -1,10 +1,10 @@
 import { requireBillingForAnyOrg, requireBillingForOrg } from './billing-gate.server';
 import { FeatureFlag } from './flags';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const isFeatureEnabled = mock(async () => false);
+const { isFeatureEnabled } = vi.hoisted(() => ({ isFeatureEnabled: vi.fn(async () => false) }));
 
-mock.module('./evaluate.server', () => ({
+vi.mock('./evaluate.server', () => ({
   isFeatureEnabled,
 }));
 

@@ -3,7 +3,7 @@ import {
   toOrganizationContactInfo,
   toOrganizationContactInfoPatch,
 } from './org-contact-info-schema';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toOrganizationContactInfoPatch', () => {
   it('omits null deletes on first write with no previous contact', () => {

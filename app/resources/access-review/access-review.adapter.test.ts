@@ -1,5 +1,5 @@
 import { toAccessReviewResult, toCreateAccessReviewPayload } from './access-review.adapter';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toAccessReviewResult', () => {
   it('maps status decision and resource attributes', () => {

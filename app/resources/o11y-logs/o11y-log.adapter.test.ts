@@ -1,7 +1,6 @@
-/// <reference types="bun-types/test" />
 import { toLogEntries } from './o11y-log.adapter';
 import type { LokiQueryRangeResponse } from '@datum-cloud/datum-ui/logs';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toLogEntries', () => {
   it('keeps the empty Body and the access-log attributes datum-ui parses', () => {

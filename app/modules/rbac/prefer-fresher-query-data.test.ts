@@ -1,5 +1,5 @@
 import { preferFresherQueryData } from './prefer-fresher-query-data';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 describe('preferFresherQueryData', () => {
   test('seeds empty cache with the incoming value', () => {

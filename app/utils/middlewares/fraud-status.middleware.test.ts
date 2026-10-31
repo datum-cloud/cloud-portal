@@ -1,6 +1,6 @@
 import { fraudStatusMiddleware } from './fraud-status.middleware';
 import type { MiddlewareContext } from './middleware';
-import { afterAll, afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // loadUser is the seam: every indeterminate-state exit is reachable by
 // controlling what it returns or throws. getSession controls the no-session
@@ -15,35 +15,20 @@ type Access = { error: 'not_found' | 'forbidden' | 'other' } | { user: Record<st
 let access: Access | (() => never) = { error: 'other' };
 let session: { sub?: string } | null = { sub: 'u1' };
 
-const getUserWithAccessRetry = mock(async () => {
+const getUserWithAccessRetry = vi.fn(async () => {
   if (typeof access === 'function') return access();
   return access;
 });
 
-// `mock.module` replaces a module wholesale in bun's process-global registry,
-// so any export omitted here becomes undefined for every later test file.
-// Capture the real exports BY VALUE first (the mock mutates the live namespace
-// object in place, so holding the namespace itself would restore the stubs),
-// spread them, and reinstall the snapshot in afterAll.
-const actualCookies = await import('@/utils/cookies');
-const actualRequestContext = await import('@/modules/axios/request-context');
-const realCookies = { ...actualCookies };
-const realRequestContext = { ...actualRequestContext };
-
-mock.module('@/utils/cookies', () => ({
-  ...actualCookies,
+vi.mock('@/utils/cookies', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/utils/cookies')>()),
   getSession: async () => ({ session }),
 }));
 
-mock.module('@/modules/axios/request-context', () => ({
-  ...actualRequestContext,
+vi.mock('@/modules/axios/request-context', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/modules/axios/request-context')>()),
   getRequestContext: () => undefined,
 }));
-
-afterAll(() => {
-  mock.module('@/utils/cookies', () => realCookies);
-  mock.module('@/modules/axios/request-context', () => realRequestContext);
-});
 
 const gateOn = () => {
   process.env.EMAIL_VERIFICATION_GATE = 'true';
@@ -77,7 +62,7 @@ afterEach(() => {
 describe('fraudStatusMiddleware — indeterminate-state exits', () => {
   it("gate OFF: an 'other' error still passes through (today's behaviour, byte-identical)", async () => {
     gateOff();
-    const next = mock(async () => new Response('ok'));
+    const next = vi.fn(async () => new Response('ok'));
     const res = await fraudStatusMiddleware(ctxFor('/dashboard'), next, {
       loadUser: getUserWithAccessRetry,
     });
@@ -87,7 +72,7 @@ describe('fraudStatusMiddleware — indeterminate-state exits', () => {
 
   it("gate ON: an 'other' error redirects to /verifying instead of admitting", async () => {
     gateOn();
-    const next = mock(async () => new Response('ok'));
+    const next = vi.fn(async () => new Response('ok'));
     const res = await fraudStatusMiddleware(ctxFor('/dashboard'), next, {
       loadUser: getUserWithAccessRetry,
     });
@@ -101,7 +86,7 @@ describe('fraudStatusMiddleware — indeterminate-state exits', () => {
     access = () => {
       throw new Error('boom');
     };
-    const next = mock(async () => new Response('ok'));
+    const next = vi.fn(async () => new Response('ok'));
     const res = await fraudStatusMiddleware(ctxFor('/dashboard'), next, {
       loadUser: getUserWithAccessRetry,
     });
@@ -115,7 +100,7 @@ describe('fraudStatusMiddleware — indeterminate-state exits', () => {
     access = () => {
       throw new Error('boom');
     };
-    const next = mock(async () => new Response('ok'));
+    const next = vi.fn(async () => new Response('ok'));
     await fraudStatusMiddleware(ctxFor('/logout'), next, { loadUser: getUserWithAccessRetry });
     expect(next).toHaveBeenCalled();
   });
@@ -123,7 +108,7 @@ describe('fraudStatusMiddleware — indeterminate-state exits', () => {
   it('gate ON: no session still passes through to authMiddleware', async () => {
     gateOn();
     session = null;
-    const next = mock(async () => new Response('ok'));
+    const next = vi.fn(async () => new Response('ok'));
     await fraudStatusMiddleware(ctxFor('/dashboard'), next, { loadUser: getUserWithAccessRetry });
     expect(next).toHaveBeenCalled();
   });
@@ -131,7 +116,7 @@ describe('fraudStatusMiddleware — indeterminate-state exits', () => {
   it('gate ON: a resolved, permitted user still passes through', async () => {
     gateOn();
     access = { user: approvedVerifiedUser() };
-    const next = mock(async () => new Response('ok'));
+    const next = vi.fn(async () => new Response('ok'));
     await fraudStatusMiddleware(ctxFor('/dashboard'), next, { loadUser: getUserWithAccessRetry });
     expect(next).toHaveBeenCalled();
   });

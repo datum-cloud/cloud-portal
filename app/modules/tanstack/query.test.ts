@@ -1,7 +1,7 @@
 import { createQueryClient, getQueryClient, shouldRetryQuery } from './query';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { environmentManager } from '@tanstack/react-query';
-import { afterEach, describe, expect, it } from 'bun:test';
+import { afterEach, describe, expect, it } from 'vitest';
 
 const wasServer = environmentManager.isServer();
 

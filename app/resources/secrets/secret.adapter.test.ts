@@ -6,7 +6,7 @@ import {
 } from './secret.adapter';
 import { rawMetadata } from '@/test/factories/k8s';
 import { toBase64 } from '@/utils/helpers/text.helper';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toSecret', () => {
   it('exposes only the data keys (never the values) and maps metadata', () => {

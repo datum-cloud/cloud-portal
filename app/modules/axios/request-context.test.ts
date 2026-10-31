@@ -1,15 +1,14 @@
-/// <reference types="bun-types/test" />
 import { getRequestContext, oncePerRequest, withRequestContext } from './request-context';
 import { LOGGER_CONFIG } from '@/modules/logger/logger.config';
 import { requestContextMiddleware } from '@/server/middleware/request-context';
 import type { Variables } from '@/server/types';
 import { AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 import { type Handler, Hono } from 'hono';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Pin Redis to null, as the auth.service suites do, so importing the auth
 // module graph below neither connects nor logs.
-mock.module('@/modules/redis', () => ({ redisClient: null }));
+vi.mock('@/modules/redis', () => ({ redisClient: null }));
 const { http } = await import('@/modules/axios/axios.server');
 const { AuthService } = await import('@/utils/auth/auth.service');
 
@@ -33,7 +32,7 @@ describe('oncePerRequest', () => {
     // by the sibling loader it was meant to serve. Both callers here start
     // before the fetch resolves, which is exactly that shape.
     const gate = deferred<string>();
-    const fetcher = mock(() => gate.promise);
+    const fetcher = vi.fn(() => gate.promise);
 
     await withRequestContext(CTX(), async () => {
       const a = oncePerRequest('k', fetcher);
@@ -48,7 +47,7 @@ describe('oncePerRequest', () => {
   });
 
   it('shares one call between sequential callers too', async () => {
-    const fetcher = mock(async () => 'value');
+    const fetcher = vi.fn(async () => 'value');
 
     await withRequestContext(CTX(), async () => {
       expect(await oncePerRequest('k', fetcher)).toBe('value');
@@ -58,7 +57,7 @@ describe('oncePerRequest', () => {
   });
 
   it('keeps different keys apart', async () => {
-    const fetcher = mock(async () => 'value');
+    const fetcher = vi.fn(async () => 'value');
 
     await withRequestContext(CTX(), async () => {
       await Promise.all([oncePerRequest('a', fetcher), oncePerRequest('b', fetcher)]);
@@ -68,7 +67,7 @@ describe('oncePerRequest', () => {
 
   it('shares a rejection with callers already waiting', async () => {
     const boom = new Error('upstream down');
-    const fetcher = mock(async () => {
+    const fetcher = vi.fn(async () => {
       throw boom;
     });
 
@@ -76,9 +75,7 @@ describe('oncePerRequest', () => {
       const a = oncePerRequest('k', fetcher);
       const b = oncePerRequest('k', fetcher);
 
-      expect(a).rejects.toBe(boom);
-      expect(b).rejects.toBe(boom);
-      await Promise.allSettled([a, b]);
+      await Promise.all([expect(a).rejects.toBe(boom), expect(b).rejects.toBe(boom)]);
       expect(fetcher).toHaveBeenCalledTimes(1);
     });
   });
@@ -87,7 +84,7 @@ describe('oncePerRequest', () => {
     // What the fail-open middlewares rely on: they swallow a failed pre-fetch
     // so the loader behind them can attempt it again and own the error. A
     // retained rejection would turn a transient blip into a hard page failure.
-    const fetcher = mock(async () => {
+    const fetcher = vi.fn(async () => {
       throw new Error('upstream down');
     });
 
@@ -101,7 +98,7 @@ describe('oncePerRequest', () => {
   it('does not carry a result into the next request', async () => {
     // The map hangs off the per-request store, so a failed read on one request
     // must not be handed to the next one.
-    const fetcher = mock(async () => 'value');
+    const fetcher = vi.fn(async () => 'value');
 
     await withRequestContext(CTX(), () => oncePerRequest('k', fetcher));
     await withRequestContext({ requestId: 'r2', token: 't' }, () => oncePerRequest('k', fetcher));
@@ -114,7 +111,7 @@ describe('oncePerRequest', () => {
     // `getUserWithAccessRetry` is the one that matters: an `{ error }` means
     // "could not determine", and a caller that reads it signs the user out.
     const results = ['fail', 'ok'];
-    const fetcher = mock(async () => results.shift()!);
+    const fetcher = vi.fn(async () => results.shift()!);
     const retain = (r: string) => r !== 'fail';
 
     await withRequestContext(CTX(), async () => {
@@ -128,7 +125,7 @@ describe('oncePerRequest', () => {
 
   it('still shares a non-retained result with callers already waiting', async () => {
     const gate = deferred<string>();
-    const fetcher = mock(() => gate.promise);
+    const fetcher = vi.fn(() => gate.promise);
 
     await withRequestContext(CTX(), async () => {
       const a = oncePerRequest('k', fetcher, { retain: () => false });
@@ -143,7 +140,7 @@ describe('oncePerRequest', () => {
   });
 
   it('degrades to a plain call outside a request context', async () => {
-    const fetcher = mock(async () => 'value');
+    const fetcher = vi.fn(async () => 'value');
 
     expect(getRequestContext()).toBeUndefined();
     expect(await oncePerRequest('k', fetcher)).toBe('value');
@@ -160,7 +157,7 @@ describe('oncePerRequest > hardening', () => {
     process.on('unhandledRejection', onUnhandled);
 
     try {
-      const fetcher = mock(async () => 'value');
+      const fetcher = vi.fn(async () => 'value');
       const retain = () => {
         throw new Error('predicate blew up');
       };
@@ -252,12 +249,14 @@ describe('axios 401 retry with a rotated session', () => {
 
   /** Stands in for the rotation lookup: redeems with `token` via the real `call`. */
   const redeemWith = (token: string) =>
-    spyOn(AuthService, 'retryWithRotatedSession').mockImplementation((async (
-      _cookieHeader: string | null,
-      _usedToken: string,
-      _site: string,
-      call: (accessToken: string) => Promise<unknown>
-    ) => ({ result: await call(token), headers: rotatedCookies() })) as never);
+    vi
+      .spyOn(AuthService, 'retryWithRotatedSession')
+      .mockImplementation((async (
+        _cookieHeader: string | null,
+        _usedToken: string,
+        _site: string,
+        call: (accessToken: string) => Promise<unknown>
+      ) => ({ result: await call(token), headers: rotatedCookies() })) as never);
 
   // Keep the interceptor's API call logging out of the test output. Toggled
   // rather than spied: other suites replace the logger module wholesale.
@@ -268,7 +267,7 @@ describe('axios 401 retry with a rotated session', () => {
 
   afterEach(() => {
     LOGGER_CONFIG.logApiCalls = logApiCalls;
-    mock.restore();
+    vi.restoreAllMocks();
   });
 
   it('retries a 401 once with the rotated token and returns the 200', async () => {
@@ -290,7 +289,7 @@ describe('axios 401 retry with a rotated session', () => {
   });
 
   it('passes the transformed 401 through when there is no rotation', async () => {
-    spyOn(AuthService, 'retryWithRotatedSession').mockResolvedValue(null);
+    vi.spyOn(AuthService, 'retryWithRotatedSession').mockResolvedValue(null);
     const { adapter, tokens } = adapterFailing(1);
 
     await withRequestContext(ROTATED_CTX(), async () => {
@@ -312,7 +311,7 @@ describe('axios 401 retry with a rotated session', () => {
   });
 
   it('falls through to the normal 401 when the lookup throws', async () => {
-    spyOn(AuthService, 'retryWithRotatedSession').mockRejectedValue(new Error('redis down'));
+    vi.spyOn(AuthService, 'retryWithRotatedSession').mockRejectedValue(new Error('redis down'));
     const { adapter, tokens } = adapterFailing(1);
 
     await withRequestContext(ROTATED_CTX(), async () => {

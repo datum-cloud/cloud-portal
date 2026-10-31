@@ -2,7 +2,7 @@ import { buildProjectNavTree } from './build-project-nav';
 import { mergePluginNavIntoTree } from './merge-plugin-nav';
 import type { NavProjectChild, PublicPlugin } from '@/modules/plugins/types';
 import { EXTENSION_NAV_PROJECT } from '@/modules/plugins/types';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 function plugin(partial: {
   slug: string;

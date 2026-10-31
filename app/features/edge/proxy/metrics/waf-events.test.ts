@@ -1,5 +1,5 @@
 import { resetGuardedIncrease } from './queries';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('resetGuardedIncrease', () => {
   it('multiplies increase() by a resets()-equals-zero guard over the same series and window', () => {

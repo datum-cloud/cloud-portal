@@ -1,8 +1,7 @@
-/// <reference types="bun-types/test" />
 import { MiloFeatureFlagProvider, isAvailable, type OrgBucketLister } from './milo-provider';
 import type { AllowanceBucket } from '@/resources/allowance-buckets';
 import { ErrorCode } from '@openfeature/server-sdk';
-import { describe, expect, mock, test } from 'bun:test';
+import { describe, expect, test, vi } from 'vitest';
 
 const FLAG = 'billing.miloapis.com/cloud-portal-usage-metering-dashboard';
 const ORG = 'acme';
@@ -21,9 +20,9 @@ function bucket(resourceType: string, available: number): AllowanceBucket {
 
 function mockLister(impl: (org: string) => Promise<AllowanceBucket[]>): {
   service: OrgBucketLister;
-  list: ReturnType<typeof mock>;
+  list: ReturnType<typeof vi.fn>;
 } {
-  const list = mock((_ns: 'organization', org: string) => impl(org));
+  const list = vi.fn((_ns: 'organization', org: string) => impl(org));
   return { service: { list } as OrgBucketLister, list };
 }
 
@@ -100,7 +99,7 @@ describe('MiloFeatureFlagProvider', () => {
 
   test('does not cache failures — next call re-fetches', async () => {
     let calls = 0;
-    const lister = mock(async () => {
+    const lister = vi.fn(async () => {
       calls++;
       if (calls === 1) throw new Error('transient');
       return [bucket(FLAG, 1)];

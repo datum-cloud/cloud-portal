@@ -1,5 +1,5 @@
 import { planSecurityUpdate, type SecuritySettings } from './security-update';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const allowed = { canEditWaf: true, canEditHost: true };
 

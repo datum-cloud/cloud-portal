@@ -1,12 +1,11 @@
-/// <reference types="bun-types/test" />
 import type { LoaderPermissionCheck } from './server/check-permission';
-import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import type { LoaderFunctionArgs } from 'react-router';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 // Module-level mocks for the gate primitives. We hold mutable refs the tests
 // can reconfigure per case. ESM namespace objects are frozen at runtime, so we
-// cannot reassign `gateModule.gateRouteAccess` directly — `mock.module` is the
-// supported Bun primitive for this.
+// cannot reassign `gateModule.gateRouteAccess` directly — `vi.mock` is the
+// supported primitive for this.
 //
 // `runListLoader` / `runRouteGate` still gate through `gateRouteAccess` (one
 // check each). `runDetailLoader` resolves the route gate and every companion
@@ -15,29 +14,15 @@ import type { LoaderFunctionArgs } from 'react-router';
 // stubbing. Leaving `canInLoaderBulk` real would construct an RbacService,
 // throw, get swallowed by its fail-closed catch, and silently turn every detail
 // route in this suite into `{ restricted: true }`.
-const gateRouteAccessSpy = mock(async () => true);
-const canInLoaderBulkSpy = mock(async (_organizationId: string, checks: LoaderPermissionCheck[]) =>
+const gateRouteAccessSpy = vi.fn(async () => true);
+const canInLoaderBulkSpy = vi.fn(async (_organizationId: string, checks: LoaderPermissionCheck[]) =>
   checks.map(() => true)
 );
-const recordGateDenialSpy = mock((_check: LoaderPermissionCheck) => {});
+const recordGateDenialSpy = vi.fn((_check: LoaderPermissionCheck) => {});
 
-// `mock.module` replaces the module in Bun's global registry for the rest of
-// the test run (not just this file), so any export we omit here becomes
-// undefined for every other test file that imports the same module. Capture
-// the real modules first, then spread their exports and override only what
-// this suite needs.
-const actualCheckPermission = await import('./server/check-permission');
-const actualCookies = await import('@/utils/cookies');
-
-// Snapshot the real exports BY VALUE. `mock.module` mutates the live ESM
-// namespace object in place, so restoring from `actualCheckPermission` itself
-// would hand the next test file our spies back instead of the real functions —
-// which is exactly the cross-file leak the afterAll below exists to prevent.
-const realCheckPermission = { ...actualCheckPermission };
-const realCookies = { ...actualCookies };
-
-mock.module('./server/check-permission', () => ({
-  ...actualCheckPermission,
+// Spread the real exports and override only what this suite needs.
+vi.mock('./server/check-permission', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./server/check-permission')>()),
   gateRouteAccess: (...args: unknown[]) => gateRouteAccessSpy(...(args as [])),
   canInLoaderBulk: (organizationId: string, checks: LoaderPermissionCheck[]) =>
     canInLoaderBulkSpy(organizationId, checks),
@@ -49,8 +34,8 @@ mock.module('./server/check-permission', () => ({
 // production ToastSchema requires), so the stub bypasses Zod parsing and
 // returns a plain redirect Response. Tests assert on `status` + `Location`
 // only, which matches the real `redirectWithToast` contract.
-mock.module('@/utils/cookies', () => ({
-  ...actualCookies,
+vi.mock('@/utils/cookies', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/utils/cookies')>()),
   redirectWithToast: async (url: string) =>
     new Response(null, { status: 302, headers: { Location: url } }),
 }));
@@ -61,15 +46,6 @@ mock.module('@/utils/cookies', () => ({
 // server-only runtime directly since loader behavior is what we want to assert.
 const { runListLoader, runDetailLoader } = await import('./run-resource-loader');
 const { defineResourceRoute } = await import('./define-resource-route');
-
-// Bun's mock.module replaces these modules in the global registry for the
-// rest of the test run, not just this file. Reinstall the untouched real
-// modules once this file's tests finish so later test files see the
-// genuine implementations again.
-afterAll(() => {
-  mock.module('./server/check-permission', () => realCheckPermission);
-  mock.module('@/utils/cookies', () => realCookies);
-});
 
 beforeEach(() => {
   // Default: allow access. Individual tests override as needed.
@@ -126,7 +102,7 @@ function asAny(response: unknown): AnyLoaderResponse {
 describe('runListLoader', () => {
   test('returns {restricted: true} when gate denies', async () => {
     gateRouteAccessSpy.mockImplementation(async () => false);
-    const fetchSpy = mock(async () => [{ name: 'one' }]);
+    const fetchSpy = vi.fn(async () => [{ name: 'one' }]);
 
     const response = await runListLoader(makeArgs({ projectId: 'p1' }), {
       resource: 'dnszones',
@@ -141,7 +117,7 @@ describe('runListLoader', () => {
 
   test('returns {restricted: false, data, companions: {}} when allowed', async () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
-    const fetchSpy = mock(async () => [{ name: 'zone-a' }]);
+    const fetchSpy = vi.fn(async () => [{ name: 'zone-a' }]);
 
     const response = await runListLoader(makeArgs({ projectId: 'p1' }), {
       resource: 'dnszones',
@@ -237,7 +213,7 @@ describe('runListLoader', () => {
 
   test('org-scope: reads orgId from params, passes as 1st arg to gate', async () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
-    const fetchSpy = mock(async () => [{ name: 'project-a' }]);
+    const fetchSpy = vi.fn(async () => [{ name: 'project-a' }]);
 
     const response = await runListLoader(makeArgs({ orgId: 'org-1' }), {
       resource: 'projects',
@@ -284,7 +260,7 @@ describe('runListLoader', () => {
 
   test('user-scope: passes empty string as 1st arg to gate', async () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
-    const fetchSpy = mock(async () => [{ name: 'org-1' }]);
+    const fetchSpy = vi.fn(async () => [{ name: 'org-1' }]);
 
     const response = await runListLoader(makeArgs({}), {
       resource: 'organizations',
@@ -308,7 +284,7 @@ describe('runDetailLoader', () => {
     canInLoaderBulkSpy.mockImplementation(async (_organizationId, checks) =>
       checks.map(() => false)
     );
-    const fetchSpy = mock(async () => ({ name: 'zone-a' }));
+    const fetchSpy = vi.fn(async () => ({ name: 'zone-a' }));
 
     const response = await runDetailLoader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }), {
       resource: 'dnszones',
@@ -324,7 +300,7 @@ describe('runDetailLoader', () => {
 
   test('returns {restricted: false, data, companions: {}} when allowed', async () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
-    const fetchSpy = mock(async () => ({ name: 'zone-a' }));
+    const fetchSpy = vi.fn(async () => ({ name: 'zone-a' }));
 
     const response = await runDetailLoader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }), {
       resource: 'dnszones',
@@ -347,7 +323,7 @@ describe('runDetailLoader', () => {
     // `Response` so React Router serves the route error boundary with the
     // correct HTTP status. See `rethrowAsResponse` in run-resource-loader.ts.
     gateRouteAccessSpy.mockImplementation(async () => true);
-    const fetchSpy = mock(async () => null);
+    const fetchSpy = vi.fn(async () => null);
 
     let caught: unknown = null;
     try {
@@ -438,7 +414,7 @@ describe('runDetailLoader', () => {
 
   test('org-scope detail: reads orgId + id from params, gates with orgId', async () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
-    const fetchSpy = mock(async () => ({ name: 'group-a' }));
+    const fetchSpy = vi.fn(async () => ({ name: 'group-a' }));
 
     const response = await runDetailLoader(makeArgs({ orgId: 'org-1', groupId: 'g1' }), {
       resource: 'groups',
@@ -467,7 +443,7 @@ describe('runDetailLoader', () => {
 
   test('user-scope detail: passes paramName id via check.name, empty 1st arg', async () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
-    const fetchSpy = mock(async () => ({ name: 'org-1' }));
+    const fetchSpy = vi.fn(async () => ({ name: 'org-1' }));
 
     await runDetailLoader(makeArgs({ orgId: 'org-1' }), {
       resource: 'organizations',
@@ -582,8 +558,8 @@ describe('runDetailLoader > companions', () => {
     // Allow the primary dnszones gate, deny the companion domains gate.
     allowResources(['dnszones']);
 
-    const fetchPrimary = mock(async () => ({ name: 'zone-a' }));
-    const fetchCompanion = mock(async () => ({ name: 'd1' }));
+    const fetchPrimary = vi.fn(async () => ({ name: 'zone-a' }));
+    const fetchCompanion = vi.fn(async () => ({ name: 'd1' }));
 
     const response = await runDetailLoader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }), {
       resource: 'dnszones',
@@ -928,7 +904,7 @@ describe('runDetailLoader > redirectIfDeleting', () => {
   test('returns redirect when descriptor truthy', async () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
 
-    const fetchCompanion = mock(async () => ({ name: 'd1' }));
+    const fetchCompanion = vi.fn(async () => ({ name: 'd1' }));
 
     const response = await runDetailLoader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }), {
       resource: 'dnszones',

@@ -8,7 +8,7 @@ The Datum Cloud Portal is a modern, full-stack web application for managing clou
 
 | Layer             | Technology                  | Purpose                                      |
 | ----------------- | --------------------------- | -------------------------------------------- |
-| **Runtime**       | Bun 1.2.17                  | JavaScript runtime & package manager         |
+| **Runtime**       | Node.js 26.12.1             | JavaScript runtime (npm as package manager)  |
 | **Server**        | Hono                        | Lightweight web framework (replaced Express) |
 | **Frontend**      | React 19 + React Router v7  | UI framework with SSR                        |
 | **State**         | TanStack Query              | Server state management & caching            |
@@ -39,7 +39,7 @@ The Datum Cloud Portal is a modern, full-stack web application for managing clou
                                │
                                ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                      HONO SERVER (Bun)                           │
+│                      HONO SERVER (Node)                          │
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────────┐   │
 │  │  Middleware  │───►│   Services   │───►│  @hey-api client │   │
 │  │ auth/logger  │    │ (resources/) │    │   (generated)    │   │

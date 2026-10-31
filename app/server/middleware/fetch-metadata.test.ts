@@ -1,9 +1,8 @@
-/// <reference types="bun-types/test" />
 import { errorHandler } from './error-handler';
 import { fetchMetadataGuard } from './fetch-metadata';
 import type { Variables } from '@/server/types';
-import { describe, expect, test } from 'bun:test';
 import { Hono } from 'hono';
+import { describe, expect, test } from 'vitest';
 
 function appWithGuard() {
   const app = new Hono<{ Variables: Variables }>();

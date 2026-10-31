@@ -4,7 +4,7 @@ import {
   paymentTermsPath,
   readPaymentTermsSearch,
 } from '@/features/billing/payment-terms-paths';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('payment terms paths', () => {
   it('round-trips the search params', () => {

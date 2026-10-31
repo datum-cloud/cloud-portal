@@ -1,6 +1,6 @@
 import { canBulkDelete, describeSkipped, planBulkDelete } from './bulk-delete';
 import type { IFlattenedDnsRecord } from '@/resources/dns-records';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 function row(
   partial: Partial<IFlattenedDnsRecord> & { name: string; value: string }

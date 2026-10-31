@@ -8,7 +8,7 @@ import {
   classifyQuotaPoll,
   hasNetworkingBucket,
 } from './quota-readiness';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const bucket = (resourceType: string) => ({
   metadata: { uid: 'u1', name: `bucket-${resourceType}`, namespace: 'milo-system' },

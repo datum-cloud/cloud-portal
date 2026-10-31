@@ -1,6 +1,6 @@
 import { computeWorkloadHref, findComputePluginSlug } from './compute-backend';
 import type { PluginExtension, PublicPlugin } from '@/modules/plugins/types';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 function plugin(slug: string, name: string, extensions: PluginExtension[] = []): PublicPlugin {
   return {

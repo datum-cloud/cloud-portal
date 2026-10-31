@@ -1,6 +1,6 @@
 import { membershipHasOwnerRole, selectOrgOwners } from './member-owner';
 import type { Member } from './member.schema';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('membershipHasOwnerRole', () => {
   it('returns true for the owner role', () => {

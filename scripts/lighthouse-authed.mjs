@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 // Run Lighthouse against an authenticated cloud-portal route by injecting
 // a signed _session cookie via Chrome DevTools Protocol (CDP) before navigation.
 //
@@ -8,21 +8,22 @@
 // fails once the React app hydrates and fires client-side fetch calls.
 //
 // Usage:
-//   bun scripts/lighthouse-authed.mjs <url> <output-json-path> [chrome-user-data-dir]
+//   node scripts/lighthouse-authed.mjs <url> <output-json-path> [chrome-user-data-dir]
 //
 // Env requirements: ACCESS_TOKEN, SUB, SESSION_SECRET (loaded from .env).
-
 import 'dotenv/config';
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { dirname } from 'node:path';
-import { createServer } from 'node:net';
 import { spawn } from 'node:child_process';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:net';
+import { dirname } from 'node:path';
 import { createCookie, createCookieSessionStorage } from 'react-router';
 
 const [, , url, outputPath, userDataDir = `/tmp/lh-authed-${Date.now()}`] = process.argv;
 
 if (!url || !outputPath) {
-  console.error('Usage: bun scripts/lighthouse-authed.mjs <url> <output-json-path> [chrome-user-data-dir]');
+  console.error(
+    'Usage: node scripts/lighthouse-authed.mjs <url> <output-json-path> [chrome-user-data-dir]'
+  );
   process.exit(1);
 }
 
@@ -77,8 +78,8 @@ console.log(`Running Lighthouse against ${url} with auth cookie (CDP port ${cdpP
 console.log(`Output: ${outputPath}`);
 
 // --- Launch Chrome with remote debugging enabled ---
-const chromePath = process.env.CHROME_PATH ||
-  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const chromePath =
+  process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
 const chromeArgs = [
   `--remote-debugging-port=${cdpPort}`,
@@ -110,7 +111,7 @@ async function waitForChrome(port, maxMs = 10000) {
     } catch (_) {
       // not ready yet
     }
-    await new Promise(r => setTimeout(r, 200));
+    await new Promise((r) => setTimeout(r, 200));
   }
   throw new Error(`Chrome did not start on port ${port} within ${maxMs}ms`);
 }
@@ -130,8 +131,8 @@ try {
 // Lighthouse will connect to the same Chrome instance.
 async function injectCookieViaCDP(port) {
   // Get the existing page's WebSocket URL
-  const targets = await fetch(`http://127.0.0.1:${port}/json/list`).then(r => r.json());
-  const target = targets.find(t => t.type === 'page') || targets[0];
+  const targets = await fetch(`http://127.0.0.1:${port}/json/list`).then((r) => r.json());
+  const target = targets.find((t) => t.type === 'page') || targets[0];
   if (!target) throw new Error('No CDP target found');
 
   const ws = new WebSocket(target.webSocketDebuggerUrl);
@@ -141,19 +142,20 @@ async function injectCookieViaCDP(port) {
   });
 
   let msgId = 1;
-  const send = (method, params = {}) => new Promise((resolve, reject) => {
-    const id = msgId++;
-    const handler = (event) => {
-      const msg = JSON.parse(event.data);
-      if (msg.id === id) {
-        ws.removeEventListener('message', handler);
-        if (msg.error) reject(new Error(msg.error.message));
-        else resolve(msg.result);
-      }
-    };
-    ws.addEventListener('message', handler);
-    ws.send(JSON.stringify({ id, method, params }));
-  });
+  const send = (method, params = {}) =>
+    new Promise((resolve, reject) => {
+      const id = msgId++;
+      const handler = (event) => {
+        const msg = JSON.parse(event.data);
+        if (msg.id === id) {
+          ws.removeEventListener('message', handler);
+          if (msg.error) reject(new Error(msg.error.message));
+          else resolve(msg.result);
+        }
+      };
+      ws.addEventListener('message', handler);
+      ws.send(JSON.stringify({ id, method, params }));
+    });
 
   // Set the session cookie in the browser's cookie store
   await send('Network.enable');
@@ -191,7 +193,7 @@ const args = [
   '--disable-storage-reset', // Don't clear cookies between navigations
 ];
 
-const lhChild = spawn('bunx', args, { stdio: 'inherit' });
+const lhChild = spawn('npx', args, { stdio: 'inherit' });
 
 lhChild.on('exit', (code) => {
   chromeProc.kill();

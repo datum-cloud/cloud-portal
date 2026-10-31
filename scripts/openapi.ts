@@ -1,10 +1,10 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 /**
  * OpenAPI Generation Script
  *
  * Interactive script to generate control-plane SDK modules from OpenAPI specs.
  *
- * Usage: bun run openapi
+ * Usage: npm run openapi
  */
 import { createClient, defaultPlugins } from '@hey-api/openapi-ts';
 import { input, checkbox, confirm } from '@inquirer/prompts';
@@ -134,7 +134,7 @@ function extractFolderName(resource: string): string {
  * client runtime — newer generated `sdk.gen.ts` files import it. It is kept
  * bare and uncommented so the file stays byte-comparable with generator output;
  * the explanation lives here instead, because anything written into a `.gen.ts`
- * file is lost on the next `bun run openapi`.
+ * file is lost on the next `npm run openapi`.
  */
 async function fixImports(filePath: string): Promise<void> {
   let content = await readFile(filePath, 'utf-8');

@@ -1,16 +1,15 @@
-/// <reference types="bun-types/test" />
 import type { PluginRegistryEntry } from '../types';
 import {
   collectPluginCspAdditions,
   createPluginCspResolver,
   EMPTY_PLUGIN_CSP_ADDITIONS,
 } from './csp';
-import { describe, expect, mock, test } from 'bun:test';
+import { describe, expect, test, vi } from 'vitest';
 
 const RELAY = 'iroh-relay.us-central-1.datumconnect.net';
 
 function collect(contentSecurityPolicy: unknown[]) {
-  const warn = mock(() => {});
+  const warn = vi.fn(() => {});
   const additions = collectPluginCspAdditions([{ slug: 'compute', contentSecurityPolicy }], {
     warn,
   });
@@ -95,7 +94,7 @@ describe('createPluginCspResolver', () => {
 
   test('reparses and logs only when declarations change', () => {
     let plugins = [entry('compute', ["script-src 'unsafe-eval'", `connect-src https://${RELAY}`])];
-    const warn = mock(() => {});
+    const warn = vi.fn(() => {});
     const resolve = createPluginCspResolver(() => plugins, { warn });
 
     const first = resolve();

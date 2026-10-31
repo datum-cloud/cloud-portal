@@ -10,7 +10,7 @@ import {
   USER_NAME_REVIEW_REQUIRED_ANNOTATION,
   USER_PROFILE_COUNTRY_ANNOTATION,
 } from './user.adapter';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toUser', () => {
   it('maps spec/status and reads preferences + flags from annotations', () => {

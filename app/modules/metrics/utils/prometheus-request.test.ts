@@ -1,4 +1,3 @@
-/// <reference types="bun-types/test" />
 import {
   executePrometheusRequest,
   shouldRetryMetricsQuery,
@@ -13,11 +12,11 @@ import type {
 } from '@/modules/prometheus';
 import { PrometheusError } from '@/modules/prometheus';
 import { AppError, AuthorizationError, ValidationError } from '@/utils/errors';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const querySpy = mock();
-const queryRangeSpy = mock();
-const labelValuesSpy = mock();
+const querySpy = vi.fn();
+const queryRangeSpy = vi.fn();
+const labelValuesSpy = vi.fn();
 
 const service: PrometheusRequestService = {
   query: querySpy,

@@ -1,17 +1,16 @@
-/// <reference types="bun-types/test" />
 import { RbacService } from './rbac.service';
-import { describe, expect, test, mock } from 'bun:test';
+import { describe, expect, test, vi } from 'vitest';
 
 describe('RbacService.checkPermission', () => {
   test('maps allowed result', async () => {
-    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const fakeAccessReview = { create: vi.fn(async () => ({ allowed: true, denied: false })) };
     const svc = new RbacService(() => fakeAccessReview as never);
     const result = await svc.checkPermission('acme', { resource: 'secrets', verb: 'get' });
     expect(result).toEqual({ allowed: true, denied: false, reason: undefined });
   });
 
   test('maps denied result', async () => {
-    const fakeAccessReview = { create: mock(async () => ({ allowed: false, denied: true })) };
+    const fakeAccessReview = { create: vi.fn(async () => ({ allowed: false, denied: true })) };
     const svc = new RbacService(() => fakeAccessReview as never);
     const result = await svc.checkPermission('acme', { resource: 'secrets', verb: 'delete' });
     expect(result.allowed).toBe(false);
@@ -20,7 +19,7 @@ describe('RbacService.checkPermission', () => {
 
   test('fails closed with reason on error', async () => {
     const fakeAccessReview = {
-      create: mock(async () => {
+      create: vi.fn(async () => {
         throw new Error('boom');
       }),
     };
@@ -30,7 +29,7 @@ describe('RbacService.checkPermission', () => {
   });
 
   test('routes user-scoped checks to the user control-plane base', async () => {
-    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const fakeAccessReview = { create: vi.fn(async () => ({ allowed: true, denied: false })) };
     const svc = new RbacService(() => fakeAccessReview as never);
     await svc.checkPermission('acme', {
       resource: 'organizations',
@@ -44,7 +43,7 @@ describe('RbacService.checkPermission', () => {
   });
 
   test('routes org-scoped checks (default) to the org control-plane base', async () => {
-    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const fakeAccessReview = { create: vi.fn(async () => ({ allowed: true, denied: false })) };
     const svc = new RbacService(() => fakeAccessReview as never);
     await svc.checkPermission('acme', { resource: 'secrets', verb: 'get' });
     const options = (
@@ -56,7 +55,7 @@ describe('RbacService.checkPermission', () => {
   });
 
   test('routes project-scoped checks to the project control-plane base', async () => {
-    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const fakeAccessReview = { create: vi.fn(async () => ({ allowed: true, denied: false })) };
     const svc = new RbacService(() => fakeAccessReview as never);
     await svc.checkPermission('acme', {
       resource: 'dnszones',
@@ -73,7 +72,7 @@ describe('RbacService.checkPermission', () => {
   });
 
   test('project-scoped check without projectId enforces the invariant: fails closed, no upstream call', async () => {
-    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const fakeAccessReview = { create: vi.fn(async () => ({ allowed: true, denied: false })) };
     const svc = new RbacService(() => fakeAccessReview as never);
     const result = await svc.checkPermission('acme', {
       resource: 'dnszones',
@@ -94,14 +93,14 @@ describe('RbacService namespace resolution', () => {
   }
 
   test('org-scoped check (default scope) targets the organization namespace', async () => {
-    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const fakeAccessReview = { create: vi.fn(async () => ({ allowed: true, denied: false })) };
     const svc = new RbacService(() => fakeAccessReview as never);
     await svc.checkPermission('acme', { resource: 'members', verb: 'list', scope: 'org' });
     expect(sentNamespace(fakeAccessReview.create)).toBe('organization-acme');
   });
 
   test('project-scoped check targets the default namespace', async () => {
-    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const fakeAccessReview = { create: vi.fn(async () => ({ allowed: true, denied: false })) };
     const svc = new RbacService(() => fakeAccessReview as never);
     await svc.checkPermission('acme', {
       resource: 'dnszones',
@@ -113,14 +112,14 @@ describe('RbacService namespace resolution', () => {
   });
 
   test('user-scoped check targets the empty (cluster-scoped) namespace', async () => {
-    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const fakeAccessReview = { create: vi.fn(async () => ({ allowed: true, denied: false })) };
     const svc = new RbacService(() => fakeAccessReview as never);
     await svc.checkPermission('acme', { resource: 'organizations', verb: 'list', scope: 'user' });
     expect(sentNamespace(fakeAccessReview.create)).toBe('');
   });
 
   test('explicit namespace overrides scope derivation', async () => {
-    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const fakeAccessReview = { create: vi.fn(async () => ({ allowed: true, denied: false })) };
     const svc = new RbacService(() => fakeAccessReview as never);
     await svc.checkPermission('acme', {
       resource: 'members',
@@ -134,7 +133,7 @@ describe('RbacService namespace resolution', () => {
 
 describe('RbacService.checkPermissions (bulk)', () => {
   test('returns per-check results with originating request', async () => {
-    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const fakeAccessReview = { create: vi.fn(async () => ({ allowed: true, denied: false })) };
     const svc = new RbacService(() => fakeAccessReview as never);
     const results = await svc.checkPermissions('acme', [
       { resource: 'secrets', verb: 'get' },
@@ -160,7 +159,7 @@ describe('RbacService.checkPermissions (bulk)', () => {
   test('fails closed per-check without aborting the batch', async () => {
     let call = 0;
     const fakeAccessReview = {
-      create: mock(async () => {
+      create: vi.fn(async () => {
         call += 1;
         if (call === 1) throw new Error('boom');
         return { allowed: true, denied: false };
@@ -188,7 +187,7 @@ describe('RbacService.checkPermissions (bulk)', () => {
   });
 
   test('project-scoped item without projectId fails closed with the invariant reason, batch continues', async () => {
-    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const fakeAccessReview = { create: vi.fn(async () => ({ allowed: true, denied: false })) };
     const svc = new RbacService(() => fakeAccessReview as never);
     const results = await svc.checkPermissions('acme', [
       { resource: 'dnszones', verb: 'list', scope: 'project' },
@@ -216,7 +215,7 @@ describe('RbacService subresource checks', () => {
   } as const;
 
   test('checkPermission forwards subresource and name to the access review', async () => {
-    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const fakeAccessReview = { create: vi.fn(async () => ({ allowed: true, denied: false })) };
     const svc = new RbacService(() => fakeAccessReview as never);
     await svc.checkPermission('acme', logsApi);
     const input = (fakeAccessReview.create.mock.calls[0] as unknown as [string, unknown])[1];
@@ -231,7 +230,7 @@ describe('RbacService subresource checks', () => {
   });
 
   test('checkPermissions forwards the subresource and echoes it in the request', async () => {
-    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const fakeAccessReview = { create: vi.fn(async () => ({ allowed: true, denied: false })) };
     const svc = new RbacService(() => fakeAccessReview as never);
     const [result] = await svc.checkPermissions('acme', [logsApi]);
     const input = (fakeAccessReview.create.mock.calls[0] as unknown as [string, unknown])[1];

@@ -5,7 +5,7 @@ import {
   formatByUnit,
   ucumToMeterUnit,
 } from './usage.format';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const format = (ucum: string, value: number) => formatByUnit(ucumToMeterUnit(ucum), value);
 
