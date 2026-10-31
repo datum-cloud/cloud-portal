@@ -70,6 +70,36 @@ describe('findTypingBeforeHydration', () => {
     expect(findTypingBeforeHydration(source)).toEqual([]);
   });
 
+  it('carries a beforeEach visit that does not wait into each test', () => {
+    const source = [
+      'beforeEach(() => {',
+      "  cy.visit('/org/a/general');",
+      '});',
+      "it('edits', () => {",
+      "  cy.get('input').type('x');",
+      '});',
+      "it('edits again', () => {",
+      "  cy.get('input').type('y');",
+      '});',
+    ].join('\n');
+
+    expect(findTypingBeforeHydration(source)).toEqual([5, 8]);
+  });
+
+  it('accepts tests after a beforeEach that waits for hydration', () => {
+    const source = [
+      'beforeEach(() => {',
+      "  cy.visit('/org/a/general');",
+      '  cy.waitForHydration();',
+      '});',
+      "it('edits', () => {",
+      "  cy.get('input').type('x');",
+      '});',
+    ].join('\n');
+
+    expect(findTypingBeforeHydration(source)).toEqual([]);
+  });
+
   it('ignores commented-out code', () => {
     const source = ["// cy.visit('/a');", "// cy.get('input').type('x');"].join('\n');
 
