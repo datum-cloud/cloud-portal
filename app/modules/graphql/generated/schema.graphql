@@ -1,12 +1,12 @@
 """
-A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
-"""
-scalar DateTime
-
-"""
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
 scalar JSON
+
+"""
+A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
+"""
+scalar DateTime
 
 """
 The `BigInt` scalar type represents non-fractional signed whole numeric values.
@@ -126,6 +126,32 @@ type Query {
     Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
     """
     sendInitialEvents: Boolean
+
+    """
+    shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+    
+      shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+      shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+    
+    Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+      - object.metadata.uid
+      - object.metadata.namespace
+    
+    hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+    
+    Examples:
+      2-shard split:
+        shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+        shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+      4-shard split:
+        shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+        shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+        shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+        shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+    
+    This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+    """
+    shardSelector: String
 
     """
     Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
