@@ -1,9 +1,4 @@
-import type {
-  EditorState,
-  PendingChange,
-  RoleScope,
-  UserRoleAssignment,
-} from './roles-editor.types';
+import type { EditorState, RoleScope, UserRoleAssignment } from './roles-editor.types';
 import {
   commitAssignments,
   computeEffectiveAssignments,
@@ -52,13 +47,20 @@ const byId = (a: UserRoleAssignment, b: UserRoleAssignment) => a.id.localeCompar
 
 describe('pendingAddId', () => {
   it('keys org adds by role name', () => {
-    expect(pendingAddId({ role: role('admin'), scope: ORG })).toBe('pending-add-admin-org');
+    expect(pendingAddId({ role: role('admin'), scope: ORG })).toBe('pending-add:admin:org');
   });
 
   it('keys project adds by role name and project id', () => {
     expect(pendingAddId({ role: role('admin'), scope: projectScope('alpha') })).toBe(
-      'pending-add-admin-project-alpha'
+      'pending-add:admin:project:alpha'
     );
+  });
+
+  it('does not collide when a role name contains a hyphenated scope word', () => {
+    // With "-" as the separator both of these were "pending-add-x-project-org".
+    const orgAdd = pendingAddId({ role: role('x-project'), scope: ORG });
+    const projectAdd = pendingAddId({ role: role('x'), scope: projectScope('org') });
+    expect(orgAdd).not.toBe(projectAdd);
   });
 
   it('is the id the editor gives staged adds', () => {
@@ -66,9 +68,22 @@ describe('pendingAddId', () => {
     const [visible] = computeVisibleAssignments(state.serverAssignments, state.pendingChanges);
     const [effective] = computeEffectiveAssignments(state.serverAssignments, state.pendingChanges);
     const [change] = state.pendingChanges;
+    if (change.op !== 'add') throw new Error('expected a staged add');
 
-    expect(visible.id).toBe(pendingAddId(change as Extract<PendingChange, { op: 'add' }>));
+    expect(visible.id).toBe(pendingAddId(change));
     expect(effective.id).toBe(visible.id);
+  });
+});
+
+describe('commitAssignments ordering', () => {
+  it('restores a failed remove in its original position', () => {
+    const staged = stageRemove(initialState([viewerOrg, editorAlpha]), viewerOrg);
+    const committed = commitAssignments(
+      staged.serverAssignments,
+      staged.pendingChanges,
+      staged.pendingChanges
+    );
+    expect(committed).toEqual([viewerOrg, editorAlpha]);
   });
 });
 

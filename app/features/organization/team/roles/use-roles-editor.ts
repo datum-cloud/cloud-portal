@@ -23,10 +23,13 @@ type Action =
 /**
  * The id a staged add carries in editor state, and still carries after a save
  * commits it. Rollback finds failed adds by this id, so build it only here.
+ *
+ * Parts are joined with `:`, which Kubernetes names cannot contain, so a
+ * hyphenated role or project name can never produce another add's id.
  */
 export function pendingAddId(change: Pick<PendingAdd, 'role' | 'scope'>): string {
-  const scopePart = change.scope.kind === 'project' ? `project-${change.scope.projectId}` : 'org';
-  return `pending-add-${change.role.name}-${scopePart}`;
+  const scopePart = change.scope.kind === 'project' ? `project:${change.scope.projectId}` : 'org';
+  return `pending-add:${change.role.name}:${scopePart}`;
 }
 
 function toPendingAssignments(pendingChanges: PendingChange[]): UserRoleAssignment[] {
@@ -35,7 +38,10 @@ function toPendingAssignments(pendingChanges: PendingChange[]): UserRoleAssignme
     .map((c) => ({ id: pendingAddId(c), role: c.role, scope: c.scope }));
 }
 
-// Returns all assignments shown in the roles panel — includes pending-removes (shown as struck-through)
+/**
+ * Every assignment shown in the roles panel: server assignments, including
+ * pending removes (rendered struck through), followed by staged adds.
+ */
 export function computeVisibleAssignments(
   serverAssignments: UserRoleAssignment[],
   pendingChanges: PendingChange[]
@@ -43,7 +49,10 @@ export function computeVisibleAssignments(
   return [...serverAssignments, ...toPendingAssignments(pendingChanges)];
 }
 
-// Returns assignments after removes are applied — used for permission calculations
+/**
+ * The assignments as they would be if every pending change were saved:
+ * pending removes dropped, staged adds included. Drives permission previews.
+ */
 export function computeEffectiveAssignments(
   serverAssignments: UserRoleAssignment[],
   pendingChanges: PendingChange[]
@@ -59,9 +68,10 @@ export function computeEffectiveAssignments(
 }
 
 /**
- * The assignments to commit after a save where some changes failed. Starts from
- * every change applied, then reverts the failures: a failed add was never
- * created, so it is dropped; a failed remove was never deleted, so it comes back.
+ * The assignments to commit after a save where some changes may have failed.
+ * Successful changes are applied and failures reverted: a failed add was never
+ * created, so it is dropped; a failed remove was never deleted, so it stays,
+ * in its original position.
  */
 export function commitAssignments(
   serverAssignments: UserRoleAssignment[],
@@ -74,15 +84,19 @@ export function commitAssignments(
   const failedRemoveIds = new Set(
     failedChanges.filter((c): c is PendingRemove => c.op === 'remove').map((c) => c.assignmentId)
   );
+  const removedIds = new Set(
+    pendingChanges
+      .filter((c): c is PendingRemove => c.op === 'remove' && !failedRemoveIds.has(c.assignmentId))
+      .map((c) => c.assignmentId)
+  );
 
   return [
-    ...computeEffectiveAssignments(serverAssignments, pendingChanges).filter(
-      (a) => !failedAddIds.has(a.id)
-    ),
-    ...serverAssignments.filter((a) => failedRemoveIds.has(a.id)),
+    ...serverAssignments.filter((a) => !removedIds.has(a.id)),
+    ...toPendingAssignments(pendingChanges).filter((a) => !failedAddIds.has(a.id)),
   ];
 }
 
+/** Reducer behind {@link useRolesEditor}; exported so it can be tested without React. */
 export function rolesEditorReducer(state: EditorState, action: Action): EditorState {
   switch (action.type) {
     case 'STAGE_ADD': {

@@ -288,8 +288,7 @@ function GroupDetailEditor({
 
       const failedChanges = allPendingChanges.filter((_, i) => results[i].status === 'rejected');
 
-      // Build committed state: apply all changes then revert failures — failed adds were never
-      // created on the server; failed removes were never deleted so must be added back.
+      // Keep what saved, revert what failed.
       const committedAssignments = commitAssignments(
         state.serverAssignments,
         state.pendingChanges,
