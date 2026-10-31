@@ -9,9 +9,11 @@
  *
  * Usage:
  *   npm run graphql              # Generate from config (or interactive if no config)
- *   npm run graphql -i           # Interactive mode to modify selections
- *   npm run graphql --interactive
- *   npm run graphql --reset      # Clear config and start fresh
+ *   npm run graphql -- -i        # Interactive mode to modify selections
+ *   npm run graphql -- --interactive
+ *   npm run graphql -- --reset   # Clear config and start fresh
+ *
+ * npm keeps flags before `--` for itself, so the script never sees them.
  *
  * Workflow:
  *   1. Edit graphql.config.json to add queries/mutations you need
