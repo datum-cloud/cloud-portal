@@ -36,7 +36,7 @@ import { serveStatic } from '@hono/node-server/serve-static';
 import { prometheus } from '@hono/prometheus';
 import { Hono } from 'hono';
 import { requestId } from 'hono/request-id';
-import type { Server } from 'node:http';
+import type { Server, ServerResponse } from 'node:http';
 import { register } from 'prom-client';
 import { RouterContextProvider } from 'react-router';
 import { createHonoServer } from 'react-router-hono-server/node';
@@ -48,8 +48,29 @@ import { createHonoServer } from 'react-router-hono-server/node';
  */
 const SHUTDOWN_TIMEOUT_MS = 25_000;
 
+/**
+ * How long the server keeps accepting connections after SIGTERM. Deleting the
+ * pod takes it out of Envoy's endpoints, but Envoy learns that a few seconds
+ * later and can open connections here until then. /_readyz answers 503
+ * meanwhile, and watch clients are only told to reconnect once it has passed,
+ * so they land on another pod.
+ */
+const DRAIN_DELAY_MS = 5_000;
+
 let isShuttingDown = false;
 let httpServer: Server | undefined;
+/** Responses not yet finished, so draining can reach requests already in flight. */
+const openResponses = new Set<ServerResponse>();
+
+/**
+ * Ends the connection after this response instead of keeping it alive. Closing
+ * a keep-alive connection that looks idle races a request Envoy may be sending
+ * on it, and the gateway's retry policy does not retry resets.
+ */
+const closeAfterResponse = (res: ServerResponse) => {
+  if (!res.headersSent) res.shouldKeepAlive = false;
+};
+
 const beginShutdown = () => {
   if (isShuttingDown) return;
   isShuttingDown = true;
@@ -58,19 +79,19 @@ const beginShutdown = () => {
     shutdownObservability();
     process.exit(0);
   }, SHUTDOWN_TIMEOUT_MS).unref();
-  watchHub.shutdown();
-  // After the hub, so the relay waits for the ownership releases it just sent.
-  watchRelay.stop().catch((error: unknown) => {
-    console.error('❌ Failed to stop the watch relay:', error);
-  });
-  const server = httpServer;
-  if (!server) return;
-  server.close(() => {
-    shutdownObservability();
-    process.exit(0);
-  });
-  server.closeIdleConnections();
-  setInterval(() => server.closeIdleConnections(), 1_000).unref();
+  openResponses.forEach(closeAfterResponse);
+  setTimeout(() => {
+    watchHub.shutdown();
+    // After the hub, so the relay waits for the ownership releases it just sent.
+    watchRelay.stop().catch((error: unknown) => {
+      console.error('❌ Failed to stop the watch relay:', error);
+    });
+    // Also closes the connections with no request in flight.
+    httpServer?.close(() => {
+      shutdownObservability();
+      process.exit(0);
+    });
+  }, DRAIN_DELAY_MS).unref();
 };
 
 process.once('SIGTERM', beginShutdown);
@@ -291,6 +312,11 @@ export default await createHonoServer({
     // connection the server is closing, failing the request before headers.
     httpServer.keepAliveTimeout = 75_000;
     httpServer.headersTimeout = 76_000;
+    httpServer.on('request', (_req, res: ServerResponse) => {
+      if (isShuttingDown) closeAfterResponse(res);
+      openResponses.add(res);
+      res.once('close', () => openResponses.delete(res));
+    });
   },
 
   getLoadContext: (c) => {
