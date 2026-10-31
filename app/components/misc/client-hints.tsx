@@ -20,6 +20,12 @@ import { useRevalidator } from 'react-router';
  * page whenever the cookie disagrees with the browser, so a raw width would
  * force a reload after every window resize. A tier only changes when the
  * layout would.
+ *
+ * Cost: the script compares on every document load, and a missing cookie
+ * counts as the 'desktop' fallback. So a phone or tablet reloads once on its
+ * first visit, and any browser reloads once on its next document load after it
+ * moves to another tier (rotating a tablet past 1024px, resizing a window).
+ * Client-side navigation never runs the script.
  */
 export const viewportHint = {
   cookieName: 'CH-viewport',

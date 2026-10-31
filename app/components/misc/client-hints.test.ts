@@ -1,4 +1,5 @@
 import { getHints, viewportHint } from './client-hints';
+import { DESKTOP_MIN, TABLET_MIN, breakpointForWidth } from '@/hooks/use-breakpoint';
 import { describe, expect, it } from 'bun:test';
 
 /** Runs the hint's inline snippet the way the check script does, against a fake window. */
@@ -20,6 +21,14 @@ describe('viewportHint', () => {
     expect(evaluateViewportCode(1023)).toBe('tablet');
     expect(evaluateViewportCode(1024)).toBe('desktop');
     expect(evaluateViewportCode(1920)).toBe('desktop');
+  });
+
+  // The snippet is a string (it runs inline before any bundle), so it cannot
+  // call breakpointForWidth. Pin the two to the same answer at every edge.
+  it('agrees with breakpointForWidth on both sides of each breakpoint', () => {
+    for (const width of [0, TABLET_MIN - 1, TABLET_MIN, DESKTOP_MIN - 1, DESKTOP_MIN, 4000]) {
+      expect(evaluateViewportCode(width)).toBe(breakpointForWidth(width));
+    }
   });
 
   it('falls back to desktop, matching what the server rendered before the hint existed', () => {

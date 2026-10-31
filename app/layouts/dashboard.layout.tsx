@@ -1,9 +1,10 @@
 import { ContentWrapper } from '@/components/content-wrapper';
 import { Header } from '@/components/header';
-import { useBreakpoint, type Breakpoint } from '@/hooks/use-breakpoint';
+import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { resolveInitialSidebarOpen } from '@/layouts/initial-sidebar-open';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
+import type { loader as rootLoader } from '@/root';
 import {
   AppNavigation,
   NavItem,
@@ -134,8 +135,7 @@ export function DashboardLayout({
   // Both read from cookies by the root loader: the nav state the user last
   // pinned (`undefined` until they express a preference) and the breakpoint
   // tier from the viewport client hint.
-  const rootData = useRouteLoaderData('root') as
-    { sidebarOpen?: boolean; viewport?: Breakpoint } | undefined;
+  const rootData = useRouteLoaderData<typeof rootLoader>('root');
   // Seeded from the hint so the server renders the nav the client will keep.
   const breakpoint = useBreakpoint(rootData?.viewport);
 
