@@ -17,8 +17,13 @@
  * is already cached — and that frame shows up before the plugin's own
  * skeleton. After hydration, client renders skip the fallback and suspend
  * only while the bundle is actually in flight.
+ *
+ * The federation host itself (`@module-federation/runtime` plus the shared
+ * module table) is imported dynamically, so it is fetched only when a plugin
+ * component actually mounts, never as part of a project page's own bundle.
+ * The guard in lazy-plugin-component.test.ts keeps it that way.
  */
-import { loadPluginComponent, type PluginRemoteRef } from './federation-host';
+import type { PluginRemoteRef } from './federation-host';
 import { Suspense, use, useSyncExternalStore, type ComponentType, type ReactNode } from 'react';
 
 function subscribeHydrated(): () => void {
@@ -49,12 +54,14 @@ function getComponentPromise(
   const cached = componentPromiseCache.get(key);
   if (cached) return cached;
 
-  const promise = loadPluginComponent(ref, codeRef).catch((error: unknown) => {
-    // Evict a failed load so a retry (error-boundary reset or re-navigation)
-    // re-attempts the load instead of re-throwing the same rejection forever.
-    componentPromiseCache.delete(key);
-    throw error;
-  });
+  const promise = import('./federation-host')
+    .then(({ loadPluginComponent }) => loadPluginComponent(ref, codeRef))
+    .catch((error: unknown) => {
+      // Evict a failed load so a retry (error-boundary reset or re-navigation)
+      // re-attempts the load instead of re-throwing the same rejection forever.
+      componentPromiseCache.delete(key);
+      throw error;
+    });
   componentPromiseCache.set(key, promise);
   return promise;
 }

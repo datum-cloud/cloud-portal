@@ -54,6 +54,7 @@ describe('Domains — regression', () => {
 
   it('should create a domain and appear in the list', () => {
     cy.visit(getPathWithParams(paths.project.detail.domains.root, { projectId }));
+    cy.waitForHydration();
     cy.url({ timeout: 10000 }).should('include', `project/${projectId}/domains`);
     // On an empty list the Table hides the toolbar actions (incl. the header
     // create button) and surfaces only the empty-state CTA. Click whichever
