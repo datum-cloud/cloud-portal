@@ -19,20 +19,8 @@
  * only while the bundle is actually in flight.
  */
 import { loadPluginComponent, type PluginRemoteRef } from './federation-host';
-import { Suspense, use, useSyncExternalStore, type ComponentType, type ReactNode } from 'react';
-
-function subscribeHydrated(): () => void {
-  return () => {};
-}
-
-/** False while rendering the server HTML; true on every client render after hydration. */
-function useHydrated(): boolean {
-  return useSyncExternalStore(
-    subscribeHydrated,
-    () => true,
-    () => false
-  );
-}
+import { useHydrated } from '@/hooks/useHydrated';
+import { Suspense, use, type ComponentType, type ReactNode } from 'react';
 
 /**
  * Cache of in-flight/resolved plugin component promises, keyed by container

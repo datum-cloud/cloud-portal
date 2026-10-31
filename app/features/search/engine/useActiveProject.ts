@@ -1,3 +1,4 @@
+import { useHydrated } from '@/hooks/useHydrated';
 import { useApp } from '@/providers/app.provider';
 import {
   getActiveProject,
@@ -42,10 +43,14 @@ export function useActiveProject(): ActiveProjectState {
     if (fromRoute) setActiveProject(fromRoute);
   }, [fromRoute]);
 
+  // The server has no localStorage, so the hydration render must skip the
+  // stored fallback too or it renders a project the server HTML doesn't have.
+  const hydrated = useHydrated();
+
   return useMemo(() => {
     if (fromRoute) return { project: fromRoute, source: 'route' };
-    const stored = getActiveProject();
+    const stored = hydrated ? getActiveProject() : null;
     if (stored) return { project: stored, source: 'storage' };
     return { project: null, source: 'none' };
-  }, [fromRoute]);
+  }, [fromRoute, hydrated]);
 }
