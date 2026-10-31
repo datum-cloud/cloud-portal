@@ -17,6 +17,7 @@ import {
 } from '@/features/edge/proxy/proxy-form-dialog';
 import type { DockPrompt } from '@/features/project-dock/project-dock-context';
 import { ProjectSearchBar } from '@/features/search/surfaces/ProjectSearchBar';
+import { useHydrated } from '@/hooks/useHydrated';
 import {
   ProjectHomePluginHero,
   useProjectHomePluginHero,
@@ -47,6 +48,10 @@ import { useNavigate } from 'react-router';
 export function ProjectHomeBody({ projectId }: { projectId: string }) {
   const setup = useProjectSetup(projectId);
   const { hero, isLoading: heroLoading } = useProjectHomePluginHero(projectId);
+  // The server always renders the loading state, so the hydration render must
+  // too, even when queries other components started have already resolved.
+  const hydrated = useHydrated();
+  const loading = !hydrated || setup.isLoading || heroLoading;
   const { trackAction } = useAnalytics();
   const patch = usePatch();
   const navigate = useNavigate();
@@ -119,7 +124,7 @@ export function ProjectHomeBody({ projectId }: { projectId: string }) {
   const showPathChoice = setup.isFresh && !showHero;
   // Health only says something once there is more than a network: an empty
   // project has nothing to report, and a network-only one gets its own line.
-  const showHealth = !setup.isLoading && hasVisibleResources(setup.steps);
+  const showHealth = hydrated && !setup.isLoading && hasVisibleResources(setup.steps);
 
   const { data: networks } = useNetworks(projectId);
   const { data: plugins } = useProjectPlugins(projectId, { enabled: !!projectId });
@@ -130,76 +135,75 @@ export function ProjectHomeBody({ projectId }: { projectId: string }) {
   // Which layout fits (network hero, toolbox and Patch, or the resource
   // columns) depends on what the project has, so hold a neutral placeholder
   // until that's known rather than showing one layout and snapping to another.
-  const body =
-    setup.isLoading || heroLoading ? (
-      <div className="flex flex-col gap-4" role="status" aria-label="Loading project">
-        <Skeleton className="h-10 w-full rounded-xl" />
-        <Skeleton className="h-64 w-full rounded-xl" />
+  const body = loading ? (
+    <div className="flex flex-col gap-4" role="status" aria-label="Loading project">
+      <Skeleton className="h-10 w-full rounded-xl" />
+      <Skeleton className="h-64 w-full rounded-xl" />
+    </div>
+  ) : showHero && hero ? (
+    <div className="flex flex-col gap-4">
+      <ProjectHomePluginHero hero={hero} />
+      <div className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1">
+        <Text size="sm" textColor="muted">
+          Only need a load balancer for an existing site, or a domain?
+        </Text>
+        <Button
+          type="quaternary"
+          theme="borderless"
+          size="xs"
+          className="text-btn-primary"
+          onClick={() => {
+            trackAction(AnalyticsAction.SkipNetworkFirstRun);
+            setup.skipNetwork();
+          }}>
+          Skip this step
+        </Button>
       </div>
-    ) : showHero && hero ? (
-      <div className="flex flex-col gap-4">
-        <ProjectHomePluginHero hero={hero} />
-        <div className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1">
-          <Text size="sm" textColor="muted">
-            Only need a load balancer for an existing site, or a domain?
-          </Text>
-          <Button
-            type="quaternary"
-            theme="borderless"
-            size="xs"
-            className="text-btn-primary"
-            onClick={() => {
-              trackAction(AnalyticsAction.SkipNetworkFirstRun);
-              setup.skipNetwork();
-            }}>
-            Skip this step
-          </Button>
-        </div>
-      </div>
-    ) : (
-      <div className="flex flex-col gap-6">
-        {/* First, so a conversation stays mounted when the layout below changes. */}
-        {inline}
-        {showPathChoice ? (
-          !inline && (
-            <PathChoice
-              projectId={projectId}
-              networkName={networkName}
-              networkReady={setup.hasReadyNetwork}
-              network={networks?.find((n) => n.metadata?.name === networkName)}
-              networkHref={
-                networksSlug && networkName
-                  ? pluginHref(projectId, networksSlug, `networks/${networkName}`)
-                  : undefined
-              }
-              onCreateNetwork={createNetwork}
-              onTool={onTool}
-              onAskPatch={askPatch}
-            />
-          )
-        ) : (
-          <>
-            <HomeColumns
-              projectId={projectId}
-              beforeTraffic={
-                !inline &&
-                !setup.isLoading && (
-                  <NextSuggestions
-                    projectId={projectId}
-                    steps={setup.steps}
-                    networkName={networkCount === 1 ? networkName : undefined}
-                    networkCount={networkCount}
-                    onTool={onTool}
-                    onCreateNetwork={createNetwork}
-                    onAskPatch={askPatch}
-                  />
-                )
-              }
-            />
-          </>
-        )}
-      </div>
-    );
+    </div>
+  ) : (
+    <div className="flex flex-col gap-6">
+      {/* First, so a conversation stays mounted when the layout below changes. */}
+      {inline}
+      {showPathChoice ? (
+        !inline && (
+          <PathChoice
+            projectId={projectId}
+            networkName={networkName}
+            networkReady={setup.hasReadyNetwork}
+            network={networks?.find((n) => n.metadata?.name === networkName)}
+            networkHref={
+              networksSlug && networkName
+                ? pluginHref(projectId, networksSlug, `networks/${networkName}`)
+                : undefined
+            }
+            onCreateNetwork={createNetwork}
+            onTool={onTool}
+            onAskPatch={askPatch}
+          />
+        )
+      ) : (
+        <>
+          <HomeColumns
+            projectId={projectId}
+            beforeTraffic={
+              !inline &&
+              !setup.isLoading && (
+                <NextSuggestions
+                  projectId={projectId}
+                  steps={setup.steps}
+                  networkName={networkCount === 1 ? networkName : undefined}
+                  networkCount={networkCount}
+                  onTool={onTool}
+                  onCreateNetwork={createNetwork}
+                  onAskPatch={askPatch}
+                />
+              )
+            }
+          />
+        </>
+      )}
+    </div>
+  );
 
   return (
     // With Patch in the page the conversation is the focus: the search steps
