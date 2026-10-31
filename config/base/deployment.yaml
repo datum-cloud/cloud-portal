@@ -51,6 +51,12 @@ spec:
               name: http
               protocol: TCP
           env:
+            # Caps the V8 heap below the 1Gi memory limit, so a busy pod
+            # collects garbage before the kernel kills it. 640 MiB of old space
+            # is about 736 MiB of heap in all; the rest of the limit is for
+            # buffers, native memory and code. Raise both together.
+            - name: NODE_OPTIONS
+              value: '--max-old-space-size=640'
             - name: OTEL_LOG_LEVEL
               value: 'info'
             - name: OTEL_ENABLED
@@ -67,7 +73,8 @@ spec:
             - secretRef:
                 name: cloud-portal
           resources:
-            # TODO: Specify resource requests
+            # TODO: Specify resource requests. While unset, Kubernetes sets the
+            # requests to these limits.
             limits:
               cpu: 1
               memory: 1Gi
