@@ -322,6 +322,17 @@ Cypress.Commands.add('logout', () => {
 });
 
 /**
+ * Wait until React has hydrated the page (root.tsx sets `data-hydrated` on
+ * <html>). Pages are server-rendered and visible before then, so a click is
+ * lost and typed text reaches the DOM but not the form state. Call it after
+ * `cy.visit` and before interacting; hydration-guard.test.ts enforces it for
+ * typing. Not set on error-boundary pages.
+ */
+Cypress.Commands.add('waitForHydration', () => {
+  cy.get('html[data-hydrated]', { timeout: 10_000, log: false });
+});
+
+/**
  * Create a standard org and return its orgId (resource name).
  *
  * Walks the create-organization dialog: contact info → Stripe test card → submit.
@@ -334,7 +345,7 @@ Cypress.Commands.add('createStandardOrg', (displayName: string): Cypress.Chainab
   cy.get('[data-e2e^="organization-card"]', { timeout: 10_000 }).first().should('be.visible');
   // The cards are server-rendered, so they show before React attaches the
   // button's click handler. Wait for hydration or the click is lost.
-  cy.get('html[data-hydrated]', { timeout: 10_000 });
+  cy.waitForHydration();
   cy.get('[data-e2e="create-organization-button"]').should('be.visible').click();
 
   cy.contains('Add an Organization', { timeout: 10_000 }).should('be.visible');
@@ -664,6 +675,13 @@ declare global {
        * @example cy.logout()
        */
       logout(): Chainable<void>;
+
+      /**
+       * Wait until React has hydrated the page (`html[data-hydrated]`).
+       * Call after `cy.visit` and before clicking or typing.
+       * @example cy.visit(url); cy.waitForHydration();
+       */
+      waitForHydration(): Chainable<void>;
 
       /**
        * Create a standard organization and return its resource ID.
