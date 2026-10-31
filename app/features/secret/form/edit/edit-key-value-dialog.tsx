@@ -1,6 +1,5 @@
 import { showMutationErrorToast } from '@/modules/quota';
-import { useUpdateSecret } from '@/resources/secrets';
-import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
+import { toSecretData, useUpdateSecret } from '@/resources/secrets';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text } from '@datum-cloud/datum-ui/typography';
@@ -70,9 +69,7 @@ export const EditKeyValueDialog = ({
 
   const handleSubmit = async (data: z.infer<typeof keyValueSchema>) => {
     await updateSecretMutation.mutateAsync({
-      data: {
-        [keyId ?? '']: isBase64(data.value) ? data.value : toBase64(data.value),
-      },
+      data: toSecretData([{ key: keyId ?? '', value: data.value }]),
     });
   };
 
@@ -82,7 +79,7 @@ export const EditKeyValueDialog = ({
       open={isOpen}
       onOpenChange={handleOpenChange}
       title="Edit Key-Value Pair"
-      description="If not already base64-encoded, values will be encoded automatically."
+      description="Enter a plain-text value. It is base64-encoded automatically."
       schema={keyValueSchema}
       defaultValues={{ value: '' }}
       onSubmit={handleSubmit}

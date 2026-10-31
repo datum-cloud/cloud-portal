@@ -64,24 +64,6 @@ export function getShortId(id: string, length: number = 8): string {
 }
 
 /**
- * Checks if a string is valid base64
- * @param str - The string to check
- * @returns Boolean indicating if the string is valid base64
- */
-export function isBase64(str: string): boolean {
-  if (typeof str !== 'string' || !str) {
-    return false;
-  }
-
-  try {
-    const decoded = atob(str);
-    return btoa(decoded) === str;
-  } catch {
-    return false;
-  }
-}
-
-/**
  * Converts a string to base64 encoding
  * @param str - The string to encode
  * @returns Base64 encoded string
