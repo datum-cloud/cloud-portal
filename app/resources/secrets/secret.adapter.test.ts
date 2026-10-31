@@ -92,6 +92,24 @@ describe('toSecretData', () => {
   it('returns an empty map for no variables', () => {
     expect(toSecretData([])).toEqual({});
   });
+
+  it('throws when encoding fails instead of writing an empty value', () => {
+    const realBtoa = globalThis.btoa;
+    globalThis.btoa = () => {
+      throw new Error('encoder unavailable');
+    };
+    try {
+      expect(() => toSecretData([{ key: 'K', value: 'hello' }])).toThrow('encoder unavailable');
+    } finally {
+      globalThis.btoa = realBtoa;
+    }
+  });
+});
+
+describe('toBase64', () => {
+  it('encodes the UTF-8 bytes, not UTF-16 code units', () => {
+    expect(toBase64('✓')).toBe('4pyT');
+  });
 });
 
 describe('toCreateSecretPayload', () => {

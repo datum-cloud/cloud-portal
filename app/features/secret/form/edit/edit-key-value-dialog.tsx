@@ -68,8 +68,12 @@ export const EditKeyValueDialog = ({
   };
 
   const handleSubmit = async (data: z.infer<typeof keyValueSchema>) => {
+    if (!keyId) {
+      toast.error('Key', { description: 'No key was selected to update.' });
+      return;
+    }
     await updateSecretMutation.mutateAsync({
-      data: toSecretData([{ key: keyId ?? '', value: data.value }]),
+      data: toSecretData([{ key: keyId, value: data.value }]),
     });
   };
 
