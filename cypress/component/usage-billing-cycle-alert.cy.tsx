@@ -6,7 +6,8 @@ describe('BillingCycleAlert', () => {
 
     cy.get('[data-e2e="usage-billing-cycle-alert"]')
       .should('be.visible')
-      .and('contain.text', 'Could not load billing cycle');
+      .and('contain.text', 'Could not load billing cycle')
+      .and('contain.text', 'ask an organization admin');
   });
 
   it('renders nothing when the billing account lookup worked', () => {
