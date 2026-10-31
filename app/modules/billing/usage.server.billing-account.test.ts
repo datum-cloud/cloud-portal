@@ -81,6 +81,32 @@ describe('lookupUsageBillingAccount', () => {
     expect(result).toEqual({ billingAccount: null, billingAccountError: false });
   });
 
+  it('treats a 404 from the org account list as no account', async () => {
+    const result = await lookupUsageBillingAccount(
+      'acme',
+      'all',
+      deps({ listAccounts: rejectWith(new NotFoundError('BillingAccount', 'acme')) })
+    );
+
+    expect(result).toEqual({ billingAccount: null, billingAccountError: false });
+    expect(errorSpy).not.toHaveBeenCalled();
+  });
+
+  it('flags a failed read of the bound account instead of returning no account', async () => {
+    const upstream = Object.assign(new Error('internal error'), { status: 500 });
+    const result = await lookupUsageBillingAccount(
+      'acme',
+      'web',
+      deps({ getAccount: rejectWith(upstream) })
+    );
+
+    expect(result).toEqual({ billingAccount: null, billingAccountError: true });
+    expect(errorSpy).toHaveBeenCalledWith('billing account lookup failed', upstream, {
+      orgId: 'acme',
+      projectId: 'web',
+    });
+  });
+
   it('flags and logs an upstream failure instead of hiding it', async () => {
     const upstream = new Error('connect ECONNREFUSED');
     const result = await lookupUsageBillingAccount(
