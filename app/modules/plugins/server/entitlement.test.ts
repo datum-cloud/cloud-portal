@@ -68,13 +68,16 @@ const active = (serviceName: string, ref?: string) => ({
 
 const COMPUTE = 'compute.miloapis.com';
 
+let warnSpy: ReturnType<typeof spyOn>;
 let errorSpy: ReturnType<typeof spyOn>;
 
 beforeEach(() => {
+  warnSpy = spyOn(logger, 'warn').mockImplementation(() => {});
   errorSpy = spyOn(logger, 'error').mockImplementation(() => {});
 });
 
 afterEach(() => {
+  warnSpy.mockRestore();
   errorSpy.mockRestore();
 });
 
@@ -130,6 +133,15 @@ describe('assertPluginEntitled', () => {
     expect(await checker.isEntitled(PROJECT, entry())).toBe(false);
   });
 
+  test('matches a serviceRef declared by a manifest nav item', async () => {
+    const list = mock<ListEntitlements>(async () => [active('compute.datumapis.com')]);
+    const checker = createEntitlementChecker({ list, callerId: () => 'user-1' });
+
+    expect(
+      await checker.isEntitled(PROJECT, entry({ navServiceRef: 'compute.datumapis.com' }))
+    ).toBe(true);
+  });
+
   test('refuses a Required plugin with a 404 when no Active entitlement matches', async () => {
     const list = mock<ListEntitlements>(async () => [
       active('networking.datumapis.com'),
@@ -174,8 +186,10 @@ describe('assertPluginEntitled', () => {
     const result = assertPluginEntitled(PROJECT, entry({ serviceName: COMPUTE }), checker);
     await expect(result).rejects.toBeInstanceOf(AppError);
     await expect(result).rejects.toMatchObject({ status: 503, code: 'ENTITLEMENT_LOOKUP_FAILED' });
-    expect(errorSpy).toHaveBeenCalledTimes(1);
-    expect(String(errorSpy.mock.calls[0]?.[0])).toContain('entitlement lookup failed');
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(String(warnSpy.mock.calls[0]?.[0])).toContain('entitlement lookup failed');
+    // logger.error would report a second Sentry event on top of the 503's own.
+    expect(errorSpy).not.toHaveBeenCalled();
   });
 
   test('passes an upstream 403 through unchanged instead of mounting', async () => {
@@ -221,6 +235,36 @@ describe('entitlement cache', () => {
     expect(list).toHaveBeenCalledTimes(1);
 
     clock += 1;
+    expect(await checker.isEntitled(PROJECT, plugin)).toBe(false);
+    expect(list).toHaveBeenCalledTimes(2);
+  });
+
+  test('re-reads a cached set that lacks the plugin before refusing', async () => {
+    // The set was cached while the user was on another plugin; the service
+    // was activated afterwards.
+    let items = [active('networking.datumapis.com')];
+    const list = mock<ListEntitlements>(async () => items);
+    const checker = createEntitlementChecker({ list, callerId: () => 'user-1' });
+
+    expect(
+      await checker.isEntitled(PROJECT, entry({ serviceName: 'networking.datumapis.com' }))
+    ).toBe(true);
+    items = [active('networking.datumapis.com'), active(COMPUTE)];
+    expect(await checker.isEntitled(PROJECT, entry({ serviceName: COMPUTE }))).toBe(true);
+    expect(list).toHaveBeenCalledTimes(2);
+
+    // The refreshed set is cached again, so the next hit costs nothing.
+    expect(await checker.isEntitled(PROJECT, entry({ serviceName: COMPUTE }))).toBe(true);
+    expect(list).toHaveBeenCalledTimes(2);
+  });
+
+  test('a refusal costs one lookup, never two', async () => {
+    const list = mock<ListEntitlements>(async () => [active('networking.datumapis.com')]);
+    const checker = createEntitlementChecker({ list, callerId: () => 'user-1' });
+    const plugin = entry({ serviceName: COMPUTE });
+
+    expect(await checker.isEntitled(PROJECT, plugin)).toBe(false);
+    expect(list).toHaveBeenCalledTimes(1);
     expect(await checker.isEntitled(PROJECT, plugin)).toBe(false);
     expect(list).toHaveBeenCalledTimes(2);
   });

@@ -130,34 +130,50 @@ export function createEntitlementChecker(
     cache.set(key, { ids, expiresAt: now() + ttlMs });
   }
 
-  async function activeIds(projectId: string): Promise<ReadonlySet<string>> {
+  async function activeIds(
+    projectId: string,
+    fresh: boolean
+  ): Promise<{ ids: ReadonlySet<string>; cached: boolean }> {
     const caller = callerId();
     const key = caller ? JSON.stringify([caller, projectId]) : undefined;
-    const hit = key ? cache.get(key) : undefined;
-    if (hit && hit.expiresAt > now()) return hit.ids;
+    const hit = !fresh && key ? cache.get(key) : undefined;
+    if (hit && hit.expiresAt > now()) return { ids: hit.ids, cached: true };
 
     const ids = activeIdsOf(await list(projectId));
     if (key) remember(key, ids);
-    return ids;
+    return { ids, cached: false };
+  }
+
+  /**
+   * Cached ids only ever grant. A miss against a cached set is re-read once,
+   * so a service activated after the set was cached (say, while the user was
+   * on another plugin in the project) mounts right away instead of 404ing for
+   * up to a TTL.
+   */
+  async function matchesActive(projectId: string, wanted: string[]): Promise<boolean> {
+    const matches = (ids: ReadonlySet<string>) => wanted.some((id) => ids.has(id));
+    const first = await activeIds(projectId, false);
+    if (matches(first.ids) || !first.cached) return matches(first.ids);
+    return matches((await activeIds(projectId, true)).ids);
   }
 
   return {
     async isEntitled(projectId, entry) {
       if (entry.spec.visibility.entitlement !== 'Required') return true;
 
-      let active: ReadonlySet<string>;
       try {
-        active = await activeIds(projectId);
+        return await matchesActive(projectId, pluginEntitlementIds(entry));
       } catch (error) {
-        logger.error('[plugins] service entitlement lookup failed; refusing to mount', {
+        // warn, not error: `logger.error` would send its own Sentry event for
+        // every failure, expected 4xx included. The 503 built below is
+        // captured once by AppError; passed-through 4xx stay out of Sentry.
+        logger.warn('[plugins] service entitlement lookup failed; refusing to mount', {
           projectId,
           slug: entry.spec.slug,
           error: error instanceof Error ? error.message : String(error),
         });
         throw lookupFailure(error);
       }
-
-      return pluginEntitlementIds(entry).some((id) => active.has(id));
     },
   };
 }

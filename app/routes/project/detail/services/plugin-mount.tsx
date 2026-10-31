@@ -51,8 +51,9 @@ export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
 
   // Entitlement — an Active ServiceEntitlement for the plugin's service, looked
   // up with the caller's session and cached per caller and project for a
-  // minute. Not entitled → the same 404 as an unknown slug; a failed lookup
-  // throws (fail closed). Dev plugins skip it inside the helper.
+  // minute; a cached miss is re-read before refusing. Not entitled → the same
+  // 404 as an unknown slug; a failed lookup throws (fail closed). Dev plugins
+  // skip it inside the helper.
   await assertPluginEntitled(projectId, entry);
 
   // RBAC — gate the extension matching the requested path. A path that matches
