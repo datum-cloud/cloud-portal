@@ -1,6 +1,7 @@
 import {
   toCreateSecretPayload,
   toSecret,
+  toSecretData,
   toSecretList,
   toUpdateSecretPayload,
 } from './secret.adapter';
@@ -62,9 +63,57 @@ describe('toSecretList', () => {
   });
 });
 
+// Mirrors what Kubernetes does on read: base64 → bytes → UTF-8 text.
+const decode = (encoded: string): string =>
+  new TextDecoder().decode(Uint8Array.from(atob(encoded), (char) => char.charCodeAt(0)));
+
+// Each of these is also valid base64, which is what the old guess tripped on.
+const ROUND_TRIP_VALUES: Array<[label: string, value: string]> = [
+  ['a 64-char hex token', 'a3f1c9e07b4d2a8f6e5c1b0d9a7f3e2c4b6d8a0f1e3c5b7d9f2a4c6e8b0d1f3a'],
+  ['a 32-char hex key', '0123456789abcdef0123456789abcdef'],
+  ['the word password', 'password'],
+  ['admin123', 'admin123'],
+  ['an empty string', ''],
+  ['a value with a newline', 'line-one\nline-two'],
+  ['a value that is already base64 text', 'aGVsbG8='],
+  ['non-ASCII text', 'pässwörd-✓'],
+];
+
+describe('toSecretData', () => {
+  it.each(ROUND_TRIP_VALUES)('always encodes %s so it decodes to the exact input', (_, value) => {
+    const data = toSecretData([{ key: 'K', value }]);
+    expect(decode(data.K)).toBe(value);
+  });
+
+  it('encodes a value even when it already looks like base64', () => {
+    expect(toSecretData([{ key: 'K', value: 'password' }]).K).toBe(btoa('password'));
+  });
+
+  it('returns an empty map for no variables', () => {
+    expect(toSecretData([])).toEqual({});
+  });
+
+  it('throws when encoding fails instead of writing an empty value', () => {
+    const realBtoa = globalThis.btoa;
+    globalThis.btoa = () => {
+      throw new Error('encoder unavailable');
+    };
+    try {
+      expect(() => toSecretData([{ key: 'K', value: 'hello' }])).toThrow('encoder unavailable');
+    } finally {
+      globalThis.btoa = realBtoa;
+    }
+  });
+});
+
+describe('toBase64', () => {
+  it('encodes the UTF-8 bytes, not UTF-16 code units', () => {
+    expect(toBase64('✓')).toBe('4pyT');
+  });
+});
+
 describe('toCreateSecretPayload', () => {
-  it('base64-encodes plaintext values but leaves already-encoded values intact', () => {
-    const alreadyEncoded = toBase64('encoded-value');
+  it('maps metadata and base64-encodes every value', () => {
     const payload = toCreateSecretPayload({
       name: 'api-keys',
       type: 'Opaque',
@@ -72,7 +121,7 @@ describe('toCreateSecretPayload', () => {
       annotations: ['owner:team-a'],
       variables: [
         { key: 'PLAIN', value: 'hello' },
-        { key: 'ENCODED', value: alreadyEncoded },
+        { key: 'LOOKS_ENCODED', value: 'aGVsbG8=' },
       ],
     } as never);
 
@@ -83,7 +132,7 @@ describe('toCreateSecretPayload', () => {
     expect(payload.metadata.annotations).toEqual({ owner: 'team-a' });
     expect(payload.type).toBe('Opaque');
     expect(payload.data.PLAIN).toBe(toBase64('hello'));
-    expect(payload.data.ENCODED).toBe(alreadyEncoded);
+    expect(decode(payload.data.LOOKS_ENCODED)).toBe('aGVsbG8=');
   });
 
   it('produces empty label/annotation/data maps when optional inputs are omitted', () => {
