@@ -6,8 +6,12 @@
 
 FROM node:26.13.0-alpine3.24@sha256:c6ad9e9c1d80f6eb607c26b4b0a132ff7a2344fad1c78ea3baa2a7d4c8de6d94 AS base
 
+# Fail the build if the compromised emSign ECC Root CA - G3 comes back. Node
+# checks TLS against roots built into its binary, so test those; the system
+# bundle only counts if --use-system-ca is ever turned on, so test it too.
 RUN apk add --no-cache --upgrade 'ca-certificates>=20261020-r0'
 RUN ! grep -q MIICTjCCAdOgAwIBAgIKPPYHqWhwDtqLhDAKBggqhkjOPQQDAzBrMQswCQYDVQQG /etc/ssl/certs/ca-certificates.crt
+RUN node -e 'const tls = require("node:tls"); const { X509Certificate } = require("node:crypto"); if (tls.rootCertificates.some((pem) => new X509Certificate(pem).subject.split("\n").includes("CN=emSign ECC Root CA - G3"))) { console.error("Node trusts emSign ECC Root CA - G3"); process.exit(1); }'
 
 # Remix app lives here
 WORKDIR /app
