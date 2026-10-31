@@ -8,7 +8,10 @@
  * free.
  *
  * The bundle comes from Sentry's CDN at the exact SDK version
- * (`lazyLoadIntegration`), which the CSP already allows in `script-src-elem`.
+ * (`lazyLoadIntegration`). The CSP permits it two ways: `'strict-dynamic'`
+ * trusts a script element that our nonced bundle inserts (CSP3 browsers ignore
+ * host lists when it is present), and `script-src-elem` lists
+ * browser.sentry-cdn.com for browsers that only understand host lists.
  * The sample rates stay in `Sentry.init` (entry.client.tsx); replay reads them
  * when it is added.
  *
@@ -44,22 +47,47 @@ export function runWhenIdle(task: () => void): () => void {
   return () => clearTimeout(id);
 }
 
+/**
+ * The parts of the Sentry SDK replay loading uses. A parameter so tests can
+ * drive it: under `bun test` the package resolves to its server build, which
+ * has no `lazyLoadIntegration` at all.
+ */
+export type ReplaySdk = Pick<typeof Sentry, 'getClient' | 'lazyLoadIntegration' | 'addIntegration'>;
+
+/**
+ * Named members only. Passing the `Sentry` namespace itself as a value would
+ * stop the bundler tree-shaking it and pull replay back into the entry chunk.
+ */
+function defaultSdk(): ReplaySdk {
+  return {
+    getClient: Sentry.getClient,
+    lazyLoadIntegration: Sentry.lazyLoadIntegration,
+    addIntegration: Sentry.addIntegration,
+  };
+}
+
 let replayRequested = false;
 
 /**
  * Fetches the replay integration and adds it to the running Sentry client.
- * A no-op without a DSN (local dev, tests) and after the first call.
+ * A no-op without a DSN (local dev, tests) and once a load is in flight or
+ * done. A failed load releases the latch, so a later call may try again.
  */
-export async function addReplayIntegration(nonce?: string): Promise<void> {
-  if (replayRequested || !Sentry.getClient()?.getDsn()) return;
+export async function addReplayIntegration(
+  nonce?: string,
+  sdk: ReplaySdk = defaultSdk()
+): Promise<void> {
+  if (replayRequested || !sdk.getClient()?.getDsn()) return;
   replayRequested = true;
 
   try {
-    const replayIntegration = await Sentry.lazyLoadIntegration('replayIntegration', nonce);
-    Sentry.addIntegration(replayIntegration(REPLAY_OPTIONS));
+    const replayIntegration = await sdk.lazyLoadIntegration('replayIntegration', nonce);
+    sdk.addIntegration(replayIntegration(REPLAY_OPTIONS));
   } catch {
-    // Replay is a debugging aid: a blocked or unreachable CDN must not affect
-    // the page, and error reporting carries on without it.
+    // Replay is a debugging aid: a blocked or unreachable CDN (ad blockers do
+    // this routinely) must not affect the page, and error reporting carries on
+    // without it. Reporting the failure to Sentry would only add noise.
+    replayRequested = false;
   }
 }
 
