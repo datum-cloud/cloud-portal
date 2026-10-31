@@ -95,6 +95,27 @@ describe('specFromConsumerPortalPlugin', () => {
     expect(spec!.visibility.entitlement).toBe('Required');
   });
 
+  test('carries the catalog service identity used for entitlement matching', () => {
+    const spec = specFromConsumerPortalPlugin(
+      consumerPortalPluginResource({
+        serviceName: ' compute.miloapis.com ',
+        serviceRef: { name: 'compute' },
+      }),
+      silentLogger
+    );
+    expect(spec?.serviceName).toBe('compute.miloapis.com');
+    expect(spec?.serviceRefName).toBe('compute');
+  });
+
+  test('leaves the service identity unset when the resource omits or blanks it', () => {
+    const spec = specFromConsumerPortalPlugin(
+      consumerPortalPluginResource({ serviceName: '  ', serviceRef: {} }),
+      silentLogger
+    );
+    expect(spec?.serviceName).toBeUndefined();
+    expect(spec?.serviceRefName).toBeUndefined();
+  });
+
   test('returns null when slug or assets.baseURL is missing', () => {
     expect(specFromConsumerPortalPlugin({ spec: { slug: 'x' } }, silentLogger)).toBeNull();
     expect(
