@@ -136,7 +136,6 @@
 | File                                                              | Imports                                                                       |
 | ----------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | `dns-records/dns-record-alb-cell.tsx`                             | Button, Tooltip, Icon                                                         |
-| `dns-records/dns-record-card.tsx`                                 | Card, CardContent, CardHeader, CardTitle                                      |
 | `dns-records/dns-record-modal-form.tsx`                           | Dialog                                                                        |
 | `dns-records/dns-record-table.tsx`                                | Badge, Icon, Tooltip                                                          |
 | `dns-records/types.ts`                                            | EmptyContentProps                                                             |
@@ -149,17 +148,15 @@
 
 ## Features: Edge - DNS Zone
 
-| File                                                 | Imports                                                    |
-| ---------------------------------------------------- | ---------------------------------------------------------- |
-| `dns-zone/discovery-preview.tsx`                     | Icon                                                       |
-| `dns-zone/dns-zone-form-dialog.tsx`                  | toast, Form                                                |
-| `dns-zone/components/refresh-nameservers-button.tsx` | Button, ButtonProps, toast, Icon                           |
-| `dns-zone/form/dns-record-form.tsx`                  | Button, toast, Form, LoaderOverlay                         |
-| `dns-zone/form/types/*.tsx` (9 record types)         | Form                                                       |
-| `dns-zone/overview/coming-soon-card.tsx`             | Col, Row                                                   |
-| `dns-zone/overview/description-form-card.tsx`        | Form                                                       |
-| `dns-zone/overview/task-nameserver-card.tsx`         | Card, CardContent, CardHeader, CardTitle, Icon             |
-| `dns-zone/overview/task-record-card.tsx`             | Card, CardContent, CardHeader, CardTitle, LinkButton, Icon |
+| File                                                 | Imports                            |
+| ---------------------------------------------------- | ---------------------------------- |
+| `dns-zone/discovery-preview.tsx`                     | Icon                               |
+| `dns-zone/dns-zone-form-dialog.tsx`                  | toast, Form                        |
+| `dns-zone/components/refresh-nameservers-button.tsx` | Button, ButtonProps, toast, Icon   |
+| `dns-zone/form/dns-record-form.tsx`                  | Button, toast, Form, LoaderOverlay |
+| `dns-zone/form/types/*.tsx` (9 record types)         | Form                               |
+| `dns-zone/overview/coming-soon-card.tsx`             | Col, Row                           |
+| `dns-zone/overview/description-form-card.tsx`        | Form                               |
 
 ---
 
@@ -204,10 +201,9 @@
 
 ## Features: Edge - Nameservers
 
-| File                               | Imports                                  |
-| ---------------------------------- | ---------------------------------------- |
-| `nameservers/nameserver-card.tsx`  | Card, CardContent, CardHeader, CardTitle |
-| `nameservers/nameserver-table.tsx` | Badge, EmptyContentProps                 |
+| File                               | Imports                  |
+| ---------------------------------- | ------------------------ |
+| `nameservers/nameserver-table.tsx` | Badge, EmptyContentProps |
 
 ---
 
@@ -313,7 +309,6 @@
 | `account/settings/general.tsx`         | Col, Row, PageTitle                 |
 | `account/settings/layout.tsx`          | PageTitle                           |
 | `account/settings/security.tsx`        | Col, Row                            |
-| `account/settings/access-tokens.tsx`   | Button, CloseIcon, Col, Icon, Row   |
 | `account/settings/active-sessions.tsx` | Badge, Icon, toast                  |
 | `account/organizations/index.tsx`      | Button, Col, Row, toast, Form, Icon |
 
@@ -331,20 +326,18 @@
 
 ### Organization Routes
 
-| File                                      | Imports                      |
-| ----------------------------------------- | ---------------------------- |
-| `org/detail/layout.tsx`                   | NavItem                      |
-| `org/detail/projects/index.tsx`           | Button, Col, Row, Form, Icon |
-| `org/detail/settings/general.tsx`         | Col, Row                     |
-| `org/detail/settings/layout.tsx`          | PageTitle                    |
-| `org/detail/settings/notifications.tsx`   | Col, Row                     |
-| `org/detail/settings/policy-bindings.tsx` | Button, toast, Icon          |
-| `org/detail/team/create-group.tsx`        | toast                        |
-| `org/detail/team/group-detail.tsx`        | toast                        |
-| `org/detail/team/groups.tsx`              | Badge, Button, toast, Icon   |
-| `org/detail/team/index.tsx`               | Badge, Button, toast, Icon   |
-| `org/detail/team/invite.tsx`              | toast                        |
-| `org/detail/team/member-roles.tsx`        | toast                        |
+| File                               | Imports                      |
+| ---------------------------------- | ---------------------------- |
+| `org/detail/layout.tsx`            | NavItem                      |
+| `org/detail/projects/index.tsx`    | Button, Col, Row, Form, Icon |
+| `org/detail/settings/general.tsx`  | Col, Row                     |
+| `org/detail/settings/layout.tsx`   | PageTitle                    |
+| `org/detail/team/create-group.tsx` | toast                        |
+| `org/detail/team/group-detail.tsx` | toast                        |
+| `org/detail/team/groups.tsx`       | Badge, Button, toast, Icon   |
+| `org/detail/team/index.tsx`        | Badge, Button, toast, Icon   |
+| `org/detail/team/invite.tsx`       | toast                        |
+| `org/detail/team/member-roles.tsx` | toast                        |
 
 ### Project Routes
 
@@ -357,7 +350,6 @@
 | `project/detail/dns-zones/detail/dns-records.tsx` | Button, toast, Icon                                         |
 | `project/detail/dns-zones/detail/layout.tsx`      | NavItem                                                     |
 | `project/detail/dns-zones/detail/nameservers.tsx` | Col, Row, Icon                                              |
-| `project/detail/dns-zones/detail/overview.tsx`    | Col, LinkButton, Row, Icon, PageTitle                       |
 | `project/detail/dns-zones/detail/settings.tsx`    | Col, Row, PageTitle                                         |
 | `project/detail/domains/index.tsx`                | Icon                                                        |
 | `project/detail/domains/detail/layout.tsx`        | NavItem                                                     |
@@ -373,7 +365,6 @@
 | `project/detail/secrets/detail/overview.tsx`      | Col, Row, PageTitle                                         |
 | `project/detail/settings/general.tsx`             | Col, Row                                                    |
 | `project/detail/settings/layout.tsx`              | PageTitle                                                   |
-| `project/detail/settings/notifications.tsx`       | Col, Row                                                    |
 
 ### Test Routes
 
