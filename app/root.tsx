@@ -1,6 +1,6 @@
 import { AuthError } from '@/components/error/auth';
 import { GenericError } from '@/components/error/generic';
-import { ClientHintCheck } from '@/components/misc/client-hints';
+import { ClientHintCheck, getHints } from '@/components/misc/client-hints';
 import { DynamicFaviconLinks } from '@/components/misc/dynamic-favicon';
 import { useNonce } from '@/hooks/useNonce';
 import { GraphQLProvider } from '@/modules/graphql/provider';
@@ -88,6 +88,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
       // Persisted main-nav state. `undefined` means the user has never pinned or
       // collapsed the nav, letting DashboardLayout apply its own default.
       sidebarOpen: getSidebarState(request),
+      // Breakpoint tier from the viewport client hint, so the dashboard renders
+      // its nav for the real screen on the server. 'desktop' until the hint
+      // cookie exists.
+      viewport: getHints(request).viewport,
     } as const,
     {
       headers: combineHeaders(
@@ -99,9 +103,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 /** Skip root revalidation for client-side Link navigations.
- * Root loader only provides toast, csrf, ENV, sidebarOpen — none change per-route.
- * `sidebarOpen` is deliberately read once per document load: while the app is
- * mounted the live nav state belongs to SidebarProvider, not the loader.
+ * Root loader only provides toast, csrf, ENV, sidebarOpen, viewport — none change per-route.
+ * `sidebarOpen` and `viewport` are deliberately read once per document load: while
+ * the app is mounted the live nav state belongs to SidebarProvider and the live
+ * breakpoint to useBreakpoint, not the loader.
  * Form submissions still revalidate (e.g. logout) via defaultShouldRevalidate. */
 export function shouldRevalidate({
   currentUrl: _currentUrl,
