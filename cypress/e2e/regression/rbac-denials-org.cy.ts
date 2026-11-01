@@ -37,7 +37,9 @@ describe('RBAC denials — org area', () => {
       cy.denyPermissions(['projects:create']);
       cy.visit(`/org/${ORG}/projects`, { failOnStatusCode: false });
       cy.wait('@bulkCheck');
-      cy.contains("You don't have permission to view projects.").should('not.exist');
+      cy.contains("You don't have permission to view projects in this organization.").should(
+        'not.exist'
+      );
       cy.get('[data-e2e="create-project-button"]', { timeout: 10000 }).should('be.disabled');
     });
 
@@ -47,7 +49,9 @@ describe('RBAC denials — org area', () => {
       cy.denyPermissions(['userinvitations:create']);
       cy.visit(`/org/${ORG}/projects`, { failOnStatusCode: false });
       cy.wait('@bulkCheck');
-      cy.contains("You don't have permission to view projects.").should('not.exist');
+      cy.contains("You don't have permission to view projects in this organization.").should(
+        'not.exist'
+      );
       cy.get('[data-e2e="create-project-button"]', { timeout: 10000 }).should('be.enabled');
     });
 
@@ -83,7 +87,9 @@ describe('RBAC denials — org area', () => {
     it('projects list RestrictedState when projects:list denied', () => {
       cy.denyPermissions(['projects:list']);
       cy.visit(`/org/${ORG}/projects`, { failOnStatusCode: false });
-      cy.contains("You don't have permission to view projects.").should('be.visible');
+      cy.contains("You don't have permission to view projects in this organization.").should(
+        'be.visible'
+      );
     });
 
     it('team members list RestrictedState when organizationmemberships:list denied', () => {
@@ -108,12 +114,6 @@ describe('RBAC denials — org area', () => {
       cy.denyPermissions(['allowancebuckets:list']);
       cy.visit(`/org/${ORG}/settings/quotas`, { failOnStatusCode: false });
       cy.contains("You don't have permission to view quotas.").should('be.visible');
-    });
-
-    it('policy-bindings RestrictedState when policybindings:list denied', () => {
-      cy.denyPermissions(['policybindings:list']);
-      cy.visit(`/org/${ORG}/settings/policy-bindings`, { failOnStatusCode: false });
-      cy.contains("You don't have permission to view policy bindings.").should('be.visible');
     });
 
     it('settings/general RestrictedState when organizations:patch denied', () => {

@@ -90,15 +90,15 @@ describe('RBAC denials — project area', () => {
       cy.contains("You don't have permission to edit this project.").should('be.visible');
     });
 
-    it('metrics list RestrictedState when exportpolicies:list denied', () => {
+    it('export policies list RestrictedState when exportpolicies:list denied', () => {
       cy.denyPermissions(['exportpolicies:list']);
-      cy.visit(`/project/${PROJECT_ID}/metrics`, { failOnStatusCode: false });
+      cy.visit(`/project/${PROJECT_ID}/export-policies`, { failOnStatusCode: false });
       cy.contains("You don't have permission to view export policies.").should('be.visible');
     });
 
-    it('metrics new RestrictedState when exportpolicies:create denied', () => {
+    it('export policies new RestrictedState when exportpolicies:create denied', () => {
       cy.denyPermissions(['exportpolicies:create']);
-      cy.visit(`/project/${PROJECT_ID}/metrics/new`, { failOnStatusCode: false });
+      cy.visit(`/project/${PROJECT_ID}/export-policies/new`, { failOnStatusCode: false });
       cy.contains("You don't have permission to create export policies.").should('be.visible');
     });
 
