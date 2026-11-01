@@ -15,7 +15,6 @@ import type {
 } from './auth.types';
 import {
   cleanupRefreshLock,
-  debugLog,
   deriveRefreshLockKey,
   errPayloadToError,
   followRotations,
@@ -37,6 +36,7 @@ import {
   waitForRedisPayload,
 } from './refresh-store.server';
 import { zitadelIssuer, zitadelStrategy } from '@/modules/auth/strategies/zitadel.server';
+import { logger } from '@/modules/logger';
 import { redisClient } from '@/modules/redis';
 import { env } from '@/utils/env/env.server';
 import { categorizeRefreshError, RefreshError, RefreshErrorType } from '@/utils/errors/auth';
@@ -144,7 +144,7 @@ export class AuthService {
     try {
       this.refreshHook?.({ userId: session.sub, accessToken: session.accessToken });
     } catch (error) {
-      debugLog('Refresh hook threw', { error: String(error) });
+      logger.debug('[auth] Refresh hook threw', { error: String(error) });
     }
   }
 
@@ -274,7 +274,7 @@ export class AuthService {
         return await this.refreshTokensViaRedis(key, refreshToken, sessionRaw, refreshRaw);
       } catch (error) {
         if (!(error instanceof RedisCoordinationError)) throw error;
-        debugLog('Redis coordination unavailable, falling back to in-memory', {
+        logger.debug('[auth] Redis coordination unavailable, falling back to in-memory', {
           error: String(error),
         });
       }
@@ -300,7 +300,7 @@ export class AuthService {
     const existing = await readRedisPayload(key);
     if (existing) {
       if (existing.kind === 'ok') {
-        debugLog('Reusing Redis refresh result');
+        logger.debug('[auth] Reusing Redis refresh result');
         return okPayloadToResponse(await followRotations(existing));
       }
       throw errPayloadToError(existing);
@@ -317,7 +317,7 @@ export class AuthService {
     // Waiter: wait (bounded) for the leader's outcome. No recursion — if nothing
     // arrives, fall back to the in-memory lock once via RedisCoordinationError.
     if (acquired !== 'OK') {
-      debugLog('Redis refresh in progress, waiting for leader...');
+      logger.debug('[auth] Redis refresh in progress, waiting for leader...');
       const payload = await waitForRedisPayload(key);
       if (payload?.kind === 'ok') return okPayloadToResponse(payload);
       if (payload?.kind === 'err') throw errPayloadToError(payload);
@@ -362,13 +362,13 @@ export class AuthService {
     // Fast path: this token already rotated in this process.
     const linked = readRotationLink(key);
     if (linked) {
-      debugLog('Reusing in-memory rotation link');
+      logger.debug('[auth] Reusing in-memory rotation link');
       return okPayloadToResponse(await followRotations(linked));
     }
 
     const existingLock = refreshLocks.get(key);
     if (existingLock) {
-      debugLog('Refresh already in progress (in-memory), waiting for result...');
+      logger.debug('[auth] Refresh already in progress (in-memory), waiting for result...');
       return existingLock.promise;
     }
 
@@ -397,7 +397,7 @@ export class AuthService {
     sessionRaw: Awaited<ReturnType<typeof sessionStorage.getSession>>,
     refreshRaw: Awaited<ReturnType<typeof refreshTokenStorage.getSession>>
   ): Promise<{ session: IAccessTokenSession; headers: Headers; nextKey: string }> {
-    debugLog('Attempting token refresh...');
+    logger.debug('[auth] Attempting token refresh...');
 
     const refreshedTokens = await zitadelStrategy.refreshToken(refreshToken);
 
@@ -434,7 +434,7 @@ export class AuthService {
     headers.append('Set-Cookie', sessionCookieHeader);
     headers.append('Set-Cookie', refreshCookieHeader);
 
-    debugLog('Token refresh successful', {
+    logger.debug('[auth] Token refresh successful', {
       newExpiry: newSession.expiredAt,
       sub: newSession.sub,
     });
@@ -469,7 +469,7 @@ export class AuthService {
     if (!session) {
       // Try to restore using refresh token
       if (refreshToken) {
-        debugLog('No session found, attempting to restore using refresh token...');
+        logger.debug('[auth] No session found, attempting to restore using refresh token...');
 
         try {
           const { session: newSession, headers } = await this.refreshTokens(
@@ -478,10 +478,10 @@ export class AuthService {
             refreshRaw
           );
 
-          debugLog('Session restored successfully');
+          logger.debug('[auth] Session restored successfully');
           return { session: newSession, headers, refreshed: true };
         } catch (error) {
-          debugLog('Failed to restore session', { error: String(error) });
+          logger.debug('[auth] Failed to restore session', { error: String(error) });
 
           const refreshError = categorizeRefreshError(error);
 
@@ -555,7 +555,7 @@ export class AuthService {
           const oauthDesc =
             error instanceof Error && 'description' in error ? (error as any).description : null;
 
-          debugLog('Refresh failed', {
+          logger.debug('[auth] Refresh failed', {
             error: oauthCode || String(error),
             description: oauthDesc,
             minutesUntilExpiry,
@@ -603,7 +603,7 @@ export class AuthService {
 
           // Token is expired - check if it's a network error (might recover on retry)
           if (refreshError instanceof RefreshError && refreshError.type === 'NETWORK_ERROR') {
-            debugLog('Network error during refresh of expired token');
+            logger.debug('[auth] Network error during refresh of expired token');
           }
 
           console.warn(
@@ -626,7 +626,7 @@ export class AuthService {
 
       // Token expired and no refresh token
       if (isExpired) {
-        debugLog('Token expired and no refresh token available');
+        logger.debug('[auth] Token expired and no refresh token available');
         console.warn('[AuthService] Access token expired with no refresh token available.', {
           expiredAt: session.expiredAt,
         });
@@ -725,9 +725,9 @@ export class AuthService {
     if (session?.accessToken) {
       try {
         await zitadelStrategy.revokeToken(session.accessToken);
-        debugLog('Access token revoked');
+        logger.debug('[auth] Access token revoked');
       } catch (error) {
-        debugLog('Failed to revoke access token', { error: String(error) });
+        logger.debug('[auth] Failed to revoke access token', { error: String(error) });
       }
     }
 
@@ -735,9 +735,9 @@ export class AuthService {
     if (refreshToken) {
       try {
         await zitadelStrategy.revokeToken(refreshToken);
-        debugLog('Refresh token revoked');
+        logger.debug('[auth] Refresh token revoked');
       } catch (error) {
-        debugLog('Failed to revoke refresh token', { error: String(error) });
+        logger.debug('[auth] Failed to revoke refresh token', { error: String(error) });
       }
     }
 
