@@ -63,6 +63,10 @@ export interface PlatformSourceOptions {
   retry?: NotReadyRetryOptions;
 }
 
+function nonEmptyString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
 /**
  * Normalizes a ConsumerPortalPlugin resource's spec into the internal spec
  * shape. Returns null for a malformed resource — missing slug or
@@ -85,6 +89,8 @@ export function specFromConsumerPortalPlugin(
     displayName: typeof s.displayName === 'string' && s.displayName ? s.displayName : slug,
     deprecated: s.deprecated === true,
     suspend: s.suspend === true,
+    serviceName: nonEmptyString(s.serviceName),
+    serviceRefName: nonEmptyString(s.serviceRef?.name),
     assets: {
       baseURL: s.assets.baseURL,
       manifestPath: s.assets.manifestPath || DEFAULT_MANIFEST_PATH,

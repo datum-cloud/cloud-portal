@@ -8,11 +8,11 @@
  * The server `loader` does everything trust-sensitive before a single plugin
  * byte reaches the browser — slug → registry resolution, entitlement gating,
  * and per-extension RBAC — and returns only the sanitized `PublicPlugin`. Its
- * server-only imports (`getPlugin`, `canInLoaderBulk`) are used exclusively
- * inside `loader`, which React Router's Vite plugin strips from the client
- * bundle along with their now-unused import chains (the same pattern the
- * project-detail layout uses for `runDetailLoader`). The default export is the
- * client render surface — `<PluginOutlet>`.
+ * server-only imports (`getPlugin`, `assertPluginEntitled`, `canInLoaderBulk`)
+ * are used exclusively inside `loader`, which React Router's Vite plugin strips
+ * from the client bundle along with their now-unused import chains (the same
+ * pattern the project-detail layout uses for `runDetailLoader`). The default
+ * export is the client render surface — `<PluginOutlet>`.
  */
 import { logger } from '@/modules/logger';
 import {
@@ -22,7 +22,7 @@ import {
 } from '@/modules/plugins/client/match-extension';
 import { PluginOutlet } from '@/modules/plugins/client/plugin-outlet';
 import { getPlugin, toPublicPlugin } from '@/modules/plugins/server';
-import type { PluginRegistryEntry } from '@/modules/plugins/types';
+import { assertPluginEntitled } from '@/modules/plugins/server/entitlement';
 import {
   canInLoaderBulk,
   recordGateDenial,
@@ -33,23 +33,6 @@ import { AuthorizationError, NotFoundError } from '@/utils/errors/app-error';
 import { withLoaderErrors } from '@/utils/errors/loader';
 import { metaObject } from '@/utils/helpers/meta.helper';
 import { data, useLoaderData, type LoaderFunctionArgs, type MetaFunction } from 'react-router';
-
-/**
- * Entitlement gate for the current project. Dev-sourced plugins skip this
- * entirely (handled by the caller). For entitlement-required plugins the check
- * is fail-closed: a project is only entitled if it has an Active
- * ServiceEntitlement for the service.
- *
- * TODO(portal-core): the ServiceEntitlement lookup against the project's
- * control plane lives on the server registry side. Until it's wired, a
- * non-dev entitlement-required plugin is invisible (fail-closed) — which is the
- * correct default and is moot in v1, where only dev sources populate the
- * registry (platform source is out of scope).
- */
-async function isProjectEntitled(_projectId: string, entry: PluginRegistryEntry): Promise<boolean> {
-  if (entry.spec.visibility.entitlement !== 'Required') return true;
-  return false;
-}
 
 export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
   const { projectId, serviceSlug } = args.params;
@@ -66,14 +49,12 @@ export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
     throw new NotFoundError('Service', serviceSlug);
   }
 
-  // Entitlement — skipped for dev plugins (the remote catalog has no
-  // ServiceEntitlement for a service that doesn't exist yet).
-  if (!entry.devMode) {
-    const entitled = await isProjectEntitled(projectId, entry);
-    if (!entitled) {
-      throw new NotFoundError('Service', serviceSlug);
-    }
-  }
+  // Entitlement — an Active ServiceEntitlement for the plugin's service, looked
+  // up with the caller's session and cached per caller and project for a
+  // minute; a cached miss is re-read before refusing. Not entitled → the same
+  // 404 as an unknown slug; a failed lookup throws (fail closed). Dev plugins
+  // skip it inside the helper.
+  await assertPluginEntitled(projectId, entry);
 
   // RBAC — gate the extension matching the requested path. A path that matches
   // no page extension is not gated here; the client renders in-app 404 for it.
