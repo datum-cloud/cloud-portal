@@ -42,6 +42,7 @@ describe('Application Load Balancer — regression', () => {
 
   it('should create an Application Load Balancer and appear in the list', () => {
     cy.visit(getPathWithParams(paths.project.detail.proxy.root, { projectId }));
+    cy.waitForHydration();
     cy.url({ timeout: 10000 }).should('include', `project/${projectId}/alb`);
     // On an empty list the Table hides the toolbar actions (incl. the header
     // create button) and surfaces only the empty-state CTA. Click whichever
@@ -93,6 +94,7 @@ describe('Application Load Balancer — regression', () => {
         proxyId,
       })
     );
+    cy.waitForHydration();
     cy.get('[data-e2e="delete-alb-button"]', { timeout: 10000 }).should('exist');
     cy.wait(500);
     cy.get('[data-e2e="delete-alb-button"]').scrollIntoView().click();

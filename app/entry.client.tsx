@@ -25,17 +25,9 @@ Sentry.init({
   integrations: [
     // Performance
     Sentry.reactRouterTracingIntegration(),
-    // Session replay masks all text, inputs and media. A selector list
-    // misses revealed passwords and secrets rendered as plain text, so
-    // nothing is unmasked by default.
-    Sentry.replayIntegration({
-      maskAllText: true,
-      maskAllInputs: true,
-      blockAllMedia: true,
-
-      // Block entire sections from replay
-      block: ['[data-sentry-block]'],
-    }),
+    // Session replay is not listed here: it loads once the browser is idle
+    // (root.tsx → loadReplayWhenIdle), with its masking options in
+    // @/modules/sentry/replay, so rrweb stays out of the entry chunk.
     // User feedback - disabled to remove "Report a Bug" button
     // Sentry.feedbackIntegration({
     //   // Additional SDK configuration goes in here, for example:
