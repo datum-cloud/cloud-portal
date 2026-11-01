@@ -64,50 +64,20 @@ export function getShortId(id: string, length: number = 8): string {
 }
 
 /**
- * Checks if a string is valid base64
- * @param str - The string to check
- * @returns Boolean indicating if the string is valid base64
- */
-export function isBase64(str: string): boolean {
-  if (typeof str !== 'string' || !str) {
-    return false;
-  }
-
-  try {
-    const decoded = atob(str);
-    return btoa(decoded) === str;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Converts a string to base64 encoding
+ * Base64-encodes the UTF-8 bytes of a string.
+ *
+ * Failures propagate rather than returning an empty string: callers write the
+ * result into Secrets, and an empty fallback would silently erase the value.
  * @param str - The string to encode
  * @returns Base64 encoded string
  */
 export function toBase64(str: string): string {
-  if (typeof str !== 'string') {
-    return '';
-  }
-  try {
-    // Step 1: Use TextEncoder to get UTF-8 bytes (Uint8Array)
-    const utf8Bytes = new TextEncoder().encode(str);
-
-    // Step 2: Convert the ArrayBuffer/Uint8Array to a binary string
-    // (a string where each character's code point is a byte value 0-255)
-    let binaryString = '';
-    utf8Bytes.forEach((byte) => {
-      binaryString += String.fromCharCode(byte);
-    });
-
-    // Step 3: Use btoa on the binary string
-    return btoa(binaryString);
-  } catch (error) {
-    console.error('Base64 encoding failed:', error);
-    // Handle cases where btoa or TextEncoder might fail or not be available
-    return '';
-  }
+  // btoa only accepts code points 0-255, so map each UTF-8 byte to one char.
+  let binaryString = '';
+  new TextEncoder().encode(str).forEach((byte) => {
+    binaryString += String.fromCharCode(byte);
+  });
+  return btoa(binaryString);
 }
 
 /**
