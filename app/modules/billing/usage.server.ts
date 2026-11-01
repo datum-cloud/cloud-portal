@@ -24,7 +24,7 @@ import { logger } from '@/modules/logger';
 import { createBillingAccountBindingService } from '@/resources/billing-account-bindings';
 import { createBillingAccountService } from '@/resources/billing-accounts';
 import { createUsageQueryService, type UsageQueryScope } from '@/resources/usage-queries';
-import { AuthenticationError, AuthorizationError } from '@/utils/errors';
+import { AuthenticationError, AuthorizationError, NotFoundError } from '@/utils/errors';
 
 const DEFAULT_DAYS = 30;
 
@@ -52,40 +52,86 @@ function resolveQueryTimeRange(
   return { startSec: nowSec - days * 24 * 3600, endSec: nowSec, days };
 }
 
+/** The billing services the usage cycle lookup reads; injectable for tests. */
+export interface BillingAccountLookupDeps {
+  bindings: Pick<ReturnType<typeof createBillingAccountBindingService>, 'list'>;
+  accounts: Pick<ReturnType<typeof createBillingAccountService>, 'get' | 'list'>;
+}
+
+function defaultBillingAccountLookupDeps(): BillingAccountLookupDeps {
+  return {
+    bindings: createBillingAccountBindingService(),
+    accounts: createBillingAccountService(),
+  };
+}
+
+function isNotFoundError(error: unknown): boolean {
+  if (error instanceof NotFoundError) return true;
+  return typeof error === 'object' && error !== null && 'status' in error && error.status === 404;
+}
+
+/** A missing resource means "no billing account"; anything else is a real failure. */
+async function nullIfNotFound<T>(request: Promise<T>): Promise<T | null> {
+  try {
+    return await request;
+  } catch (error) {
+    if (isNotFoundError(error)) return null;
+    throw error;
+  }
+}
+
 /**
  * Billing account whose `paymentTerms` drive the cycle picker. Project
  * scope uses the bound account; org scope uses the first Ready account
- * (falling back to the first account when none are Ready yet).
+ * (falling back to the first account when none are Ready yet). Resolves to
+ * null when there is no account; throws when the lookup itself fails.
  */
 export async function resolveBillingAccountForUsageScope(
   orgId: string,
-  projectId: string | 'all'
+  projectId: string | 'all',
+  deps: BillingAccountLookupDeps = defaultBillingAccountLookupDeps()
 ): Promise<BillingAccount | null> {
   if (projectId !== 'all') {
-    let bindings;
-    try {
-      bindings = await createBillingAccountBindingService().list(orgId);
-    } catch {
-      return null;
-    }
+    const bindings = (await nullIfNotFound(deps.bindings.list(orgId))) ?? [];
     const binding = bindings.find(
       (b) =>
         b.spec?.projectRef?.name === projectId && (!b.status?.phase || b.status.phase === 'Active')
     );
     const accountName = binding?.spec?.billingAccountRef?.name;
     if (!accountName) return null;
-    try {
-      return await createBillingAccountService().get(orgId, accountName);
-    } catch {
-      return null;
-    }
+    return nullIfNotFound(deps.accounts.get(orgId, accountName));
   }
 
+  const accounts = (await nullIfNotFound(deps.accounts.list(orgId))) ?? [];
+  return accounts.find((account) => account.status?.phase === 'Ready') ?? accounts[0] ?? null;
+}
+
+export interface UsageBillingAccountLookup {
+  billingAccount: BillingAccount | null;
+  /** The lookup failed upstream, so the billing cycles shown are defaults. */
+  billingAccountError: boolean;
+}
+
+/**
+ * Resolve the billing account for the usage dashboard without failing the
+ * whole page: usage still loads on default cycles, but a failed lookup is
+ * logged and flagged so the page can say the cycle is a guess.
+ */
+export async function lookupUsageBillingAccount(
+  orgId: string,
+  projectId: string | 'all',
+  deps?: BillingAccountLookupDeps
+): Promise<UsageBillingAccountLookup> {
   try {
-    const accounts = await createBillingAccountService().list(orgId);
-    return accounts.find((account) => account.status?.phase === 'Ready') ?? accounts[0] ?? null;
-  } catch {
-    return null;
+    const billingAccount = await resolveBillingAccountForUsageScope(orgId, projectId, deps);
+    return { billingAccount, billingAccountError: false };
+  } catch (error) {
+    logger.error(
+      'billing account lookup failed',
+      error instanceof Error ? error : { error: String(error) },
+      { orgId, projectId }
+    );
+    return { billingAccount: null, billingAccountError: true };
   }
 }
 
@@ -301,12 +347,12 @@ export async function loadOrgUsageDashboard(
 
   // The catalog doesn't depend on the billing account; fetch both at once.
   const meterDefinitions = listMeterDefinitions();
-  const scopedBillingAccount = await resolveBillingAccountForUsageScope(
+  const { billingAccount, billingAccountError } = await lookupUsageBillingAccount(
     orgId,
     selectedProject
-  ).catch(() => null);
+  );
 
-  const cycleWindows = buildBillingCycleWindows(scopedBillingAccount?.spec?.paymentTerms);
+  const cycleWindows = buildBillingCycleWindows(billingAccount?.spec?.paymentTerms);
   const selectedCycleWindow = selectBillingCycleWindow(cycleWindows, cycleParam);
   const selectedBillingCycle = selectedCycleWindow.value;
   const billingCycles = cycleWindows.map((window) => ({
@@ -327,5 +373,6 @@ export async function loadOrgUsageDashboard(
     selectedProject,
     billingCycles,
     selectedBillingCycle,
+    billingAccountError,
   };
 }

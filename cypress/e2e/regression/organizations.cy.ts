@@ -94,6 +94,7 @@ describe('Organizations — regression', () => {
 
   it('should update the org display name', () => {
     cy.visit(getPathWithParams(paths.org.detail.settings.general, { orgId: resourceId }));
+    cy.waitForHydration();
     const suffix = '-updated';
     cy.get('[data-e2e="edit-organization-name-input"]', { timeout: 10000 })
       .should('be.visible')
@@ -117,6 +118,7 @@ describe('Organizations — regression', () => {
   // missing element instead of the assertion that actually failed.
   it('should delete the org and remove it from the list', { retries: 0 }, () => {
     cy.visit(getPathWithParams(paths.org.detail.settings.general, { orgId: resourceId }));
+    cy.waitForHydration();
     cy.get('[data-e2e="delete-organization-button"]', { timeout: 10000 }).should('exist');
     cy.wait(500);
     cy.get('[data-e2e="delete-organization-button"]').scrollIntoView().click();

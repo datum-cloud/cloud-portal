@@ -108,12 +108,6 @@ export default route.Page(({ data: initialOrg, companions }) => {
     const settingsPreferences = getPathWithParams(paths.org.detail.settings.general, { orgId });
     const settingsActivity = getPathWithParams(paths.org.detail.settings.activity, { orgId });
     const settingsQuotas = getPathWithParams(paths.org.detail.settings.quotas, { orgId });
-    const settingsNotifications = getPathWithParams(paths.org.detail.settings.notifications, {
-      orgId,
-    });
-    // const settingsPolicyBindings = getPathWithParams(paths.org.detail.policyBindings.root, {
-    //   orgId,
-    // });
 
     return [
       {
@@ -215,13 +209,7 @@ export default route.Page(({ data: initialOrg, companions }) => {
         icon: SettingsIcon,
         showSeparatorAbove: true,
         pinToBottom: true,
-        tabChildLinks: [
-          settingsPreferences,
-          settingsNotifications,
-          settingsActivity,
-          settingsQuotas,
-          // settingsPolicyBindings,
-        ],
+        tabChildLinks: [settingsPreferences, settingsActivity, settingsQuotas],
       },
     ];
   }, [org, queryClient, billingEnabled]);
