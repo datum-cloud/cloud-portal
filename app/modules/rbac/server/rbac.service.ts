@@ -1,3 +1,4 @@
+import { E2E_DENY_REASON, isForcedE2eDeny } from './e2e-deny.server';
 import { logger } from '@/modules/logger';
 import { createAccessReviewService, type SupportedVerb } from '@/resources/access-review';
 import { getOrgScopedBase, getProjectScopedBase, getUserScopedBase } from '@/resources/base/utils';
@@ -42,6 +43,9 @@ export interface BulkPermissionResult extends PermissionResult {
 }
 
 type AccessReviewFactory = typeof createAccessReviewService;
+
+/** Deny returned when a Cypress run forces it; see `e2e-deny.server.ts`. */
+const FORCED_DENY: PermissionResult = { allowed: false, denied: true, reason: E2E_DENY_REASON };
 
 export class RbacService {
   constructor(
@@ -102,6 +106,7 @@ export class RbacService {
     organizationId: string,
     check: PermissionCheckInput
   ): Promise<PermissionResult> {
+    if (isForcedE2eDeny(check)) return { ...FORCED_DENY };
     const accessReview = this.accessReviewFactory();
     try {
       const result = await accessReview.create(
@@ -143,7 +148,8 @@ export class RbacService {
     const accessReview = this.accessReviewFactory();
 
     const settled = await Promise.allSettled(
-      checks.map(async (check) => {
+      checks.map(async (check): Promise<PermissionResult> => {
+        if (isForcedE2eDeny(check)) return { ...FORCED_DENY };
         const result = await accessReview.create(
           organizationId,
           {
