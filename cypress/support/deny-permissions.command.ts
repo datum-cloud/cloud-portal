@@ -12,7 +12,7 @@ import {
 /**
  * Deny the listed permissions for the rest of the test, on both sides:
  * - sets the `e2e-deny` cookie, which SSR loader gates honour when the app runs
- *   with CYPRESS=true outside production (app/modules/rbac/server/e2e-deny.server.ts);
+ *   with CYPRESS=true and NODE_ENV=test (app/modules/rbac/server/e2e-deny.server.ts);
  * - overrides the ambient `/api/permissions/*` stubs from e2e.ts so client-side
  *   gates agree (a later `cy.intercept` for the same route wins).
  * Entries are `resource:verb` or `group:resource:verb`. Call after `cy.login()`:

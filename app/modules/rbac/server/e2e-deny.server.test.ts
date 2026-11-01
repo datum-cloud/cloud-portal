@@ -13,13 +13,15 @@ import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 const TEST_ENV = { CYPRESS: 'true', NODE_ENV: 'test' };
 
 describe('isE2eDenyActive', () => {
-  test('is active in a Cypress run outside production', () => {
+  test('is active in a Cypress run with NODE_ENV=test', () => {
     expect(isE2eDenyActive(TEST_ENV)).toBe(true);
-    expect(isE2eDenyActive({ CYPRESS: 'true', NODE_ENV: undefined })).toBe(true);
   });
 
-  test('is inactive in production even when CYPRESS is set', () => {
+  test('fails closed for any NODE_ENV other than test, even when CYPRESS is set', () => {
     expect(isE2eDenyActive({ CYPRESS: 'true', NODE_ENV: 'production' })).toBe(false);
+    expect(isE2eDenyActive({ CYPRESS: 'true', NODE_ENV: 'development' })).toBe(false);
+    expect(isE2eDenyActive({ CYPRESS: 'true', NODE_ENV: undefined })).toBe(false);
+    expect(isE2eDenyActive({ CYPRESS: 'true', NODE_ENV: '' })).toBe(false);
   });
 
   test('is inactive without CYPRESS=true', () => {

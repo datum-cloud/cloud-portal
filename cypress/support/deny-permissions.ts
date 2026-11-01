@@ -4,7 +4,7 @@
  * One deny list drives both sides of a permission check in a test:
  * - server-side loader gates read it from the `e2e-deny` cookie
  *   (app/modules/rbac/server/e2e-deny.server.ts, active only when the app runs
- *   with CYPRESS=true outside production);
+ *   with CYPRESS=true and NODE_ENV=test);
  * - client-side gates get it from the `/api/permissions/*` intercepts built here.
  *
  * Entries are `resource:verb` (any API group) or `group:resource:verb`. This

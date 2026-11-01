@@ -8,8 +8,9 @@
  * deny for matching checks without calling upstream.
  *
  * The hook only ever turns an answer into a deny, never into an allow, and it
- * is inert unless BOTH `CYPRESS=true` and `NODE_ENV` is not `production`.
- * Outside that environment the cookie is ignored.
+ * is inert unless BOTH `CYPRESS=true` and `NODE_ENV=test`. It fails closed: an
+ * unset or unexpected `NODE_ENV` (production, development, staging) leaves the
+ * cookie ignored.
  */
 import { getRequestContext } from '@/modules/axios/request-context';
 
@@ -29,9 +30,9 @@ interface DenyCheck {
   group?: string;
 }
 
-/** True only in a Cypress run that is not a production build. */
+/** True only in a Cypress run against a server started with NODE_ENV=test. */
 export function isE2eDenyActive(envVars: DenyEnv = process.env): boolean {
-  return envVars.CYPRESS === 'true' && envVars.NODE_ENV !== 'production';
+  return envVars.CYPRESS === 'true' && envVars.NODE_ENV === 'test';
 }
 
 /** Reads the deny list from a Cookie header; malformed input yields an empty list. */
