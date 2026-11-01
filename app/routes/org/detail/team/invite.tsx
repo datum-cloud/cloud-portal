@@ -133,7 +133,7 @@ function InviteForm() {
       if (hasSuccess && !hasFailed) {
         // All invitations succeeded
         trackAction(AnalyticsAction.InviteCollaborator);
-        navigate(getPathWithParams(paths.org.detail.team.root, { orgId }));
+        void navigate(getPathWithParams(paths.org.detail.team.root, { orgId }));
       } else if (hasSuccess && hasFailed) {
         // Partial success - some succeeded, some failed
         const message =
@@ -147,7 +147,7 @@ function InviteForm() {
         toast.warning(message, {
           description: ErrorList(failedResults),
         });
-        navigate(getPathWithParams(paths.org.detail.team.root, { orgId }));
+        void navigate(getPathWithParams(paths.org.detail.team.root, { orgId }));
       } else if (hasFailed) {
         // All invitations failed
         const message =

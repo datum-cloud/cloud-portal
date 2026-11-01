@@ -165,7 +165,7 @@ export default function AccountOrganizations() {
   useEffect(() => {
     if (alertSubmittedRef.current && alertFetcher.data?.success && alertFetcher.state === 'idle') {
       alertSubmittedRef.current = false;
-      revalidator.revalidate();
+      void revalidator.revalidate();
     }
   }, [alertFetcher.data, alertFetcher.state, revalidator]);
 
@@ -181,12 +181,12 @@ export default function AccountOrganizations() {
 
   const handleAlertClose = () => {
     alertSubmittedRef.current = true;
-    alertFetcher.submit({}, { method: 'POST' });
+    void alertFetcher.submit({}, { method: 'POST' });
   };
 
   const handleCreated = async ({ orgId }: { orgId: string }) => {
     trackAction(AnalyticsAction.CreateOrg, { orgId });
-    navigate(getPathWithParams(paths.org.detail.root, { orgId }));
+    void navigate(getPathWithParams(paths.org.detail.root, { orgId }));
     // Hold the dialog + submit spinner until this route unmounts after navigation.
     await new Promise<void>(() => {});
   };

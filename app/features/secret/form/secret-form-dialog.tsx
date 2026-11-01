@@ -61,7 +61,7 @@ export const SecretFormDialog = forwardRef<SecretFormDialogRef>((_props, ref) =>
     onSuccess: (secret) => {
       trackAction(AnalyticsAction.AddSecret);
       setOpen(false);
-      navigate(
+      void navigate(
         getPathWithParams(paths.project.detail.secrets.detail.root, {
           projectId,
           secretId: secret.name,

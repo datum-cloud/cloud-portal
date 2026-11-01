@@ -396,7 +396,7 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
         {
           label: 'View',
           onClick: (row) => {
-            navigate(
+            void navigate(
               getPathWithParams(paths.project.detail.proxy.detail.root, {
                 projectId,
                 proxyId: row.name,
@@ -435,7 +435,7 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
         loading={isPending}
         title="Application Load Balancer"
         onRowClick={(row) => {
-          navigate(
+          void navigate(
             getPathWithParams(paths.project.detail.proxy.detail.root, {
               projectId,
               proxyId: row.name,

@@ -60,13 +60,13 @@ export function useCreateBillingAccountBinding(
     onSettled: (...args) => {
       const [, , input] = args;
       if (input?.orgId) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: billingAccountBindingKeys.list(input.orgId),
         });
         // Fan-out cache(s) too. We don't know the exact orgIds the
         // page is using, so blanket-invalidate every `for-orgs`
         // variant under the lists key.
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: billingAccountBindingKeys.lists(),
         });
       }

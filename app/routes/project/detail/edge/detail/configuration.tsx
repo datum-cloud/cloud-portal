@@ -186,7 +186,7 @@ export default function HttpProxyConfigurationPage() {
 
   const { confirmDelete, isPending: isDeleting } = useDeleteProxy(projectId, {
     onSuccess: () => {
-      navigate(getPathWithParams(paths.project.detail.proxy.root, { projectId }));
+      void navigate(getPathWithParams(paths.project.detail.proxy.root, { projectId }));
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to delete proxy');

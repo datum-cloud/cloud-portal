@@ -32,7 +32,7 @@ export const DnsZoneFormDialog = forwardRef<DnsZoneFormDialogRef, DnsZoneFormDia
         trackAction(AnalyticsAction.AddDnsZone);
         setOpen(false);
         // Navigate to discovery page — it creates the discovery on mount
-        navigate(
+        void navigate(
           getPathWithParams(paths.project.detail.dnsZones.detail.discovery, {
             projectId,
             dnsZoneId: dnsZone.name,

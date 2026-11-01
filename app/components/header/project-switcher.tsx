@@ -72,7 +72,7 @@ export const ProjectSwitcher = ({
   });
 
   const onSelect = (project: Project) => {
-    navigate(getPathWithParams(paths.project.detail.home, { projectId: project.name }));
+    void navigate(getPathWithParams(paths.project.detail.home, { projectId: project.name }));
   };
 
   const projects: Project[] = useMemo(() => {

@@ -111,7 +111,7 @@ export function ProjectHomeBody({ projectId }: { projectId: string }) {
   const [networkDialogOpen, setNetworkDialogOpen] = useState(false);
   const createNetwork = () => {
     if (networksPlugin) setNetworkDialogOpen(true);
-    else if (networksSlug) navigate(pluginHref(projectId, networksSlug, 'networks'));
+    else if (networksSlug) void navigate(pluginHref(projectId, networksSlug, 'networks'));
   };
   const onNetworkDialogChange = (open: boolean) => {
     setNetworkDialogOpen(open);

@@ -80,7 +80,7 @@ export function useCreateDnsRecord(
     onSettled: () => {
       // Fallback: invalidate list cache in case watch doesn't trigger
       // This ensures UI updates even if watch connection is stale/dead
-      queryClient.invalidateQueries({ queryKey: dnsRecordKeys.list(projectId, dnsZoneId) });
+      void queryClient.invalidateQueries({ queryKey: dnsRecordKeys.list(projectId, dnsZoneId) });
     },
   });
 }
@@ -134,7 +134,7 @@ export function useUpdateDnsRecord(
     },
     onSettled: () => {
       // Fallback: invalidate list cache in case watch doesn't trigger
-      queryClient.invalidateQueries({ queryKey: dnsRecordKeys.list(projectId, dnsZoneId) });
+      void queryClient.invalidateQueries({ queryKey: dnsRecordKeys.list(projectId, dnsZoneId) });
     },
   });
 }
@@ -292,7 +292,7 @@ export function useBulkImportDnsRecords(
     ...options,
     onSettled: () => {
       // Fallback: invalidate list cache in case watch doesn't trigger
-      queryClient.invalidateQueries({ queryKey: dnsRecordKeys.list(projectId, dnsZoneId) });
+      void queryClient.invalidateQueries({ queryKey: dnsRecordKeys.list(projectId, dnsZoneId) });
     },
   });
 }

@@ -205,14 +205,14 @@ export const BillingForm = ({
                   });
 
                   if (result.projectId) {
-                    navigate(
+                    void navigate(
                       getPathWithParams(paths.project.detail.root, { projectId: result.projectId }),
                       { replace: true }
                     );
                     return;
                   }
 
-                  navigate(getPathWithParams(paths.org.detail.projects.root, { orgId }), {
+                  void navigate(getPathWithParams(paths.org.detail.projects.root, { orgId }), {
                     replace: true,
                   });
                   return;
@@ -224,7 +224,7 @@ export const BillingForm = ({
                   contactInfo,
                 };
 
-                navigate(paths.onboarding.provisioning, {
+                void navigate(paths.onboarding.provisioning, {
                   replace: false,
                   state: {
                     orgName: orgDisplayNameFromContact(contactInfo),

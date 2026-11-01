@@ -77,7 +77,7 @@ export function useServiceAccountEmailPoller(
         }
 
         // Schedule next poll only after this one completes
-        timeoutRef.current = setTimeout(poll, POLL_INTERVAL_MS);
+        timeoutRef.current = setTimeout(() => void poll(), POLL_INTERVAL_MS);
       } catch (err) {
         if (cancelledRef.current) return;
         const message = err instanceof Error ? err.message : 'An unexpected error occurred.';
@@ -85,7 +85,7 @@ export function useServiceAccountEmailPoller(
       }
     }
 
-    timeoutRef.current = setTimeout(poll, POLL_INTERVAL_MS);
+    timeoutRef.current = setTimeout(() => void poll(), POLL_INTERVAL_MS);
 
     return () => {
       cancelledRef.current = true;

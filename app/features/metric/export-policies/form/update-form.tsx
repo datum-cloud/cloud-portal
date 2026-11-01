@@ -73,7 +73,7 @@ export const ExportPolicyUpdateForm = ({
 
   const updateMutation = useUpdateExportPolicy(projectId ?? '', defaultValue?.name ?? '', {
     onSuccess: () => {
-      navigate(
+      void navigate(
         getPathWithParams(paths.project.detail.metrics.root, {
           projectId,
         })
@@ -90,7 +90,7 @@ export const ExportPolicyUpdateForm = ({
 
   const deleteMutation = useDeleteExportPolicy(projectId ?? '', {
     onSuccess: () => {
-      navigate(
+      void navigate(
         getPathWithParams(paths.project.detail.metrics.root, {
           projectId,
         })
@@ -272,7 +272,7 @@ export const ExportPolicyUpdateForm = ({
               theme="borderless"
               disabled={isPending}
               onClick={() => {
-                navigate(
+                void navigate(
                   getPathWithParams(paths.project.detail.metrics.root, {
                     projectId,
                   })

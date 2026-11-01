@@ -72,7 +72,7 @@ export function useCreateNotificationContactGroup(
         notificationContactGroupKeys.detail(scopeKey, ns, created.name),
         created
       );
-      queryClient.invalidateQueries({ queryKey: notificationContactGroupKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: notificationContactGroupKeys.lists() });
       options?.onSuccess?.(...args);
     },
   });
@@ -95,7 +95,7 @@ export function useUpdateNotificationContactGroup(
       const [updated] = args;
       const ns = updated.namespace ?? namespace;
       queryClient.setQueryData(notificationContactGroupKeys.detail(scopeKey, ns, name), updated);
-      queryClient.invalidateQueries({ queryKey: notificationContactGroupKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: notificationContactGroupKeys.lists() });
       options?.onSuccess?.(...args);
     },
   });
@@ -130,7 +130,7 @@ export function useDeleteNotificationContactGroup(
       await queryClient.cancelQueries({
         queryKey: notificationContactGroupKeys.detail(scopeKey, namespace, name),
       });
-      queryClient.invalidateQueries({ queryKey: notificationContactGroupKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: notificationContactGroupKeys.lists() });
       options?.onSuccess?.(...args);
     },
   });

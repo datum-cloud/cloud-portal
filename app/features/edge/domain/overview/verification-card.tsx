@@ -34,7 +34,7 @@ function VerificationBadge({ value }: { value: string }) {
   const copyToClipboard = () => {
     if (!value) return;
 
-    copy(value).then((success) => {
+    void copy(value).then((success) => {
       if (!success) return;
       toast.success('Copied to clipboard');
       setCopied(true);

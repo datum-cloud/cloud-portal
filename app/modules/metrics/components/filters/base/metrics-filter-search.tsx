@@ -47,7 +47,7 @@ export function MetricsFilterSearch({
   }, [updateUrlStateEntry, filterKey, value, setValue]);
 
   const reset = useCallback(() => {
-    setValue(defaultValue);
+    void setValue(defaultValue);
   }, [setValue, defaultValue]);
 
   const handleClear = useCallback(() => {

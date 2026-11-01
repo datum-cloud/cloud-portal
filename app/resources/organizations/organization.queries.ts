@@ -63,7 +63,7 @@ export function useCreateOrganization(
       const [newOrg] = args;
       // Set detail cache + invalidate list (no Watch for this resource)
       queryClient.setQueryData(organizationKeys.detail(newOrg.name), newOrg);
-      queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
 
       options?.onSuccess?.(...args);
     },
@@ -83,7 +83,7 @@ export function useUpdateOrganization(
       const [data] = args;
       // Update detail cache + invalidate list (no Watch for this resource)
       queryClient.setQueryData(organizationKeys.detail(name), data);
-      queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
 
       options?.onSuccess?.(...args);
     },
@@ -110,7 +110,7 @@ export function useUpdateOrganizationContactInfo(
     onSuccess: (...args) => {
       const [data] = args;
       queryClient.setQueryData(organizationKeys.detail(name), data);
-      queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
 
       options?.onSuccess?.(...args);
     },
@@ -127,7 +127,7 @@ export function useDeleteOrganization(options?: UseMutationOptions<void, Error, 
       const [, name] = args;
       // Cancel in-flight queries + invalidate list (no Watch for this resource)
       await queryClient.cancelQueries({ queryKey: organizationKeys.detail(name) });
-      queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
 
       options?.onSuccess?.(...args);
     },

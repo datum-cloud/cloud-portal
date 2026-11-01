@@ -175,7 +175,7 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
   useEffect(() => {
     if (alertSubmittedRef.current && alertFetcher.data?.success && alertFetcher.state === 'idle') {
       alertSubmittedRef.current = false;
-      revalidator.revalidate();
+      void revalidator.revalidate();
     }
   }, [alertFetcher.data, alertFetcher.state, revalidator]);
 
@@ -185,7 +185,7 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
 
   const handleAlertClose = () => {
     alertSubmittedRef.current = true;
-    alertFetcher.submit({}, { method: 'POST' });
+    void alertFetcher.submit({}, { method: 'POST' });
   };
 
   const handleSubmit = async (formData: z.infer<typeof projectFormSchema>) => {
@@ -241,8 +241,8 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
             queryClient.setQueryData(projectKeys.detail(readyProject.name), readyProject);
           }
         }
-        queryClient.invalidateQueries({ queryKey: projectKeys.list(orgId) });
-        queryClient.invalidateQueries({ queryKey: billingAccountBindingKeys.list(orgId) });
+        void queryClient.invalidateQueries({ queryKey: projectKeys.list(orgId) });
+        void queryClient.invalidateQueries({ queryKey: billingAccountBindingKeys.list(orgId) });
       },
       completionActions: (_result, info) => {
         if (info.status === 'failed') {
@@ -273,7 +273,9 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
             theme: 'outline',
             size: 'xs',
             onClick: () =>
-              navigate(getPathWithParams(paths.project.detail.root, { projectId: result.name })),
+              void navigate(
+                getPathWithParams(paths.project.detail.root, { projectId: result.name })
+              ),
           },
         ];
       },
@@ -369,11 +371,11 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
                   tabIndex: 0,
                   className:
                     'cursor-pointer focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
-                  onClick: () => navigate(projectDetailPath),
+                  onClick: () => void navigate(projectDetailPath),
                   onKeyDown: (event) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault();
-                      navigate(projectDetailPath);
+                      void navigate(projectDetailPath);
                     }
                   },
                 };

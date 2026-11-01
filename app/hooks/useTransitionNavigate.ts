@@ -14,7 +14,7 @@ export function useTransitionNavigate() {
 
   const transitionNavigate = useCallback(
     (to: To, options?: NavigateOptions) => {
-      navigate(to, options);
+      void navigate(to, options);
     },
     [navigate]
   );

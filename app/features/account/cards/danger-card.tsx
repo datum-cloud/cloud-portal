@@ -17,7 +17,7 @@ export const AccountDangerSettingsCard = () => {
       toast.success('Account', {
         description: 'Your account has been deleted successfully',
       });
-      navigate(paths.auth.logOut, { replace: true });
+      void navigate(paths.auth.logOut, { replace: true });
     },
     onError: (error) => {
       toast.error(error.message);

@@ -73,7 +73,7 @@ export const RefreshControl = ({
 
     const interval = setInterval(() => {
       // Invalidate all prometheus queries to trigger refetch
-      queryClient.invalidateQueries({ queryKey: ['prometheus-api'] });
+      void queryClient.invalidateQueries({ queryKey: ['prometheus-api'] });
     }, intervalMs);
 
     return () => clearInterval(interval);
@@ -83,7 +83,7 @@ export const RefreshControl = ({
     setIsManualRefreshing(true);
 
     // Invalidate all prometheus queries to trigger refetch
-    queryClient.invalidateQueries({ queryKey: ['prometheus-api'] });
+    void queryClient.invalidateQueries({ queryKey: ['prometheus-api'] });
 
     setTimeout(() => setIsManualRefreshing(false), 1000);
   };

@@ -56,7 +56,7 @@ export interface UsePrometheusLabelsResult {
   /** Whether data is being fetched */
   isFetching: boolean;
   /** Refetch function */
-  refetch: () => void;
+  refetch: () => Promise<unknown>;
 }
 
 /**

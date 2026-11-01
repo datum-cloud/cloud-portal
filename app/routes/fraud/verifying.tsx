@@ -49,8 +49,8 @@ export default function VerifyingPage() {
       }
     };
 
-    poll(); // fire immediately — don't wait 4s if evaluation is already ready
-    const intervalId = setInterval(poll, 4000);
+    void poll(); // fire immediately — don't wait 4s if evaluation is already ready
+    const intervalId = setInterval(() => void poll(), 4000);
 
     return () => {
       stopped = true;

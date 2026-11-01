@@ -59,7 +59,7 @@ export function useJoinInvitation({ onAccepted, onError }: UseJoinInvitationOpti
         });
       }
       if (!isMountedRef.current) return;
-      navigate(getPathWithParams(paths.org.detail.root, { orgId }));
+      void navigate(getPathWithParams(paths.org.detail.root, { orgId }));
     },
     onError,
   });

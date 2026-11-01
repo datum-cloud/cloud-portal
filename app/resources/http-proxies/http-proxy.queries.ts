@@ -120,7 +120,7 @@ function invalidateDomainsForHostnames(
   if (hostnames === undefined) return;
   // Prefix-match on the project rather than domainKeys.list(projectId), whose
   // trailing `params` slot would miss any paginated variant of the same list.
-  queryClient.invalidateQueries({ queryKey: [...domainKeys.lists(), projectId] });
+  void queryClient.invalidateQueries({ queryKey: [...domainKeys.lists(), projectId] });
 }
 
 /** Proxies are watched: mutations write the list and never invalidate it. */
@@ -170,9 +170,11 @@ export function useCreateHttpProxy(
           onSuccess: (...args) => {
             const [, input] = args;
             // Not covered by the proxy watch, so these still invalidate.
-            queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
-            queryClient.invalidateQueries({ queryKey: serviceEntitlementKeys.active(projectId) });
-            queryClient.invalidateQueries({ queryKey: locationKeys.list(projectId) });
+            void queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
+            void queryClient.invalidateQueries({
+              queryKey: serviceEntitlementKeys.active(projectId),
+            });
+            void queryClient.invalidateQueries({ queryKey: locationKeys.list(projectId) });
             invalidateDomainsForHostnames(queryClient, projectId, input.hostnames);
             return options?.onSuccess?.(...args);
           },
@@ -299,9 +301,9 @@ function onUpdateSuccess(
   });
   // Exception to watch-or-invalidate: watch events omit redirect and basic-auth
   // fields, so only a re-GET shows them. Not awaited, or the dialog hangs (#1491).
-  queryClient.invalidateQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
-  queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafDetail(projectId, name) });
-  queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
+  void queryClient.invalidateQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
+  void queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafDetail(projectId, name) });
+  void queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
   invalidateDomainsForHostnames(queryClient, projectId, input.hostnames);
 }
 
@@ -379,7 +381,7 @@ export function useDeleteHttpProxy(
           onSuccess: (...args) => {
             const [, name] = args;
             queryClient.removeQueries({ queryKey: httpProxyKeys.wafDetail(projectId, name) });
-            queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
+            void queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
             return options?.onSuccess?.(...args);
           },
         },

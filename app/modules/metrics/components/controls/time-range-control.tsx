@@ -116,13 +116,13 @@ export const TimeRangeControl = ({
 
   const handleChange = useCallback(
     (newValue: TimeRangeValue) => {
-      setUrlValue(timeRangeValueToUrlValue(newValue));
+      void setUrlValue(timeRangeValueToUrlValue(newValue));
     },
     [setUrlValue]
   );
 
   const handleClear = useCallback(() => {
-    setUrlValue(defaultValue);
+    void setUrlValue(defaultValue);
   }, [setUrlValue, defaultValue]);
 
   return (

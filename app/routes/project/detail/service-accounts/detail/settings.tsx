@@ -46,7 +46,7 @@ export default function ServiceAccountSettingsPage() {
     },
     onSuccess: (_, name) => {
       toast.success('Service account deleted');
-      navigate(getPathWithParams(paths.project.detail.serviceAccounts.root, { projectId }), {
+      void navigate(getPathWithParams(paths.project.detail.serviceAccounts.root, { projectId }), {
         state: { deletedName: name },
       });
     },

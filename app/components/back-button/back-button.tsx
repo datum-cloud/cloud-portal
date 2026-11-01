@@ -65,16 +65,16 @@ export const BackButton = ({
     // 2. Browser history back (navigate(-1))
     // 3. Fallback path
     if (to) {
-      navigate(to);
+      void navigate(to);
     } else {
       // Check if there's history to go back to
       // Note: window.history.length > 1 indicates there's a previous page
       const hasHistory = window.history.length > 1;
 
       if (hasHistory) {
-        navigate(-1);
+        void navigate(-1);
       } else {
-        navigate(fallbackPath);
+        void navigate(fallbackPath);
       }
     }
 

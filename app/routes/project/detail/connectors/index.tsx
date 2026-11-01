@@ -162,7 +162,7 @@ export default route.Page(({ data: loaderData }) => {
   const handleDismissDownload = () => {
     cardDismissedThisSession = true;
     setDismissed(true);
-    dismissFetcher.submit({}, { method: 'POST' });
+    void dismissFetcher.submit({}, { method: 'POST' });
   };
   const isDownloadVisible = !dismissed;
 

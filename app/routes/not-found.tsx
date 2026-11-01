@@ -75,7 +75,7 @@ export default function NotFound() {
                 theme="outline"
                 size="small"
                 onClick={() => {
-                  navigate(-1);
+                  void navigate(-1);
                 }}>
                 <Icon icon={ArrowLeft} className="size-4" />
                 Go Back

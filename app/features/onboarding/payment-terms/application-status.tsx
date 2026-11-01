@@ -173,7 +173,7 @@ export function ApplicationUnderReview({
   const latestPhase = latest ? applicationPhase(latest) : undefined;
   const decided = latestPhase === 'Approved' || latestPhase === 'Declined';
   useEffect(() => {
-    if (decided) revalidate();
+    if (decided) void revalidate();
   }, [decided, revalidate]);
 
   const handleWithdraw = () =>
@@ -197,7 +197,7 @@ export function ApplicationUnderReview({
           });
           throw error;
         }
-        navigate(
+        void navigate(
           fromSettings
             ? billingSettingsPath(context.billingAccountName)
             : cardSetupPath({ orgId: context.orgId, entry: context.entry }),
@@ -323,7 +323,7 @@ export function ApplicationApproved({
   const handleContinue = async () => {
     const orgProjects = getPathWithParams(paths.org.detail.projects.root, { orgId: context.orgId });
     if (!contactInfo) {
-      navigate(orgProjects, { replace: true });
+      void navigate(orgProjects, { replace: true });
       return;
     }
     try {
@@ -334,7 +334,7 @@ export function ApplicationApproved({
         billingAccountName: context.billingAccountName,
         contactInfo,
       });
-      navigate(
+      void navigate(
         result.projectId
           ? getPathWithParams(paths.project.detail.root, { projectId: result.projectId })
           : orgProjects,

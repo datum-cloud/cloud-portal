@@ -176,7 +176,7 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
 
   const leaveOrganizationMutation = useLeaveOrganization({
     onSuccess: () => {
-      navigate(paths.account.organizations.root);
+      void navigate(paths.account.organizations.root);
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to leave organization');
@@ -427,7 +427,7 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
       search="Search"
       onRowClick={(row) => {
         if (row.type !== 'member') return;
-        navigate(
+        void navigate(
           getPathWithParams(paths.org.detail.team.roles, {
             orgId,
             memberId: row.name ?? '',
@@ -440,7 +440,8 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
           {
             type: 'button',
             label: 'Invite Member',
-            onClick: () => navigate(getPathWithParams(paths.org.detail.team.invite, { orgId })),
+            onClick: () =>
+              void navigate(getPathWithParams(paths.org.detail.team.invite, { orgId })),
             icon: <Icon icon={UserPlusIcon} className="size-3" />,
             disabled: !canCreateInvitation,
             tooltip: !canCreateInvitation

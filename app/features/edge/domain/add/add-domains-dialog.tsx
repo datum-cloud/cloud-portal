@@ -222,7 +222,7 @@ export const AddDomainsDialog = ({
           theme: 'outline' as const,
           size: 'xs' as const,
           onClick: () =>
-            navigate(getPathWithParams(paths.project.detail.domains.root, { projectId })),
+            void navigate(getPathWithParams(paths.project.detail.domains.root, { projectId })),
         },
       ],
     });
@@ -291,7 +291,7 @@ export const AddDomainsDialog = ({
               matches={pendingDuplicate.matches}
               onOpenExisting={(match) => {
                 onOpenChange(false);
-                navigate(
+                void navigate(
                   getPathWithParams(paths.project.detail.domains.detail.overview, {
                     projectId: match.projectId,
                     domainId: match.domainId,

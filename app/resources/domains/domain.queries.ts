@@ -154,7 +154,7 @@ export function useRefreshDomainRegistration(
       // Update detail cache with server response - Watch handles list sync
       queryClient.setQueryData(domainKeys.detail(projectId, name), data);
       // Invalidate DNS zones since they depend on domain nameserver status
-      queryClient.invalidateQueries({ queryKey: dnsZoneKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: dnsZoneKeys.lists() });
 
       options?.onSuccess?.(...args);
     },

@@ -98,7 +98,7 @@ export const ProvisioningPage = ({ devBypass = false }: ProvisioningPageProps) =
   useEffect(() => {
     if (devBypass) return;
     if (!setup && !legacyProjectId) {
-      navigate(paths.onboarding.billing, { replace: true });
+      void navigate(paths.onboarding.billing, { replace: true });
     }
   }, [devBypass, legacyProjectId, navigate, setup]);
 
@@ -242,13 +242,13 @@ export const ProvisioningPage = ({ devBypass = false }: ProvisioningPageProps) =
                   disabled={!allComplete}
                   onClick={() => {
                     if (projectId) {
-                      navigate(getPathWithParams(paths.project.detail.home, { projectId }), {
+                      void navigate(getPathWithParams(paths.project.detail.home, { projectId }), {
                         replace: true,
                       });
                       return;
                     }
 
-                    navigate(paths.account.organizations.root, { replace: true });
+                    void navigate(paths.account.organizations.root, { replace: true });
                   }}>
                   {!allComplete && (
                     <span

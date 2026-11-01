@@ -25,7 +25,7 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
         description: 'The Project has been updated successfully',
       });
       if (updatedProject.organizationId) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: [...projectKeys.lists(), updatedProject.organizationId],
         });
       }

@@ -96,11 +96,11 @@ export default function VerifyEmailPage() {
       }
 
       if (!stopped) {
-        timerId = setTimeout(poll, pollDelayFor(Date.now() - startedAt));
+        timerId = setTimeout(() => void poll(), pollDelayFor(Date.now() - startedAt));
       }
     };
 
-    poll(); // fire immediately — don't wait if the link was already clicked
+    void poll(); // fire immediately — don't wait if the link was already clicked
 
     return () => {
       stopped = true;

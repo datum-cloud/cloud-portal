@@ -138,7 +138,7 @@ export function useBulkDeleteAction({
             ]
           : [],
       onComplete: () => {
-        queryClient.invalidateQueries({ queryKey: dnsRecordKeys.list(projectId, dnsZoneId) });
+        void queryClient.invalidateQueries({ queryKey: dnsRecordKeys.list(projectId, dnsZoneId) });
         // The skipped records stay in the table, so say why once the task is
         // done; the confirmation alone was easy to miss (#1635).
         if (plan.skipped.length > 0) {

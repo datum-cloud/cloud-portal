@@ -20,7 +20,7 @@ export const SecretDangerCard = ({
 
   const deleteSecretMutation = useDeleteSecret(projectId ?? '', {
     onSuccess: () => {
-      navigate(
+      void navigate(
         getPathWithParams(paths.project.detail.secrets.root, {
           projectId,
         })
