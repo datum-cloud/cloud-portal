@@ -6,12 +6,12 @@ This document covers the tools and practices for maintaining code quality.
 
 ## Overview
 
-| Tool           | Purpose         | Config             |
-| -------------- | --------------- | ------------------ |
-| **ESLint**     | Linting         | `eslint.config.js` |
-| **Prettier**   | Code formatting | `.prettierrc`      |
-| **TypeScript** | Type checking   | `tsconfig.json`    |
-| **Lefthook**   | Git hooks       | `lefthook.yml`     |
+| Tool           | Purpose         | Config                |
+| -------------- | --------------- | --------------------- |
+| **ESLint**     | Linting         | `eslint.config.mjs`   |
+| **Prettier**   | Code formatting | `prettier.config.mjs` |
+| **TypeScript** | Type checking   | `tsconfig.json`       |
+| **Lefthook**   | Git hooks       | `lefthook.yml`        |
 
 ---
 
@@ -21,7 +21,8 @@ This document covers the tools and practices for maintaining code quality.
 
 ```bash
 # Linting
-npm run lint              # Lint and auto-fix
+npm run lint              # Lint and auto-fix (local use)
+npm run lint:check        # Lint without fixing (CI)
 
 # Formatting
 npm run format            # Format all files
@@ -31,7 +32,7 @@ npm run format:check      # Check formatting (CI)
 npm run typecheck         # Run TypeScript compiler
 
 # All checks
-npm run lint && npm run format:check && npm run typecheck
+npm run lint:check && npm run format:check && npm run typecheck
 ```
 
 ---
@@ -40,12 +41,15 @@ npm run lint && npm run format:check && npm run typecheck
 
 ### Configuration
 
-ESLint is configured in `eslint.config.js` with:
+ESLint is configured in `eslint.config.mjs` (flat config) with:
 
-- TypeScript support
-- React/React Hooks rules
-- Import sorting
-- Accessibility (jsx-a11y)
+- The typescript-eslint parser, type-aware against `tsconfig.json`
+- `eslint-plugin-react` and `eslint-plugin-react-hooks` recommended rules
+- `prettier/prettier`, so formatting drift is a lint error
+- `unused-imports` for unused imports and variables
+- Repo-specific `no-restricted-syntax` and `no-restricted-imports` rules
+
+Import order is handled by Prettier (`@trivago/prettier-plugin-sort-imports`), not ESLint.
 
 ### Running Lint
 
@@ -59,12 +63,17 @@ npx eslint "app/routes/**/*.tsx" --fix
 
 ### Key Rules
 
-| Rule                                 | Description                |
-| ------------------------------------ | -------------------------- |
-| `@typescript-eslint/no-explicit-any` | Disallow `any` type        |
-| `react-hooks/rules-of-hooks`         | Enforce hooks rules        |
-| `react-hooks/exhaustive-deps`        | Verify dependency arrays   |
-| `import/order`                       | Consistent import ordering |
+| Rule                               | Level | Description                                                          |
+| ---------------------------------- | ----- | -------------------------------------------------------------------- |
+| `prettier/prettier`                | error | Code must match `prettier.config.mjs`                                |
+| `react-hooks/rules-of-hooks`       | error | Hooks are only called at the top level of components and hooks       |
+| `react-hooks/exhaustive-deps`      | warn  | Effect and memo dependency arrays list what they read                |
+| `unused-imports/no-unused-imports` | error | No unused imports                                                    |
+| `unused-imports/no-unused-vars`    | warn  | No unused variables; prefix with `_` to keep one on purpose          |
+| `no-restricted-syntax`             | error | Text sizes come from the datum-ui type scale and `<Text>` components |
+| `no-restricted-imports`            | error | GraphQL operations go through `runGqlQuery` / `runGqlMutation`       |
+
+`exhaustive-deps` is a warning while the existing hits are burned down. CI fails on errors, not warnings.
 
 ### Disabling Rules
 
@@ -90,18 +99,7 @@ const data: any = response;
 
 ### Configuration
 
-Prettier config in `.prettierrc`:
-
-```json
-{
-  "semi": true,
-  "singleQuote": true,
-  "tabWidth": 2,
-  "trailingComma": "es5",
-  "printWidth": 100,
-  "bracketSameLine": true
-}
-```
+Prettier is configured in `prettier.config.mjs`. The main settings are `printWidth: 100`, `singleQuote: true`, `trailingComma: 'es5'` and `bracketSameLine: true`, plus two plugins: `@trivago/prettier-plugin-sort-imports` (import order) and `prettier-plugin-tailwindcss` (class order). Paths Prettier skips are listed in `.prettierignore`.
 
 ### Running Format
 
@@ -251,23 +249,27 @@ Git hooks are configured in `lefthook.yml`:
 pre-commit:
   parallel: true
   commands:
-    lint:
-      glob: '*.{ts,tsx}'
+    eslint:
+      glob: '*.{js,jsx,ts,tsx}'
       run: npx eslint {staged_files} --fix
-    format:
-      glob: '*.{ts,tsx,json,css,md}'
+      auto_add: true
+    prettier:
+      glob: '*.{js,jsx,ts,tsx,json}'
       run: npx prettier --write {staged_files}
-    types:
-      run: npm run typecheck
+      auto_add: true
+    typecheck:
+      glob: '*.{ts,tsx}'
+      run: ./node_modules/typescript-native/bin/tsc --noEmit
+      stage_fixed: false
 ```
 
 ### How It Works
 
 On `git commit`:
 
-1. ESLint runs on staged `.ts/.tsx` files
+1. ESLint fixes staged `.js/.jsx/.ts/.tsx` files
 2. Prettier formats staged files
-3. TypeScript check runs
+3. The native TypeScript compiler type-checks the project
 4. If any fail, commit is blocked
 
 ### Bypassing Hooks
@@ -285,38 +287,18 @@ git commit --no-verify -m "message"
 
 ### Import Order
 
-Imports should be ordered:
-
-1. External packages
-2. Internal aliases (`@/`, `@shadcn/`, `@datum-ui/`)
-3. Relative imports
-4. Type imports
-
-```typescript
-// 1. External
-// 3. Relative
-import { PageHeader } from './components/page-header';
-import { useOrganizations } from '@/resources/organizations';
-// 4. Types
-import type { Organization } from '@/resources/organizations';
-import { DataTable } from '@datum-ui/components/data-table';
-// 2. Internal aliases
-import { Button } from '@shadcn/ui/button';
-import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
-```
+Prettier sorts imports on format (`@trivago/prettier-plugin-sort-imports`). Do not order them by hand; run `npm run format` or let the pre-commit hook do it.
 
 ### Import Aliases
 
-Use aliases instead of relative paths:
+Use the `@/` alias (maps to `app/`) instead of deep relative paths. UI components come from the `@datum-cloud/datum-ui` package:
 
 ```typescript
 // Good
-import { Button } from '@shadcn/ui/button';
+import { Button } from '@datum-cloud/datum-ui/button';
 import { env } from '@/utils/env';
 
 // Avoid
-import { Button } from '../../../modules/shadcn/ui/button';
 import { env } from '../../utils/env';
 ```
 
@@ -378,24 +360,15 @@ export function MyComponent({ title, onSubmit }: Props) {
 
 ## CI/CD Integration
 
-Quality checks run in GitHub Actions:
+Quality checks run in `.github/workflows/ci.yml`:
 
-```yaml
-# .github/workflows/quality-checks.yml
-jobs:
-  quality:
-    steps:
-      - name: Lint
-        run: npm run lint
+| Job             | Command                                      |
+| --------------- | -------------------------------------------- |
+| `Lint & Format` | `npm run lint:check && npm run format:check` |
+| `Type Check`    | `npm run typecheck`                          |
+| `Build`         | `npm run build`                              |
 
-      - name: Format Check
-        run: npm run format:check
-
-      - name: Type Check
-        run: npm run typecheck
-```
-
-PRs are blocked if any check fails.
+Neither lint nor format writes files in CI, so any ESLint error or unformatted file fails the job. ESLint warnings do not fail it.
 
 ---
 
@@ -405,7 +378,7 @@ PRs are blocked if any check fails.
 
 ```bash
 # Verify config exists
-ls eslint.config.js
+ls eslint.config.mjs
 
 # Run with debug
 DEBUG=eslint:* npx eslint app/
@@ -413,10 +386,9 @@ DEBUG=eslint:* npx eslint app/
 
 ### Prettier/ESLint Conflicts
 
-Ensure Prettier runs after ESLint:
+ESLint runs Prettier through `prettier/prettier` with the same `prettier.config.mjs`, so the two agree. To fix both locally:
 
 ```bash
-# In lefthook or CI
 npm run lint && npm run format
 ```
 
