@@ -6,12 +6,13 @@ This document covers the tools and practices for maintaining code quality.
 
 ## Overview
 
-| Tool           | Purpose         | Config                |
-| -------------- | --------------- | --------------------- |
-| **ESLint**     | Linting         | `eslint.config.mjs`   |
-| **Prettier**   | Code formatting | `prettier.config.mjs` |
-| **TypeScript** | Type checking   | `tsconfig.json`       |
-| **Lefthook**   | Git hooks       | `lefthook.yml`        |
+| Tool                   | Purpose         | Config                    |
+| ---------------------- | --------------- | ------------------------- |
+| **ESLint**             | Linting         | `eslint.config.mjs`       |
+| **Prettier**           | Code formatting | `prettier.config.mjs`     |
+| **TypeScript**         | Type checking   | `tsconfig.json`           |
+| **Lefthook**           | Git hooks       | `lefthook.yml`            |
+| **dependency-cruiser** | Import layering | `.dependency-cruiser.cjs` |
 
 ---
 
@@ -23,6 +24,7 @@ This document covers the tools and practices for maintaining code quality.
 # Linting
 npm run lint              # Lint and auto-fix (local use)
 npm run lint:check        # Lint without fixing (CI)
+npm run depcruise         # Check import layering (CI)
 
 # Formatting
 npm run format            # Format all files
@@ -32,7 +34,7 @@ npm run format:check      # Check formatting (CI)
 npm run typecheck         # Run TypeScript compiler
 
 # All checks
-npm run lint:check && npm run format:check && npm run typecheck
+npm run lint:check && npm run format:check && npm run depcruise && npm run typecheck
 ```
 
 ---
@@ -43,7 +45,7 @@ npm run lint:check && npm run format:check && npm run typecheck
 
 ESLint is configured in `eslint.config.mjs` (flat config) with:
 
-- The typescript-eslint parser, type-aware against `tsconfig.json`
+- typescript-eslint's `recommendedTypeChecked` rules, type-aware against `tsconfig.json`
 - `eslint-plugin-react` and `eslint-plugin-react-hooks` recommended rules
 - `prettier/prettier`, so formatting drift is a lint error
 - `unused-imports` for unused imports and variables
@@ -63,17 +65,25 @@ npx eslint "app/routes/**/*.tsx" --fix
 
 ### Key Rules
 
-| Rule                               | Level | Description                                                          |
-| ---------------------------------- | ----- | -------------------------------------------------------------------- |
-| `prettier/prettier`                | error | Code must match `prettier.config.mjs`                                |
-| `react-hooks/rules-of-hooks`       | error | Hooks are only called at the top level of components and hooks       |
-| `react-hooks/exhaustive-deps`      | warn  | Effect and memo dependency arrays list what they read                |
-| `unused-imports/no-unused-imports` | error | No unused imports                                                    |
-| `unused-imports/no-unused-vars`    | warn  | No unused variables; prefix with `_` to keep one on purpose          |
-| `no-restricted-syntax`             | error | Text sizes come from the datum-ui type scale and `<Text>` components |
-| `no-restricted-imports`            | error | GraphQL operations go through `runGqlQuery` / `runGqlMutation`       |
+| Rule                                      | Level | Description                                                                            |
+| ----------------------------------------- | ----- | -------------------------------------------------------------------------------------- |
+| `@typescript-eslint/no-floating-promises` | error | Await a promise, `.catch()` it, or mark it fire-and-forget with `void`                 |
+| `@typescript-eslint/no-misused-promises`  | error | Don't pass an async function where a void callback is expected (JSX attributes exempt) |
+| `prettier/prettier`                       | error | Code must match `prettier.config.mjs`                                                  |
+| `react-hooks/rules-of-hooks`              | error | Hooks are only called at the top level of components and hooks                         |
+| `unused-imports/no-unused-imports`        | error | No unused imports                                                                      |
+| `no-restricted-syntax`                    | error | Text sizes come from the datum-ui type scale and `<Text>` components                   |
+| `no-restricted-imports`                   | error | GraphQL operations go through `runGqlQuery` / `runGqlMutation`                         |
+| `react-hooks/exhaustive-deps`             | warn  | Effect and memo dependency arrays list what they read                                  |
+| `unused-imports/no-unused-vars`           | warn  | No unused variables; prefix with `_` to keep one on purpose                            |
+| `no-console`                              | warn  | Log through `app/modules/logger` (the logger itself is exempt)                         |
+| Other `recommendedTypeChecked` rules      | warn  | `no-explicit-any`, `no-unsafe-*`, `require-await` and the rest                         |
 
-`exhaustive-deps` is a warning while the existing hits are burned down. CI fails on errors, not warnings.
+Rules at `warn` had existing hits when they were turned on. `eslint.config.mjs` notes each one's starting count; drive them down and promote a rule to `error` once it reaches zero. CI fails on errors, not warnings.
+
+The two promise rules are warnings in test files and in the auth, RBAC and server paths, which are being reworked separately.
+
+The Lefthook pre-commit hook runs `eslint --fix`, so autofixable warnings (for example `no-unnecessary-type-assertion`) get fixed in every file you commit.
 
 ### Disabling Rules
 
@@ -305,6 +315,29 @@ import { env } from '../../utils/env';
 
 ---
 
+## Import Layering (dependency-cruiser)
+
+`.dependency-cruiser.cjs` enforces which parts of `app/` may import which:
+
+| Rule                        | Forbids                                                                     |
+| --------------------------- | --------------------------------------------------------------------------- |
+| `resources-not-to-routes`   | `app/resources` importing `app/routes`                                      |
+| `resources-not-to-features` | `app/resources` importing `app/features`                                    |
+| `modules-not-to-routes`     | `app/modules` importing `app/routes`                                        |
+| `modules-not-to-features`   | `app/modules` importing `app/features`                                      |
+| `client-not-to-server`      | Code outside `server/` directories and `*.server.ts` importing `app/server` |
+| `no-circular`               | Circular imports                                                            |
+
+Routes may import anything. Tests are exempt from the layering rules.
+
+Violations that existed when the check was added are listed in `.dependency-cruiser-known-violations.json`, and `npm run depcruise` skips them (`--ignore-known`). A new violation fails CI. After removing old violations, regenerate the baseline so it can't grow back:
+
+```bash
+npx depcruise app --output-type baseline > .dependency-cruiser-known-violations.json
+```
+
+---
+
 ## Best Practices
 
 ### File Naming
@@ -363,13 +396,13 @@ export function MyComponent({ title, onSubmit }: Props) {
 
 Quality checks run in `.github/workflows/ci.yml`:
 
-| Job             | Command                                      |
-| --------------- | -------------------------------------------- |
-| `Lint & Format` | `npm run lint:check && npm run format:check` |
-| `Type Check`    | `npm run typecheck`                          |
-| `Build`         | `npm run build`                              |
+| Job             | Command                                                           |
+| --------------- | ----------------------------------------------------------------- |
+| `Lint & Format` | `npm run lint:check && npm run format:check && npm run depcruise` |
+| `Type Check`    | `npm run typecheck`                                               |
+| `Build`         | `npm run build`                                                   |
 
-Neither lint nor format writes files in CI, so any ESLint error or unformatted file fails the job. ESLint warnings do not fail it.
+Neither lint, format nor depcruise writes files in CI, so any ESLint error or unformatted file fails the job. ESLint warnings do not fail it.
 
 ---
 
