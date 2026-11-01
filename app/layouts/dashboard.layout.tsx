@@ -1,8 +1,10 @@
 import { ContentWrapper } from '@/components/content-wrapper';
 import { Header } from '@/components/header';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
+import { resolveInitialSidebarOpen } from '@/layouts/initial-sidebar-open';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
+import type { loader as rootLoader } from '@/root';
 import {
   AppNavigation,
   NavItem,
@@ -15,7 +17,7 @@ import {
 } from '@datum-cloud/datum-ui/app-navigation';
 import { SidebarInset, SidebarProvider, useSidebar } from '@datum-cloud/datum-ui/sidebar';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useRouteLoaderData, useSearchParams } from 'react-router';
 
 /** A nav item that can be pinned to the bottom of the sidebar, above its collapse footer. */
@@ -35,22 +37,14 @@ const DashboardContent = ({
   contentClassName?: string;
 }) => {
   const { hasSubLayout } = useSidebar();
-  const [isReady, setIsReady] = useState(false);
 
-  // Mark as ready after first layout to prevent flash
-  useLayoutEffect(() => {
-    setIsReady(true);
-  }, []);
-
+  // Visible from the first server-rendered byte. The nav's initial width comes
+  // from the viewport client hint (see DashboardLayout), so hydration does not
+  // move this column and nothing needs hiding until it does.
   return (
     // `@container/main` lets pages lay out by the space they actually get, which
     // shrinks when a side panel is docked, rather than by the viewport.
-    <div
-      className={cn(
-        '@container/main min-h-0 min-w-0 flex-1 transition-opacity duration-75',
-        !isReady && 'opacity-0',
-        isReady && 'opacity-100'
-      )}>
+    <div className="@container/main min-h-0 min-w-0 flex-1">
       {hasSubLayout ? (
         children
       ) : (
@@ -138,17 +132,20 @@ export function DashboardLayout({
 }) {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
-  const breakpoint = useBreakpoint();
-  const isTablet = breakpoint === 'tablet';
+  // Both read from cookies by the root loader: the nav state the user last
+  // pinned (`undefined` until they express a preference) and the breakpoint
+  // tier from the viewport client hint.
+  const rootData = useRouteLoaderData<typeof rootLoader>('root');
+  // Seeded from the hint so the server renders the nav the client will keep.
+  const breakpoint = useBreakpoint(rootData?.viewport);
 
-  // The nav state the user last pinned, read from a cookie by the root loader.
-  // `undefined` until they express a preference, so a caller's explicit prop
-  // wins, then the persisted pin, then the per-breakpoint default.
-  const rootData = useRouteLoaderData('root') as { sidebarOpen?: boolean } | undefined;
-  // `?sidebar=false` starts the nav collapsed (AppNavigation's `defaultOpen`).
-  const initialSidebarOpen =
-    defaultSidebarOpen ??
-    (searchParams.get('sidebar') === 'false' ? false : (rootData?.sidebarOpen ?? !isTablet));
+  const initialSidebarOpen = resolveInitialSidebarOpen({
+    breakpoint,
+    explicit: defaultSidebarOpen,
+    persisted: rootData?.sidebarOpen,
+    // `?sidebar=false` starts the nav collapsed (AppNavigation's `defaultOpen`).
+    sidebarParam: searchParams.get('sidebar'),
+  });
 
   const mainNavItems = navItems.filter((item) => !item.pinToBottom);
   const pinnedNavItems = navItems.filter((item) => item.pinToBottom);
@@ -158,8 +155,8 @@ export function DashboardLayout({
   const [isPinned, setIsPinned] = useState(initialSidebarOpen);
 
   // The provider auto-collapses narrow viewports only while uncontrolled, so
-  // mirror that here. useBreakpoint reports desktop during SSR and corrects on
-  // mount, which is when this catches up.
+  // mirror that here. With the hint the initial state already matches, so this
+  // only acts when the window crosses a breakpoint after load.
   useEffect(() => {
     if (breakpoint !== 'desktop') setIsPinned(false);
   }, [breakpoint]);

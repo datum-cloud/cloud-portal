@@ -2,6 +2,7 @@
  * This file contains utilities for using client hints for user preference which
  * are needed by the server, but are only known by the browser.
  */
+import { DESKTOP_MIN, TABLET_MIN, isBreakpoint, type Breakpoint } from '@/hooks/use-breakpoint';
 import { getHintUtils } from '@epic-web/client-hints';
 import {
   clientHint as colorSchemeHint,
@@ -11,9 +12,32 @@ import { clientHint as timeZoneHint } from '@epic-web/client-hints/time-zone';
 import * as React from 'react';
 import { useRevalidator } from 'react-router';
 
+/**
+ * Viewport width, bucketed into the `useBreakpoint` tiers so the server can
+ * render the dashboard for the real screen instead of assuming desktop.
+ *
+ * The cookie holds the tier, not the pixel width. The check script reloads the
+ * page whenever the cookie disagrees with the browser, so a raw width would
+ * force a reload after every window resize. A tier only changes when the
+ * layout would.
+ *
+ * Cost: the script compares on every document load, and a missing cookie
+ * counts as the 'desktop' fallback. So a phone or tablet reloads once on its
+ * first visit, and any browser reloads once on its next document load after it
+ * moves to another tier (rotating a tablet past 1024px, resizing a window).
+ * Client-side navigation never runs the script.
+ */
+export const viewportHint = {
+  cookieName: 'CH-viewport',
+  getValueCode: `(function (w) { return w < ${TABLET_MIN} ? 'mobile' : w < ${DESKTOP_MIN} ? 'tablet' : 'desktop'; })(window.innerWidth)`,
+  fallback: 'desktop',
+  transform: (value: string): Breakpoint => (isBreakpoint(value) ? value : 'desktop'),
+} as const;
+
 const hintsUtils = getHintUtils({
   theme: colorSchemeHint,
   timeZone: timeZoneHint,
+  viewport: viewportHint,
   // add other hints here
 });
 
