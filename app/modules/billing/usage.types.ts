@@ -119,4 +119,9 @@ export interface OrgUsageDashboardData {
   selectedProject: string;
   billingCycles: UsageBillingCycleOption[];
   selectedBillingCycle: 'current' | 'previous';
+  /**
+   * The billing account lookup failed upstream (not a missing account), so
+   * `billingCycles` are the defaults rather than the account's payment terms.
+   */
+  billingAccountError: boolean;
 }

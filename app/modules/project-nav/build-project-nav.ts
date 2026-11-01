@@ -113,9 +113,6 @@ export function buildProjectNavTree(
   const settingsGeneral = getPathWithParams(paths.project.detail.settings.general, {
     projectId,
   });
-  const settingsNotifications = getPathWithParams(paths.project.detail.settings.notifications, {
-    projectId,
-  });
   const settingsQuotas = getPathWithParams(paths.project.detail.settings.quotas, {
     projectId,
   });
@@ -279,7 +276,7 @@ export function buildProjectNavTree(
           href: settingsGeneral,
           type: 'link',
           disabled: !isReady,
-          tabChildLinks: [settingsGeneral, settingsNotifications, settingsBilling],
+          tabChildLinks: [settingsGeneral, settingsBilling],
         },
         {
           title: 'Quotas',

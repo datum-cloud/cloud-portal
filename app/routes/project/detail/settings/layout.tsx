@@ -38,10 +38,6 @@ export default function ProjectSettingsLayout() {
         label: 'General',
         href: getPathWithParams(paths.project.detail.settings.general, { projectId }),
       },
-      /* {
-        label: 'Notifications',
-        href: getPathWithParams(paths.project.detail.settings.notifications, { projectId }),
-      }, */
       ...(billingEnabled
         ? [
             {
