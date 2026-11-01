@@ -1,3 +1,4 @@
+import './deny-permissions.command';
 import {
   completeOrgBillingSetup,
   completeOrgContactInfo,

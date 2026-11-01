@@ -3,258 +3,192 @@
 /**
  * Project-area deny scenarios for the Phase 3 RBAC migration.
  *
- * Mirrors `rbac-denials-org.cy.ts` (Phase 2): Cypress's `cy.intercept` can only
- * stub browser-originated requests. The DSL's `runListLoader` / `runDetailLoader`
- * execute SSR-side in the React Router Node process and call the upstream IAM
- * API directly (via `gateRouteAccess` → `SelfSubjectAccessReview`), so we can't
- * stub the gate from the browser today.
+ * `cy.denyPermissions` denies each listed `resource:verb` on both sides of the
+ * check: SSR loader gates (`runListLoader` / `runDetailLoader` / `runRouteGate`
+ * → `gateRouteAccess` → `RbacService`) read the `e2e-deny` cookie through the
+ * test-only hook in `app/modules/rbac/server/e2e-deny.server.ts`, and the
+ * browser's `/api/permissions/*` calls hit a matching intercept. Every other
+ * check is decided by the real upstream for the regression user.
  *
- * Tests are currently:
- * - 0 live / 20 .skip. All tests are .skip because the underlying gates are
- *   SSR-side loader calls which cy.intercept cannot stub. They are skeletons
- *   documenting the denial matrix. Unblock via a Phase 3 deny-scoped CI fixture
- *   user, or a dev-server layer that shims the upstream IAM SSAR endpoint.
- *
- * Endpoint + response shape verified against `cypress/support/e2e.ts` (the
- * ambient default-allow stub) and `app/modules/rbac/server/rbac.service.ts`.
+ * The project is the shard's shared regression project
+ * (`cy.ensureSharedResources()`), so the project layout loader resolves.
+ * Domain, secret and service-account IDs are placeholders where the route's
+ * own detail loader gates before it fetches. Seven cases stay skipped: they
+ * assert that a row or detail action is hidden, which needs a real domain or
+ * service account that the shared fixture does not seed (on a missing
+ * resource the assertion would pass vacuously or the parent layout 404s).
  */
 
-interface ProjectBulkCheck {
-  resource: string;
-  verb: string;
-  group?: string;
-  namespace?: string;
-  name?: string;
-}
+describe('RBAC denials — project area', () => {
+  const SERVICE_ACCOUNT_ID = 'rbac-denials-sa';
+  let PROJECT_ID = '';
 
-type ProjectDenyKey = `${string}:${string}`;
-
-/**
- * Override the ambient default-allow `/api/permissions/bulk-check` stub from
- * `cypress/support/e2e.ts`. Cypress applies the most-recent matching
- * intercept, so a per-test call after the global `beforeEach` wins.
- *
- * Helper is named `interceptProjectSSAR` to avoid colliding with the
- * identically shaped helpers in `rbac-denials.cy.ts` and
- * `rbac-denials-org.cy.ts` — Cypress flattens all spec files into one TS scope
- * at typecheck time.
- */
-function interceptProjectSSAR(deny: ProjectDenyKey[]): void {
-  const denySet = new Set<ProjectDenyKey>(deny);
-  cy.intercept('POST', '/api/permissions/bulk-check', (req) => {
-    const checks = (
-      req.body && Array.isArray(req.body.checks) ? (req.body.checks as ProjectBulkCheck[]) : []
-    ) as ProjectBulkCheck[];
-    req.reply({
-      statusCode: 200,
-      body: {
-        success: true,
-        data: {
-          results: checks.map((c) => {
-            const denied = denySet.has(`${c.resource}:${c.verb}` as ProjectDenyKey);
-            return {
-              allowed: !denied,
-              denied,
-              request: {
-                resource: c.resource,
-                verb: c.verb,
-                group: c.group ?? '',
-                namespace: c.namespace,
-                name: c.name,
-              },
-            };
-          }),
-        },
-      },
+  before(() => {
+    cy.ensureSharedResources().then((res) => {
+      PROJECT_ID = res.projectId;
     });
-  }).as('bulkCheck');
-}
+  });
 
-// Placeholder project / sub-resource IDs — the SSAR deny short-circuits the
-// page before any resource fetch resolves for the client-side cases, so these
-// never need to exist upstream. For server-side scenarios (currently
-// `.skip`-ed), real fixture IDs are needed (see file header).
-const PROJECT_ID =
-  (Cypress.expose('TEST_PROJECT_ID') as string | undefined) ?? 'rbac-denials-project';
-const SERVICE_ACCOUNT_ID =
-  (Cypress.expose('TEST_SERVICE_ACCOUNT_ID') as string | undefined) ?? 'rbac-denials-sa';
-
-// ---------------------------------------------------------------------------
-// Client-side gates — PermissionButton disabled when deny intercept returns.
-// These pass reliably because the gate runs in the browser after page mount.
-// ---------------------------------------------------------------------------
-describe('RBAC denials — project area (client-side gates)', () => {
   beforeEach(() => {
     cy.login();
   });
 
-  it.skip('domains "Create domain" disabled when domains:create denied', () => {
-    // Skipped until fixture project resolves — the create-domain-button lives
-    // inside the domains list page, which requires the project layout loader
-    // to succeed first. Server-side gate at /project/[projectId] short-
-    // circuits before the client-side button renders.
-    interceptProjectSSAR(['domains:create']);
-    cy.visit(`/project/${PROJECT_ID}/domains`, { failOnStatusCode: false });
-    cy.wait('@bulkCheck');
-    cy.get('[data-e2e="create-domain-button"]', { timeout: 10000 }).should('be.disabled');
-  });
-
-  it.skip('secrets "Create secret" disabled when secrets:create denied', () => {
-    // Same blocker as above — needs real PROJECT_ID fixture for the layout
-    // loader to succeed before the client-side gate renders.
-    interceptProjectSSAR(['secrets:create']);
-    cy.visit(`/project/${PROJECT_ID}/secrets`, { failOnStatusCode: false });
-    cy.wait('@bulkCheck');
-    cy.get('[data-e2e="create-secret-button"]', { timeout: 10000 }).should('be.disabled');
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Server-side gates — loader-level RestrictedState rendering.
-// Skipped pending Phase 3 deny-scoped fixture user or dev-server SSAR shim.
-// Each test documents the (resource, verb, scope) it would assert against.
-// ---------------------------------------------------------------------------
-describe('RBAC denials — project area (server-side gates, .skip)', () => {
-  beforeEach(() => {
-    cy.login();
-  });
-
-  it.skip('project layout RestrictedState when projects:get denied', () => {
-    // resource: projects, verb: get, scope: project
-    interceptProjectSSAR(['projects:get']);
-    cy.visit(`/project/${PROJECT_ID}`, { failOnStatusCode: false });
-    cy.contains("You don't have permission to view this project.").should('be.visible');
-  });
-
-  it.skip('domains list RestrictedState when domains:list denied', () => {
-    // resource: domains, verb: list, scope: project
-    interceptProjectSSAR(['domains:list']);
-    cy.visit(`/project/${PROJECT_ID}/domains`, { failOnStatusCode: false });
-    cy.contains("You don't have permission to view domains.").should('be.visible');
-    cy.get('[data-e2e="create-domain-button"]').should('not.exist');
-  });
-
-  it.skip('secrets list RestrictedState when secrets:list denied', () => {
-    // resource: secrets, verb: list, scope: project
-    interceptProjectSSAR(['secrets:list']);
-    cy.visit(`/project/${PROJECT_ID}/secrets`, { failOnStatusCode: false });
-    cy.contains("You don't have permission to view secrets.").should('be.visible');
-  });
-
-  it.skip('service-accounts detail RestrictedState when serviceaccounts:get denied', () => {
-    // resource: serviceaccounts, verb: get, scope: project
-    interceptProjectSSAR(['serviceaccounts:get']);
-    cy.visit(`/project/${PROJECT_ID}/service-accounts/${SERVICE_ACCOUNT_ID}`, {
-      failOnStatusCode: false,
+  // -------------------------------------------------------------------------
+  // Client-side gates — PermissionButton disabled when the bulk check denies.
+  // -------------------------------------------------------------------------
+  describe('client-side gates', () => {
+    it('domains "Create domain" disabled when domains:create denied', () => {
+      cy.denyPermissions(['domains:create']);
+      cy.visit(`/project/${PROJECT_ID}/domains`, { failOnStatusCode: false });
+      cy.wait('@bulkCheck');
+      cy.get('[data-e2e="create-domain-button"]', { timeout: 10000 }).should('be.disabled');
     });
-    cy.contains("You don't have permission to view this service account.").should('be.visible');
-  });
 
-  it.skip('settings/general RestrictedState when projects:patch denied', () => {
-    // resource: projects, verb: patch, scope: project
-    interceptProjectSSAR(['projects:patch']);
-    cy.visit(`/project/${PROJECT_ID}/settings/general`, { failOnStatusCode: false });
-    cy.contains("You don't have permission to edit this project.").should('be.visible');
-  });
-
-  it.skip('metrics list RestrictedState when exportpolicies:list denied', () => {
-    // resource: exportpolicies, verb: list, scope: project
-    interceptProjectSSAR(['exportpolicies:list']);
-    cy.visit(`/project/${PROJECT_ID}/metrics`, { failOnStatusCode: false });
-    cy.contains("You don't have permission to view export policies.").should('be.visible');
-  });
-
-  it.skip('metrics new RestrictedState when exportpolicies:create denied', () => {
-    // resource: exportpolicies, verb: create, scope: project
-    interceptProjectSSAR(['exportpolicies:create']);
-    cy.visit(`/project/${PROJECT_ID}/metrics/new`, { failOnStatusCode: false });
-    cy.contains("You don't have permission to create export policies.").should('be.visible');
-  });
-
-  it.skip('domains detail RestrictedState when domains:get denied', () => {
-    // resource: domains, verb: get, scope: project
-    interceptProjectSSAR(['domains:get']);
-    cy.visit(`/project/${PROJECT_ID}/domains/any-domain`, { failOnStatusCode: false });
-    cy.contains("You don't have permission to view this domain.").should('be.visible');
-  });
-
-  it.skip('secrets detail RestrictedState when secrets:get denied', () => {
-    // resource: secrets, verb: get, scope: project
-    interceptProjectSSAR(['secrets:get']);
-    cy.visit(`/project/${PROJECT_ID}/secrets/any-secret`, { failOnStatusCode: false });
-    cy.contains("You don't have permission to view this secret.").should('be.visible');
-  });
-
-  it.skip('SA new RestrictedState when serviceaccounts:create denied', () => {
-    // resource: serviceaccounts, verb: create, scope: project
-    interceptProjectSSAR(['serviceaccounts:create']);
-    cy.visit(`/project/${PROJECT_ID}/service-accounts/new`, { failOnStatusCode: false });
-    cy.contains("You don't have permission to create service accounts.").should('be.visible');
-  });
-
-  it.skip('SA list RestrictedState when serviceaccounts:list denied', () => {
-    // resource: serviceaccounts, verb: list, scope: project
-    interceptProjectSSAR(['serviceaccounts:list']);
-    cy.visit(`/project/${PROJECT_ID}/service-accounts`, { failOnStatusCode: false });
-    cy.contains("You don't have permission to view service accounts.").should('be.visible');
-  });
-
-  it.skip('SA policy-bindings RestrictedState when policybindings:list (org-scope) denied', () => {
-    // resource: policybindings, verb: list, scope: org
-    interceptProjectSSAR(['policybindings:list']);
-    cy.visit(`/project/${PROJECT_ID}/service-accounts/${SERVICE_ACCOUNT_ID}/policy-bindings`, {
-      failOnStatusCode: false,
+    it('secrets "Create secret" disabled when secrets:create denied', () => {
+      cy.denyPermissions(['secrets:create']);
+      cy.visit(`/project/${PROJECT_ID}/secrets`, { failOnStatusCode: false });
+      cy.wait('@bulkCheck');
+      cy.get('[data-e2e="create-secret-button"]', { timeout: 10000 }).should('be.disabled');
     });
-    cy.contains("You don't have permission to view roles for this service account.").should(
-      'be.visible'
-    );
   });
 
-  it.skip('hides domains row delete when domains:delete denied', () => {
-    // resource: domains, verb: delete, scope: project
-    interceptProjectSSAR(['domains:delete']);
-    cy.visit(`/project/${PROJECT_ID}/domains`, { failOnStatusCode: false });
-    cy.get('[data-e2e="domain-row-delete"]').should('not.exist');
-  });
-
-  it.skip('hides domains row refresh when domains:update denied', () => {
-    // resource: domains, verb: update, scope: project
-    interceptProjectSSAR(['domains:update']);
-    cy.visit(`/project/${PROJECT_ID}/domains`, { failOnStatusCode: false });
-    cy.get('[data-e2e="domain-row-refresh"]').should('not.exist');
-  });
-
-  it.skip('hides "Manage DNS Zone" row action when dnszones:list denied', () => {
-    // resource: dnszones, verb: list, scope: project
-    interceptProjectSSAR(['dnszones:list']);
-    cy.visit(`/project/${PROJECT_ID}/domains`, { failOnStatusCode: false });
-    cy.contains('Manage DNS Zone').should('not.exist');
-  });
-
-  it.skip('hides "Create key" when serviceaccountkeys:create denied', () => {
-    // resource: serviceaccountkeys, verb: create, scope: project
-    interceptProjectSSAR(['serviceaccountkeys:create']);
-    cy.visit(`/project/${PROJECT_ID}/service-accounts/${SERVICE_ACCOUNT_ID}`, {
-      failOnStatusCode: false,
+  // -------------------------------------------------------------------------
+  // Server-side gates — loader-level RestrictedState rendering.
+  // -------------------------------------------------------------------------
+  describe('server-side gates', () => {
+    it('project layout RestrictedState when projects:get denied', () => {
+      cy.denyPermissions(['projects:get']);
+      cy.visit(`/project/${PROJECT_ID}`, { failOnStatusCode: false });
+      cy.contains("You don't have permission to view this project.").should('be.visible');
     });
-    cy.contains('button', /create key/i).should('not.exist');
+
+    it('domains list RestrictedState when domains:list denied', () => {
+      cy.denyPermissions(['domains:list']);
+      cy.visit(`/project/${PROJECT_ID}/domains`, { failOnStatusCode: false });
+      cy.contains("You don't have permission to view domains.").should('be.visible');
+      cy.get('[data-e2e="create-domain-button"]').should('not.exist');
+    });
+
+    it('secrets list RestrictedState when secrets:list denied', () => {
+      cy.denyPermissions(['secrets:list']);
+      cy.visit(`/project/${PROJECT_ID}/secrets`, { failOnStatusCode: false });
+      cy.contains("You don't have permission to view secrets.").should('be.visible');
+    });
+
+    it('service-accounts detail RestrictedState when serviceaccounts:get denied', () => {
+      cy.denyPermissions(['serviceaccounts:get']);
+      cy.visit(`/project/${PROJECT_ID}/service-accounts/${SERVICE_ACCOUNT_ID}`, {
+        failOnStatusCode: false,
+      });
+      cy.contains("You don't have permission to view this service account.").should('be.visible');
+    });
+
+    it('settings/general RestrictedState when projects:patch denied', () => {
+      cy.denyPermissions(['projects:patch']);
+      cy.visit(`/project/${PROJECT_ID}/settings/general`, { failOnStatusCode: false });
+      cy.contains("You don't have permission to edit this project.").should('be.visible');
+    });
+
+    it('metrics list RestrictedState when exportpolicies:list denied', () => {
+      cy.denyPermissions(['exportpolicies:list']);
+      cy.visit(`/project/${PROJECT_ID}/metrics`, { failOnStatusCode: false });
+      cy.contains("You don't have permission to view export policies.").should('be.visible');
+    });
+
+    it('metrics new RestrictedState when exportpolicies:create denied', () => {
+      cy.denyPermissions(['exportpolicies:create']);
+      cy.visit(`/project/${PROJECT_ID}/metrics/new`, { failOnStatusCode: false });
+      cy.contains("You don't have permission to create export policies.").should('be.visible');
+    });
+
+    it('domains detail RestrictedState when domains:get denied', () => {
+      cy.denyPermissions(['domains:get']);
+      cy.visit(`/project/${PROJECT_ID}/domains/any-domain`, { failOnStatusCode: false });
+      cy.contains("You don't have permission to view this domain.").should('be.visible');
+    });
+
+    it('secrets detail RestrictedState when secrets:get denied', () => {
+      cy.denyPermissions(['secrets:get']);
+      cy.visit(`/project/${PROJECT_ID}/secrets/any-secret`, { failOnStatusCode: false });
+      cy.contains("You don't have permission to view this secret.").should('be.visible');
+    });
+
+    it('SA new RestrictedState when serviceaccounts:create denied', () => {
+      cy.denyPermissions(['serviceaccounts:create']);
+      cy.visit(`/project/${PROJECT_ID}/service-accounts/new`, { failOnStatusCode: false });
+      cy.contains("You don't have permission to create service accounts.").should('be.visible');
+    });
+
+    it('SA list RestrictedState when serviceaccounts:list denied', () => {
+      cy.denyPermissions(['serviceaccounts:list']);
+      cy.visit(`/project/${PROJECT_ID}/service-accounts`, { failOnStatusCode: false });
+      cy.contains("You don't have permission to view service accounts.").should('be.visible');
+    });
+
+    // The service-account detail layout fetches the account before this child
+    // route renders, so a placeholder ID 404s; needs a seeded service account.
+    it.skip('SA policy-bindings RestrictedState when policybindings:list (org-scope) denied (requires seed service account)', () => {
+      cy.denyPermissions(['policybindings:list']);
+      cy.visit(`/project/${PROJECT_ID}/service-accounts/${SERVICE_ACCOUNT_ID}/policy-bindings`, {
+        failOnStatusCode: false,
+      });
+      cy.contains("You don't have permission to view roles for this service account.").should(
+        'be.visible'
+      );
+    });
   });
 
-  it.skip('hides danger card overlay only when serviceaccounts:delete denied', () => {
-    // resource: serviceaccounts, verb: delete, scope: project
-    interceptProjectSSAR(['serviceaccounts:delete']);
-    cy.visit(`/project/${PROJECT_ID}/service-accounts/${SERVICE_ACCOUNT_ID}`, {
-      failOnStatusCode: false,
+  // -------------------------------------------------------------------------
+  // Hidden row and detail actions — need real rows, so skipped until the
+  // shared fixture seeds a domain and a service account.
+  // -------------------------------------------------------------------------
+  describe('hidden actions (require seeded resources)', () => {
+    // Needs a domain row; on an empty list the assertion passes vacuously.
+    it.skip('hides domains row delete when domains:delete denied (requires seed domain)', () => {
+      cy.denyPermissions(['domains:delete']);
+      cy.visit(`/project/${PROJECT_ID}/domains`, { failOnStatusCode: false });
+      cy.get('[data-e2e="domain-row-delete"]').should('not.exist');
     });
-    cy.get('[data-e2e="delete-service-account-button"]').should('not.exist');
-  });
 
-  it.skip('hides DisplayName form when serviceaccounts:patch denied', () => {
-    // resource: serviceaccounts, verb: patch, scope: project
-    interceptProjectSSAR(['serviceaccounts:patch']);
-    cy.visit(`/project/${PROJECT_ID}/service-accounts/${SERVICE_ACCOUNT_ID}`, {
-      failOnStatusCode: false,
+    // Needs a domain row; on an empty list the assertion passes vacuously.
+    it.skip('hides domains row refresh when domains:update denied (requires seed domain)', () => {
+      cy.denyPermissions(['domains:update']);
+      cy.visit(`/project/${PROJECT_ID}/domains`, { failOnStatusCode: false });
+      cy.get('[data-e2e="domain-row-refresh"]').should('not.exist');
     });
-    cy.get('[data-e2e="service-account-display-name-input"]').should('not.exist');
+
+    // Needs a domain row; on an empty list the assertion passes vacuously.
+    it.skip('hides "Manage DNS Zone" row action when dnszones:list denied (requires seed domain)', () => {
+      cy.denyPermissions(['dnszones:list']);
+      cy.visit(`/project/${PROJECT_ID}/domains`, { failOnStatusCode: false });
+      cy.contains('Manage DNS Zone').should('not.exist');
+    });
+
+    // Needs a real service account; a placeholder 404s and passes vacuously.
+    it.skip('hides "Create key" when serviceaccountkeys:create denied (requires seed service account)', () => {
+      cy.denyPermissions(['serviceaccountkeys:create']);
+      cy.visit(`/project/${PROJECT_ID}/service-accounts/${SERVICE_ACCOUNT_ID}`, {
+        failOnStatusCode: false,
+      });
+      cy.contains('button', /create key/i).should('not.exist');
+    });
+
+    // Needs a real service account; a placeholder 404s and passes vacuously.
+    it.skip('hides danger card overlay only when serviceaccounts:delete denied (requires seed service account)', () => {
+      cy.denyPermissions(['serviceaccounts:delete']);
+      cy.visit(`/project/${PROJECT_ID}/service-accounts/${SERVICE_ACCOUNT_ID}`, {
+        failOnStatusCode: false,
+      });
+      cy.get('[data-e2e="delete-service-account-button"]').should('not.exist');
+    });
+
+    // Needs a real service account; a placeholder 404s and passes vacuously.
+    it.skip('hides DisplayName form when serviceaccounts:patch denied (requires seed service account)', () => {
+      cy.denyPermissions(['serviceaccounts:patch']);
+      cy.visit(`/project/${PROJECT_ID}/service-accounts/${SERVICE_ACCOUNT_ID}`, {
+        failOnStatusCode: false,
+      });
+      cy.get('[data-e2e="service-account-display-name-input"]').should('not.exist');
+    });
   });
 });
