@@ -1,7 +1,5 @@
 import { DashboardLayout, type PinnableNavItem } from '@/layouts/dashboard.layout';
 import { fetchOrgUsageDashboard, usageKeys } from '@/modules/billing/usage.queries';
-import { FeatureFlag } from '@/modules/feature-flags';
-import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { QuotaWatchBridge } from '@/modules/quota';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
@@ -15,6 +13,7 @@ import { billingAccountKeys, createBillingAccountService } from '@/resources/bil
 import { createGroupService, groupKeys } from '@/resources/groups';
 import { createInvitationService, invitationKeys } from '@/resources/invitations';
 import { createMemberService, memberKeys } from '@/resources/members';
+import { isUserOrgOwner } from '@/resources/members/member-owner';
 import { type Organization } from '@/resources/organizations';
 import { getOrganizationForRequest } from '@/resources/organizations/organization-request-cache.server';
 import { createProjectService, projectKeys } from '@/resources/projects';
@@ -29,7 +28,7 @@ import { useEffect, useMemo } from 'react';
 import { type LoaderFunctionArgs, Outlet, type ShouldRevalidateFunction } from 'react-router';
 
 type OrgLayoutCompanions = {
-  billingEnabled: boolean | null;
+  isOwner: boolean | null;
 };
 
 const route = defineResourceRoute<Organization, OrgLayoutCompanions>({
@@ -53,14 +52,14 @@ export const loader = withMiddleware(
       notFoundLabel: 'Organization',
       fetch: ({ id }) => getOrganizationForRequest(id),
       companions: {
-        billingEnabled: {
+        // Billing is shown to the org's owners only.
+        isOwner: {
           resource: 'organizations',
           group: 'resourcemanager.miloapis.com',
           verb: 'get',
           scope: 'user',
           onError: 'tolerate',
-          fetch: ({ data: org }) =>
-            org?.name ? isFeatureEnabled(FeatureFlag.Billing, org.name) : Promise.resolve(false),
+          fetch: ({ data: org }) => (org?.name ? isUserOrgOwner(org.name) : Promise.resolve(false)),
         },
       },
       setHeaders: async ({ data: org, args: loaderArgs }) => {
@@ -96,7 +95,7 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 };
 
 export default route.Page(({ data: initialOrg, companions }) => {
-  const billingEnabled = companions.billingEnabled ?? false;
+  const isOwner = companions.isOwner ?? false;
   const { organization, setOrganization, setProject } = useApp();
   const queryClient = useQueryClient();
 
@@ -174,34 +173,31 @@ export default route.Page(({ data: initialOrg, companions }) => {
           });
         },
       },
-      ...(billingEnabled
-        ? [
-            {
-              title: 'Billing',
-              href: getPathWithParams(paths.org.detail.billing.root, { orgId }),
-              type: 'link' as const,
-              icon: WalletIcon,
-              onPrefetch: () => {
-                if (!orgId) return;
-                void queryClient.prefetchQuery({
-                  queryKey: billingAccountKeys.list(orgId),
-                  queryFn: () => createBillingAccountService().list(orgId),
-                  staleTime: QUERY_STALE_TIME,
-                });
-                void queryClient.prefetchQuery({
-                  queryKey: billingAccountBindingKeys.list(orgId),
-                  queryFn: () => createBillingAccountBindingService().list(orgId),
-                  staleTime: QUERY_STALE_TIME,
-                });
-                void queryClient.prefetchQuery({
-                  queryKey: projectKeys.list(orgId),
-                  queryFn: () => createProjectService().list(orgId),
-                  staleTime: QUERY_STALE_TIME,
-                });
-              },
-            },
-          ]
-        : []),
+      {
+        title: 'Billing',
+        href: getPathWithParams(paths.org.detail.billing.root, { orgId }),
+        type: 'link',
+        hidden: !isOwner,
+        icon: WalletIcon,
+        onPrefetch: () => {
+          if (!orgId) return;
+          void queryClient.prefetchQuery({
+            queryKey: billingAccountKeys.list(orgId),
+            queryFn: () => createBillingAccountService().list(orgId),
+            staleTime: QUERY_STALE_TIME,
+          });
+          void queryClient.prefetchQuery({
+            queryKey: billingAccountBindingKeys.list(orgId),
+            queryFn: () => createBillingAccountBindingService().list(orgId),
+            staleTime: QUERY_STALE_TIME,
+          });
+          void queryClient.prefetchQuery({
+            queryKey: projectKeys.list(orgId),
+            queryFn: () => createProjectService().list(orgId),
+            staleTime: QUERY_STALE_TIME,
+          });
+        },
+      },
       {
         title: 'Manage organization',
         href: settingsPreferences,
@@ -212,7 +208,7 @@ export default route.Page(({ data: initialOrg, companions }) => {
         tabChildLinks: [settingsPreferences, settingsActivity, settingsQuotas],
       },
     ];
-  }, [org, queryClient, billingEnabled]);
+  }, [org, queryClient, isOwner]);
 
   // Sync SSR org to app state on initial load or org change
   useEffect(() => {

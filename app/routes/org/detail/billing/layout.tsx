@@ -1,4 +1,4 @@
-import { requireBillingForOrg } from '@/modules/feature-flags/billing-gate.server';
+import { requireBillingOwner } from '@/modules/billing/billing-access.server';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { Outlet } from 'react-router';
@@ -12,14 +12,11 @@ export const meta: MetaFunction = mergeMeta(() => {
 });
 
 /**
- * Gate the org-scoped billing section behind the Billing feature flag.
- * Closed-by-default if the eval fails — a broken evaluator must never
- * silently expose pages. Disabled orgs land back on the org overview
- * rather than seeing a 404.
+ * Only the org's owners see its billing. Everyone else lands back on the
+ * org overview rather than seeing a 404.
  */
 export const loader = async ({ params }: LoaderFunctionArgs) => {
-  const orgId = params.orgId;
-  await requireBillingForOrg(orgId);
+  await requireBillingOwner(params.orgId);
   return null;
 };
 

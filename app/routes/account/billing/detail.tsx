@@ -36,7 +36,7 @@ import type {
 } from '@/features/billing/dialogs/add-payment-method-dialog';
 import { withInvoiceEmail } from '@/features/billing/invoice-email';
 import { latestApplication, paymentTermsSummary } from '@/features/billing/payment-terms';
-import { requireBillingForAnyOrg } from '@/modules/feature-flags/billing-gate.server';
+import { requireOwnedBillingOrgs } from '@/modules/billing/billing-access.server';
 import { logger } from '@/modules/logger';
 import { RbacProvider, usePermission } from '@/modules/rbac';
 import { buildContactAddressPrefill } from '@/modules/stripe';
@@ -137,8 +137,8 @@ export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData
   const orgsResult = await createOrganizationService()
     .list()
     .catch(() => ({ items: [], nextCursor: null, hasMore: false }));
-  const orgIds = orgsResult.items.map((o) => o.name);
-  await requireBillingForAnyOrg(orgIds);
+  // Only accounts in orgs the user owns: anyone else gets a 404.
+  const orgIds = await requireOwnedBillingOrgs(orgsResult.items.map((o) => o.name));
 
   // Per-org fan-out to find the account. The URL only has the bare
   // resource id, so we walk each org the user is in until we hit a

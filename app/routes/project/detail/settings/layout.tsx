@@ -11,7 +11,7 @@ import { Outlet, useRouteLoaderData } from 'react-router';
 type ProjectDetailEnvelope = DslLoaderData<
   Project,
   {
-    billingEnabled?: boolean | null;
+    isOrgOwner?: boolean | null;
   }
 >;
 
@@ -28,8 +28,8 @@ export const handle = {
 export default function ProjectSettingsLayout() {
   const { project } = useProjectContext();
   const parent = useRouteLoaderData('project-detail') as ProjectDetailEnvelope | undefined;
-  const billingEnabled =
-    parent && parent.restricted === false ? (parent.companions.billingEnabled ?? false) : false;
+  const isOrgOwner =
+    parent && parent.restricted === false ? (parent.companions.isOrgOwner ?? false) : false;
 
   const navItems: SubNavigationTab[] = useMemo(() => {
     const projectId = project?.name;
@@ -38,7 +38,7 @@ export default function ProjectSettingsLayout() {
         label: 'General',
         href: getPathWithParams(paths.project.detail.settings.general, { projectId }),
       },
-      ...(billingEnabled
+      ...(isOrgOwner
         ? [
             {
               label: 'Billing',
@@ -47,7 +47,7 @@ export default function ProjectSettingsLayout() {
           ]
         : []),
     ];
-  }, [project, billingEnabled]);
+  }, [project, isOrgOwner]);
 
   return (
     <SubLayout title="Manage project" navItems={navItems}>

@@ -10,8 +10,8 @@ import {
   type BillingAccount,
   type BillingAccountBinding,
 } from '@/features/billing/types';
+import { requireBillingOwner } from '@/modules/billing/billing-access.server';
 import { FeatureFlag } from '@/modules/feature-flags';
-import { requireBillingForOrg } from '@/modules/feature-flags/billing-gate.server';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { PermissionButton } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
@@ -103,7 +103,7 @@ interface SwitcherRow {
  */
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { orgId } = params;
-  await requireBillingForOrg(orgId);
+  await requireBillingOwner(orgId);
 
   if (!orgId) {
     const emptyProjects: ProjectList = { items: [], hasMore: false, nextCursor: null };

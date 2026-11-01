@@ -1,13 +1,17 @@
 import { buildSuspensionAppealRequest } from './build-suspension-appeal-request';
 import { getSuspensionTier } from './suspension-tier';
 import { useProjectSuspension } from './use-project-suspension';
+import type { DslLoaderData } from '@/modules/rbac';
 import { useProjectContext } from '@/providers/project.provider';
+import type { Project } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { openSupportMessage } from '@/utils/open-support-message';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { Link } from 'react-router';
+import { Link, useRouteLoaderData } from 'react-router';
+
+type ProjectDetailEnvelope = DslLoaderData<Project, { isOrgOwner?: boolean | null }>;
 
 /**
  * Matches datum-ui's toast action button styling. `bg-current/10` self-tints
@@ -23,7 +27,8 @@ const RECOVERY_CTA_CLASSNAME =
  * Tier-branching recovery CTA, used by SuspensionBar:
  * - remediable → "Review billing" deep link. Action-forward warning-family
  *   button (this tier is an errand, and the platform's promise is automatic
- *   reinstatement).
+ *   reinstatement). Only the org's owners can see billing, so nobody else
+ *   gets the link.
  * - operatorGated → "Appeal" HelpScout prefill. Quiet outline
  *   button — no cheerful styling on a review-tier surface.
  * Renders null unless definitively suspended.
@@ -31,9 +36,13 @@ const RECOVERY_CTA_CLASSNAME =
 export function SuspensionCta({ className }: { className?: string }) {
   const verdict = useProjectSuspension();
   const { project } = useProjectContext();
+  const parent = useRouteLoaderData('project-detail') as ProjectDetailEnvelope | undefined;
+  const isOrgOwner =
+    parent && parent.restricted === false ? (parent.companions.isOrgOwner ?? false) : false;
   if (!verdict.isSuspended || !project) return null;
 
   if (getSuspensionTier(verdict) === 'remediable') {
+    if (!isOrgOwner) return null;
     const billingHref = getPathWithParams(paths.org.detail.billing.root, {
       orgId: project.organizationId,
     });

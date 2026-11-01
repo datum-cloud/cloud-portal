@@ -21,6 +21,8 @@ interface AppContextType {
    * so the consumer surface stays narrow.
    */
   featureFlags: FeatureFlagMap;
+  /** Whether the user owns any org. Billing is for org owners only. */
+  ownsAnyOrg: boolean;
   setUser: (user: User) => void;
   setOrganization: (organization: Organization | undefined) => void;
   setProject: (project: Project | undefined) => void;
@@ -33,6 +35,7 @@ const AppContext = createContext<AppContextType>({
   project: undefined,
   orgId: undefined,
   featureFlags: {},
+  ownsAnyOrg: false,
   setUser: () => {},
   setOrganization: () => {},
   setProject: () => {},
@@ -43,6 +46,7 @@ interface AppProviderProps {
   initialUser?: User;
   initialOrganization?: Organization;
   initialFeatureFlags?: FeatureFlagMap;
+  ownsAnyOrg?: boolean;
 }
 
 export function AppProvider({
@@ -50,6 +54,7 @@ export function AppProvider({
   initialUser,
   initialOrganization,
   initialFeatureFlags = {},
+  ownsAnyOrg = false,
 }: AppProviderProps) {
   const [user, setUser] = useState<User>(initialUser!);
   const [organization, setOrganization] = useState<Organization | undefined>(initialOrganization!);
@@ -97,6 +102,7 @@ export function AppProvider({
         project,
         orgId: currentOrgId,
         featureFlags: initialFeatureFlags,
+        ownsAnyOrg,
         setUser,
         setOrganization,
         setProject,

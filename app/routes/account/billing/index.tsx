@@ -20,8 +20,8 @@ import {
   type BillingAccountBinding,
   type PaymentMethod,
 } from '@/features/billing/types';
+import { requireOwnedBillingOrgs } from '@/modules/billing/billing-access.server';
 import { FeatureFlag } from '@/modules/feature-flags';
-import { requireBillingForAnyOrg } from '@/modules/feature-flags/billing-gate.server';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { checkPermissionAPI } from '@/modules/rbac/client/rbac-api';
 import { useApp } from '@/providers/app.provider';
@@ -83,8 +83,8 @@ export const handle = {
  */
 export const loader = async () => {
   const organizations = await createOrganizationService().list();
-  const orgIds = organizations.items.map((o) => o.name);
-  await requireBillingForAnyOrg(orgIds);
+  // Only the orgs the user owns: an org's billing is for its owners.
+  const orgIds = await requireOwnedBillingOrgs(organizations.items.map((o) => o.name));
 
   const [accounts, bindings, paymentMethods] = await Promise.all([
     createBillingAccountService().listForOrgs(orgIds),
@@ -368,23 +368,26 @@ export default function AccountBillingAccountsPage() {
 
   const orgOptions: OrgOption[] = useMemo(
     () =>
-      organizations.items.map((o) => {
-        const createQueryIndex = orgIds.indexOf(o.name) * 2;
-        const createQuery = createQueryIndex >= 0 ? permissionQueries[createQueryIndex] : undefined;
-        const canCreatePermission =
-          !!createQuery?.data && createQuery.data.allowed && !createQuery.data.denied;
-        const eligibility = canOrgCreateBillingAccount({
-          canCreatePermission,
-          existingAccountCount: accountsPerOrg.get(o.name) ?? 0,
-          multiBillingAccountsEnabled: multiBillingByOrg[o.name] ?? false,
-        });
-        return {
-          name: o.name,
-          displayName: o.displayName ?? o.name,
-          disabled: !eligibility.allowed,
-          disabledReason: eligibility.reason,
-        };
-      }),
+      organizations.items
+        .filter((o) => orgIds.includes(o.name))
+        .map((o) => {
+          const createQueryIndex = orgIds.indexOf(o.name) * 2;
+          const createQuery =
+            createQueryIndex >= 0 ? permissionQueries[createQueryIndex] : undefined;
+          const canCreatePermission =
+            !!createQuery?.data && createQuery.data.allowed && !createQuery.data.denied;
+          const eligibility = canOrgCreateBillingAccount({
+            canCreatePermission,
+            existingAccountCount: accountsPerOrg.get(o.name) ?? 0,
+            multiBillingAccountsEnabled: multiBillingByOrg[o.name] ?? false,
+          });
+          return {
+            name: o.name,
+            displayName: o.displayName ?? o.name,
+            disabled: !eligibility.allowed,
+            disabledReason: eligibility.reason,
+          };
+        }),
     [organizations.items, orgIds, permissionQueries, accountsPerOrg, multiBillingByOrg]
   );
 

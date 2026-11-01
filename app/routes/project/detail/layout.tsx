@@ -11,8 +11,6 @@ import { ProjectSearchBar } from '@/features/search/surfaces/ProjectSearchBar';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { BareLayout } from '@/layouts/bare.layout';
 import { DashboardLayout, type PinnableNavItem } from '@/layouts/dashboard.layout';
-import { FeatureFlag } from '@/modules/feature-flags';
-import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { ProjectHeaderPluginContent } from '@/modules/plugins/client/plugin-header';
 import { pluginHostBindings } from '@/modules/plugins/client/plugin-sdk-bindings';
 import { useActiveServiceEntitlements } from '@/modules/plugins/client/use-active-service-entitlements';
@@ -26,6 +24,7 @@ import { setSentryOrgContext, setSentryProjectContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';
 import { ProjectProvider } from '@/providers/project.provider';
 import { ControlPlaneStatus } from '@/resources/base';
+import { isUserOrgOwner } from '@/resources/members/member-owner';
 import { useOrganization } from '@/resources/organizations';
 import { useProject, type Project } from '@/resources/projects';
 import { getProjectForRequest } from '@/resources/projects/project-request-cache.server';
@@ -77,11 +76,11 @@ function ProjectBreadcrumbLabel({
 
 /**
  * Companion data attached to the project-detail loader envelope. Both companions
- * are tolerant of permission/fetch failures — denial leaves the flags at safe
+ * are tolerant of permission/fetch failures — denial leaves them at safe
  * defaults so the rest of the layout can still render.
  */
 type ProjectLayoutCompanions = {
-  billingEnabled: boolean | null;
+  isOrgOwner: boolean | null;
   organizationId: string | null | undefined;
 };
 
@@ -111,7 +110,8 @@ export const loader = withMiddleware(
       notFoundLabel: 'Project',
       fetch: ({ id }) => getProjectForRequest(id),
       companions: {
-        billingEnabled: {
+        // Billing is shown to the project's org owners only.
+        isOrgOwner: {
           resource: 'projects',
           group: 'resourcemanager.miloapis.com',
           verb: 'get',
@@ -119,7 +119,7 @@ export const loader = withMiddleware(
           onError: 'tolerate',
           fetch: ({ data: project }) =>
             project?.organizationId
-              ? isFeatureEnabled(FeatureFlag.Billing, project.organizationId)
+              ? isUserOrgOwner(project.organizationId)
               : Promise.resolve(false),
         },
         organizationId: {

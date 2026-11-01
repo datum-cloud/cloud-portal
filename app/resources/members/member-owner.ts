@@ -45,6 +45,15 @@ export async function isUserOrgOwner(orgId: string): Promise<boolean> {
   return membershipHasOwnerRole(membership);
 }
 
+/** Names of the organizations the signed-in user owns. */
+export async function listOwnedOrgIds(): Promise<string[]> {
+  const memberships = await createOrganizationService().fetchMemberships();
+  return memberships
+    .filter(membershipHasOwnerRole)
+    .map((membership) => membership.spec?.organizationRef?.name)
+    .filter((name): name is string => Boolean(name));
+}
+
 /** The organization's owners, for telling a non-owner who to contact. */
 export async function listOrgOwners(orgId: string): Promise<OrgOwnerContact[]> {
   const members = await createMemberService().list(orgId);
