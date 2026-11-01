@@ -52,6 +52,7 @@ describe('RBAC denials — project routes', () => {
       cy.denyPermissions(['httpproxies:create']);
       cy.visit(`/project/${PROJECT}/alb`, { failOnStatusCode: false });
       cy.wait('@bulkCheck');
+      cy.contains('Access restricted').should('not.exist');
       cy.get('[data-e2e="create-alb-button"]', { timeout: 10000 }).should('be.disabled');
     });
 

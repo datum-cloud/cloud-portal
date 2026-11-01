@@ -41,6 +41,7 @@ describe('RBAC denials — project area', () => {
       cy.denyPermissions(['domains:create']);
       cy.visit(`/project/${PROJECT_ID}/domains`, { failOnStatusCode: false });
       cy.wait('@bulkCheck');
+      cy.contains("You don't have permission to view domains.").should('not.exist');
       cy.get('[data-e2e="create-domain-button"]', { timeout: 10000 }).should('be.disabled');
     });
 

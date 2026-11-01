@@ -37,7 +37,18 @@ describe('RBAC denials — org area', () => {
       cy.denyPermissions(['projects:create']);
       cy.visit(`/org/${ORG}/projects`, { failOnStatusCode: false });
       cy.wait('@bulkCheck');
+      cy.contains("You don't have permission to view projects.").should('not.exist');
       cy.get('[data-e2e="create-project-button"]', { timeout: 10000 }).should('be.disabled');
+    });
+
+    // Positive control: the deny list is scoped to what it names. Denying an
+    // unrelated verb leaves the projects list and its create button usable.
+    it('projects list and "Add project" stay usable when only userinvitations:create denied', () => {
+      cy.denyPermissions(['userinvitations:create']);
+      cy.visit(`/org/${ORG}/projects`, { failOnStatusCode: false });
+      cy.wait('@bulkCheck');
+      cy.contains("You don't have permission to view projects.").should('not.exist');
+      cy.get('[data-e2e="create-project-button"]', { timeout: 10000 }).should('be.enabled');
     });
 
     it('team "Invite Member" disabled when userinvitations:create denied', () => {
