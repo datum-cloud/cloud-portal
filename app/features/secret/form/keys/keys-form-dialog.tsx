@@ -1,8 +1,7 @@
 import { KeyValueFieldArray } from '@/features/secret/form/key-value-field-array';
 import { showMutationErrorToast } from '@/modules/quota';
 import type { SecretVariablesSchema } from '@/resources/secrets';
-import { secretVariablesSchema, useUpdateSecret } from '@/resources/secrets';
-import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
+import { secretVariablesSchema, toSecretData, useUpdateSecret } from '@/resources/secrets';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useImperativeHandle, useRef, useState } from 'react';
@@ -70,15 +69,7 @@ export const KeysFormDialog = ({
   };
 
   const handleSubmit = async (data: SecretVariablesSchema) => {
-    const encodedData = (data.variables ?? []).reduce(
-      (acc, vars) => {
-        acc[vars.key] = isBase64(vars.value) ? vars.value : toBase64(vars.value);
-        return acc;
-      },
-      {} as Record<string, string>
-    );
-
-    await updateSecretMutation.mutateAsync({ data: encodedData });
+    await updateSecretMutation.mutateAsync({ data: toSecretData(data.variables ?? []) });
   };
 
   return (
@@ -87,7 +78,7 @@ export const KeysFormDialog = ({
       open={isOpen}
       onOpenChange={handleOpenChange}
       title="Add Key-Value Pairs"
-      description="If not already base64-encoded, values will be encoded automatically."
+      description="Enter plain-text values. They are base64-encoded automatically."
       schema={secretVariablesSchema}
       defaultValues={defaultValues}
       onSubmit={handleSubmit}
