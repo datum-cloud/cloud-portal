@@ -1,7 +1,7 @@
 import type { Secret, SecretList, SecretType, CreateSecretInput } from './secret.schema';
 import { IoK8sApiCoreV1Secret } from '@/modules/control-plane/k8s-core';
 import { convertLabelsToObject } from '@/utils/helpers/object.helper';
-import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
+import { toBase64 } from '@/utils/helpers/text.helper';
 
 /**
  * Transform raw API Secret to domain Secret type
@@ -35,6 +35,19 @@ export function toSecretList(items: IoK8sApiCoreV1Secret[], nextCursor?: string)
 }
 
 /**
+ * Encode form key/value pairs into a Kubernetes Secret `data` map.
+ *
+ * Every value is base64-encoded. There is deliberately no "already encoded?"
+ * check: plain-text values such as hex API keys or `password` are also valid
+ * base64, so guessing stores them raw and the secret reads back wrong.
+ */
+export function toSecretData(
+  variables: ReadonlyArray<{ key: string; value: string }>
+): Record<string, string> {
+  return Object.fromEntries(variables.map(({ key, value }) => [key, toBase64(value)]));
+}
+
+/**
  * Transform CreateSecretInput to API payload
  */
 export function toCreateSecretPayload(input: CreateSecretInput): {
@@ -56,13 +69,7 @@ export function toCreateSecretPayload(input: CreateSecretInput): {
       labels: convertLabelsToObject(input.labels ?? []),
       annotations: convertLabelsToObject(input.annotations ?? []),
     },
-    data: (input.variables ?? []).reduce(
-      (acc, vars) => {
-        acc[vars.key] = isBase64(vars.value) ? vars.value : toBase64(vars.value);
-        return acc;
-      },
-      {} as Record<string, string>
-    ),
+    data: toSecretData(input.variables ?? []),
     type: input.type,
   };
 }
