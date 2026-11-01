@@ -62,6 +62,7 @@ Reuse the logs path:
 ---
 
 ## Questions
+
 <!-- Answer each question below before running /dmx/plan. -->
 
 1. Deleting the route leaves `PrometheusService`, `client.ts`, `getPrometheusService()` and the `buildinfo`/`connection` types with no callers. Should this ticket delete them, or leave them for #1730?
