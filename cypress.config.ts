@@ -27,9 +27,8 @@ process.env.CYPRESS = 'true';
 process.env.NODE_ENV = 'test';
 
 /**
- * Regression specs that currently contain zero runnable tests — either fully
- * `.skip`-ed skeletons (the Phase 3 RBAC deny matrix, pending a deny-scoped CI
- * fixture user) or temporarily commented-out suites (`secrets`, `dns-zones`).
+ * Regression specs that currently contain zero runnable tests — temporarily
+ * commented-out suites (`secrets`, `dns-zones`).
  *
  * They're excluded from the run because Cypress still boots a full browser,
  * loads the support bundle and records video for every spec in the glob —
@@ -41,13 +40,7 @@ process.env.NODE_ENV = 'test';
  *
  * Set `RUN_DISABLED_SPECS=1` to include them locally when re-enabling a suite.
  */
-const DISABLED_REGRESSION_SPECS = [
-  '**/regression/rbac-denials.cy.ts',
-  '**/regression/rbac-denials-org.cy.ts',
-  '**/regression/rbac-denials-project.cy.ts',
-  '**/regression/secrets.cy.ts',
-  '**/regression/dns-zones.cy.ts',
-];
+const DISABLED_REGRESSION_SPECS = ['**/regression/secrets.cy.ts', '**/regression/dns-zones.cy.ts'];
 
 /** Mirrors how Cypress coerced CYPRESS_-prefixed shell flags before 16 stopped forwarding them. */
 const isFlagSet = (value: string | undefined): boolean => value === 'true' || value === '1';
