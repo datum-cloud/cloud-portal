@@ -19,7 +19,7 @@ spec:
   # environment patch-assistant deploys to.
   #
   # No caBundle needed: the plugin's CSI-issued server cert chains to
-  # datum-control-plane-ca, which cloud-portal's Bun runtime already trusts
+  # datum-control-plane-ca, which cloud-portal's Node runtime already trusts
   # platform-wide via NODE_EXTRA_CA_CERTS.
   #
   # entitlement: None — there is no per-project ServiceEntitlement concept

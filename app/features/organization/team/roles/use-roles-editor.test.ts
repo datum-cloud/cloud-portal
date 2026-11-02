@@ -7,7 +7,7 @@ import {
   rolesEditorReducer,
 } from './use-roles-editor';
 import type { Role } from '@/resources/roles';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const role = (name: string): Role => ({ name, namespace: 'datum-cloud' }) as Role;
 

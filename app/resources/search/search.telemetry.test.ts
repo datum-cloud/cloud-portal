@@ -1,27 +1,25 @@
-/// <reference types="bun-types/test" />
 import { emitSearchEvent } from './search.telemetry';
-import { describe, expect, it, mock, beforeEach } from 'bun:test';
+import { describe, expect, it, beforeEach, vi } from 'vitest';
 
 // Mock @/modules/sentry before importing the module under test
-const addBreadcrumb = mock(() => {});
-mock.module('@/modules/sentry', () => ({
+const { addBreadcrumb, loggerInfo } = vi.hoisted(() => ({
+  addBreadcrumb: vi.fn(() => {}),
+  loggerInfo: vi.fn(() => {}),
+}));
+vi.mock('@/modules/sentry', () => ({
   addBreadcrumb,
 }));
 
-// Mock @/modules/logger. `mock.module` is process-global in Bun and persists
-// for the rest of the run, so keep the mocked logger faithful to the real
-// surface (don't ship a partial `{ info }` that breaks other files' `error`
-// calls when this mock leaks into them).
-const loggerInfo = mock(() => {});
-mock.module('@/modules/logger', () => ({
+// Mock @/modules/logger
+vi.mock('@/modules/logger', () => ({
   logger: {
-    debug: mock(() => {}),
+    debug: vi.fn(() => {}),
     info: loggerInfo,
-    warn: mock(() => {}),
-    error: mock(() => {}),
-    request: mock(() => {}),
-    api: mock(() => {}),
-    service: mock(() => {}),
+    warn: vi.fn(() => {}),
+    error: vi.fn(() => {}),
+    request: vi.fn(() => {}),
+    api: vi.fn(() => {}),
+    service: vi.fn(() => {}),
   },
 }));
 

@@ -1,5 +1,5 @@
 import { buildSessionStatus, type SessionStatusDeps } from './session-status.builder';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 const APP_URL = 'https://cloud.example.com';
 

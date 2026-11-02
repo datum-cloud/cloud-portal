@@ -1,15 +1,14 @@
-/// <reference types="bun-types/test" />
 import type { Variables } from '@/server/types';
 import { csrf } from '@/utils/cookies';
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import { Hono } from 'hono';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-const deleteUser = mock(async (_sub: string) => ({}));
+const { deleteUser } = vi.hoisted(() => ({
+  deleteUser: vi.fn(async (_sub: string) => ({})),
+}));
 
-// Spread the real module so other test files that import it are unaffected.
-const users = await import('@/resources/users');
-mock.module('@/resources/users', () => ({
-  ...users,
+vi.mock('@/resources/users', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/resources/users')>()),
   createUserService: () => ({ delete: deleteUser }),
 }));
 

@@ -1,5 +1,5 @@
 import { toExternalHref } from './url.helper';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 describe('toExternalHref', () => {
   test('keeps an https registrar URL as-is', () => {

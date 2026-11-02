@@ -1,5 +1,5 @@
 import { getRefreshCooldownMessage, getRefreshCooldownRemaining } from './refresh-cooldown';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const NOW = new Date('2024-05-01T12:00:00Z').getTime();
 

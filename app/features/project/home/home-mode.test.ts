@@ -10,7 +10,7 @@ import {
 } from './home-mode';
 import type { SetupStep, SetupStepKey, SetupStepStatus } from './setup-progress.helpers';
 import type { PublicPlugin } from '@/modules/plugins/types';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 function plugin(slug: string, name: string): PublicPlugin {
   return {

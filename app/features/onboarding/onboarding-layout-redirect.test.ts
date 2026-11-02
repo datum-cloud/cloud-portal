@@ -2,7 +2,7 @@ import { resolveOnboardingLayoutRedirect } from './onboarding-layout-redirect';
 import { onboardingAccessRedirect } from './onboarding-user.server';
 import { paths } from '@/utils/config/paths.config';
 import { getDocumentPathname, getPathWithParams } from '@/utils/helpers/path.helper';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('resolveOnboardingLayoutRedirect (legacy resume / #1415)', () => {
   it('keeps owners on billing after soft-nav when pathname is normalized', () => {

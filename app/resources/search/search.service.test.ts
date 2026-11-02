@@ -1,36 +1,33 @@
-/// <reference types="bun-types/test" />
 import { PROJECT_KINDS } from './search.constants';
 import { createSearchService } from './search.service';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const createSpy = mock();
+const createSpy = vi.fn();
 
-mock.module('@/modules/control-plane/search', () => ({
+vi.mock('@/modules/control-plane/search', () => ({
   createSearchMiloapisComV1Alpha1ResourceSearchQuery: (...args: unknown[]) => createSpy(...args),
 }));
 
-// NOTE: `mock.module` in Bun is process-global and persists for the rest of
-// the run, so it can leak into other test files. Keep these mocks faithful to
-// the real modules' shape/output (e.g. the real scoped-base URL format and the
-// full logger surface) so execution order can never matter.
-mock.module('@/resources/base/utils', () => ({
+// Keep these mocks faithful to the real modules' shape/output (e.g. the real
+// scoped-base URL format and the full logger surface).
+vi.mock('@/resources/base/utils', () => ({
   getProjectScopedBase: (id: string) =>
     `/apis/resourcemanager.miloapis.com/v1alpha1/projects/${id}/control-plane`,
 }));
 
-mock.module('@/utils/errors/error-mapper', () => ({
+vi.mock('@/utils/errors/error-mapper', () => ({
   mapApiError: (e: unknown) => e,
 }));
 
-mock.module('@/modules/logger', () => ({
+vi.mock('@/modules/logger', () => ({
   logger: {
-    debug: mock(() => {}),
-    info: mock(() => {}),
-    warn: mock(() => {}),
-    error: mock(() => {}),
-    request: mock(() => {}),
-    api: mock(() => {}),
-    service: mock(() => {}),
+    debug: vi.fn(() => {}),
+    info: vi.fn(() => {}),
+    warn: vi.fn(() => {}),
+    error: vi.fn(() => {}),
+    request: vi.fn(() => {}),
+    api: vi.fn(() => {}),
+    service: vi.fn(() => {}),
   },
 }));
 

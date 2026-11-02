@@ -1,5 +1,5 @@
 import { formatForChart } from './formatter';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('formatForChart series names', () => {
   it('names an empty group-by label unknown', () => {

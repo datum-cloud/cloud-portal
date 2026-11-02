@@ -1,4 +1,3 @@
-/// <reference types="bun-types/test" />
 import { EXTENSION_NAV_PROJECT, type PluginManifest, type PluginRegistryEntry } from '../types';
 import {
   ENTITLEMENT_CACHE_TTL_MS,
@@ -9,7 +8,7 @@ import {
 } from './entitlement';
 import { logger } from '@/modules/logger';
 import { AppError, AuthorizationError, NotFoundError } from '@/utils/errors/app-error';
-import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, test, vi, type MockInstance } from 'vitest';
 
 const PROJECT = 'acme-web';
 
@@ -68,12 +67,12 @@ const active = (serviceName: string, ref?: string) => ({
 
 const COMPUTE = 'compute.miloapis.com';
 
-let warnSpy: ReturnType<typeof spyOn>;
-let errorSpy: ReturnType<typeof spyOn>;
+let warnSpy: MockInstance<typeof logger.warn>;
+let errorSpy: MockInstance<typeof logger.error>;
 
 beforeEach(() => {
-  warnSpy = spyOn(logger, 'warn').mockImplementation(() => {});
-  errorSpy = spyOn(logger, 'error').mockImplementation(() => {});
+  warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+  errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
 });
 
 afterEach(() => {
@@ -100,7 +99,7 @@ describe('pluginEntitlementIds', () => {
 
 describe('assertPluginEntitled', () => {
   test('mounts a Required plugin when the project holds a matching Active entitlement', async () => {
-    const list = mock<ListEntitlements>(async () => [active(COMPUTE)]);
+    const list = vi.fn<ListEntitlements>(async () => [active(COMPUTE)]);
     const checker = createEntitlementChecker({ list, callerId: () => 'user-1' });
 
     await expect(
@@ -110,7 +109,7 @@ describe('assertPluginEntitled', () => {
   });
 
   test('matches an entitlement written with the Service object name in spec.serviceRef', async () => {
-    const list = mock<ListEntitlements>(async () => [
+    const list = vi.fn<ListEntitlements>(async () => [
       { spec: { serviceRef: { name: 'compute' } }, status: { phase: 'Active' } },
     ]);
     const checker = createEntitlementChecker({ list, callerId: () => 'user-1' });
@@ -126,7 +125,7 @@ describe('assertPluginEntitled', () => {
 
   test('matches on the canonical id when the slug differs from it', async () => {
     // The slug-only trap: slug `compute` never equals `compute.miloapis.com`.
-    const list = mock<ListEntitlements>(async () => [active(COMPUTE, 'compute-svc')]);
+    const list = vi.fn<ListEntitlements>(async () => [active(COMPUTE, 'compute-svc')]);
     const checker = createEntitlementChecker({ list, callerId: () => 'user-1' });
 
     expect(await checker.isEntitled(PROJECT, entry({ serviceName: COMPUTE }))).toBe(true);
@@ -134,7 +133,7 @@ describe('assertPluginEntitled', () => {
   });
 
   test('matches a serviceRef declared by a manifest nav item', async () => {
-    const list = mock<ListEntitlements>(async () => [active('compute.datumapis.com')]);
+    const list = vi.fn<ListEntitlements>(async () => [active('compute.datumapis.com')]);
     const checker = createEntitlementChecker({ list, callerId: () => 'user-1' });
 
     expect(
@@ -143,7 +142,7 @@ describe('assertPluginEntitled', () => {
   });
 
   test('refuses a Required plugin with a 404 when no Active entitlement matches', async () => {
-    const list = mock<ListEntitlements>(async () => [
+    const list = vi.fn<ListEntitlements>(async () => [
       active('networking.datumapis.com'),
       {
         spec: { serviceRef: { name: COMPUTE } },
@@ -158,7 +157,7 @@ describe('assertPluginEntitled', () => {
   });
 
   test('mounts an entitlement-free plugin without any lookup', async () => {
-    const list = mock<ListEntitlements>(async () => []);
+    const list = vi.fn<ListEntitlements>(async () => []);
     const checker = createEntitlementChecker({ list, callerId: () => 'user-1' });
 
     await expect(
@@ -168,7 +167,7 @@ describe('assertPluginEntitled', () => {
   });
 
   test('skips the gate for dev-sourced plugins', async () => {
-    const list = mock<ListEntitlements>(async () => []);
+    const list = vi.fn<ListEntitlements>(async () => []);
     const checker = createEntitlementChecker({ list, callerId: () => 'user-1' });
 
     await expect(
@@ -178,7 +177,7 @@ describe('assertPluginEntitled', () => {
   });
 
   test('fails closed with a 503 and a server log line when the lookup errors', async () => {
-    const list = mock<ListEntitlements>(async () => {
+    const list = vi.fn<ListEntitlements>(async () => {
       throw new Error('upstream timeout');
     });
     const checker = createEntitlementChecker({ list, callerId: () => 'user-1' });
@@ -194,7 +193,7 @@ describe('assertPluginEntitled', () => {
 
   test('passes an upstream 403 through unchanged instead of mounting', async () => {
     const denied = new AuthorizationError('forbidden');
-    const list = mock<ListEntitlements>(async () => {
+    const list = vi.fn<ListEntitlements>(async () => {
       throw denied;
     });
     const checker = createEntitlementChecker({ list, callerId: () => 'user-1' });
@@ -206,7 +205,7 @@ describe('assertPluginEntitled', () => {
 
   test('does not cache a failed lookup', async () => {
     let calls = 0;
-    const list = mock<ListEntitlements>(async () => {
+    const list = vi.fn<ListEntitlements>(async () => {
       calls += 1;
       if (calls === 1) throw new Error('blip');
       return [active(COMPUTE)];
@@ -224,7 +223,7 @@ describe('entitlement cache', () => {
   test('reuses the list within the window and refreshes after it', async () => {
     let clock = 1_000;
     let items = [active(COMPUTE)];
-    const list = mock<ListEntitlements>(async () => items);
+    const list = vi.fn<ListEntitlements>(async () => items);
     const checker = createEntitlementChecker({ list, callerId: () => 'user-1', now: () => clock });
     const plugin = entry({ serviceName: COMPUTE });
 
@@ -243,7 +242,7 @@ describe('entitlement cache', () => {
     // The set was cached while the user was on another plugin; the service
     // was activated afterwards.
     let items = [active('networking.datumapis.com')];
-    const list = mock<ListEntitlements>(async () => items);
+    const list = vi.fn<ListEntitlements>(async () => items);
     const checker = createEntitlementChecker({ list, callerId: () => 'user-1' });
 
     expect(
@@ -259,7 +258,7 @@ describe('entitlement cache', () => {
   });
 
   test('a refusal costs one lookup, never two', async () => {
-    const list = mock<ListEntitlements>(async () => [active('networking.datumapis.com')]);
+    const list = vi.fn<ListEntitlements>(async () => [active('networking.datumapis.com')]);
     const checker = createEntitlementChecker({ list, callerId: () => 'user-1' });
     const plugin = entry({ serviceName: COMPUTE });
 
@@ -271,7 +270,7 @@ describe('entitlement cache', () => {
 
   test('keeps separate entries per caller and per project', async () => {
     let caller = 'user-1';
-    const list = mock<ListEntitlements>(async () => [active(COMPUTE)]);
+    const list = vi.fn<ListEntitlements>(async () => [active(COMPUTE)]);
     const checker = createEntitlementChecker({ list, callerId: () => caller });
     const plugin = entry({ serviceName: COMPUTE });
 
@@ -283,7 +282,7 @@ describe('entitlement cache', () => {
   });
 
   test('does not cache when the caller is unknown', async () => {
-    const list = mock<ListEntitlements>(async () => [active(COMPUTE)]);
+    const list = vi.fn<ListEntitlements>(async () => [active(COMPUTE)]);
     const checker = createEntitlementChecker({ list, callerId: () => undefined });
     const plugin = entry({ serviceName: COMPUTE });
 
@@ -293,7 +292,7 @@ describe('entitlement cache', () => {
   });
 
   test('evicts the oldest entry once the cap is reached', async () => {
-    const list = mock<ListEntitlements>(async () => [active(COMPUTE)]);
+    const list = vi.fn<ListEntitlements>(async () => [active(COMPUTE)]);
     const checker = createEntitlementChecker({ list, callerId: () => 'user-1', maxEntries: 2 });
     const plugin = entry({ serviceName: COMPUTE });
 

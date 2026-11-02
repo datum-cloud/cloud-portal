@@ -1,6 +1,6 @@
 import { buildHostnameState } from './hostname-state';
 import type { HostnameStatusLike } from '@/resources/http-proxies';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 const routing = (state: 'Present' | 'Missing', managedBy = 'User') => ({
   name: 'app.example.com',

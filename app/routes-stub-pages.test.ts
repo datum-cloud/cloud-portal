@@ -1,8 +1,8 @@
 import routes from './routes';
 import { paths } from '@/utils/config/paths.config';
-import { describe, expect, it } from 'bun:test';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { describe, expect, it } from 'vitest';
 
 /**
  * Settings pages with no backend behind them (fake access tokens, notification

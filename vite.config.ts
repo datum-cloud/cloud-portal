@@ -106,19 +106,19 @@ export default defineConfig(async (config): Promise<UserConfig> => {
       optimizeDeps: {
         include: ['react-dom/server.node'],
       },
-      // nuqs imports react-router hooks. Left external in dev SSR, Bun's
+      // nuqs imports react-router hooks. Left external in dev SSR, Node's
       // native resolution picks react-router's `production` conditional dist
       // while the app tree (Vite module runner) uses `development` — two
       // module instances, so nuqs's useNavigate() lands outside the Router
       // context. Bundling nuqs through the runner keeps one instance. The
       // react-router CLI avoids this with --conditions=development, but our
-      // dev server is hono-server on Bun, which doesn't set it.
-      noExternal: ['nuqs'],
+      // dev server is hono-server on Node, which doesn't set it.
+      noExternal: ['nuqs', '@gqlts/runtime'],
     },
     plugins: [
       ...(isCypress ? [stubServerModulesForCypress()] : []),
       tailwindcss(),
-      reactRouterHonoServer({ runtime: 'bun' }),
+      reactRouterHonoServer(),
       isCypress ? react() : reactRouter(),
       sentryReactRouter(
         {

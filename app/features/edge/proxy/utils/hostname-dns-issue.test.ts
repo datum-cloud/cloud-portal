@@ -2,7 +2,7 @@ import { resolveHostnameDnsIssue } from './hostname-dns-issue';
 import type { ZoneRecords } from '@/features/edge/proxy/utils/delete-dns-preview';
 import type { IFlattenedDnsRecord } from '@/resources/dns-records';
 import type { ConditionLike } from '@/resources/http-proxies/http-proxy.conditions';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 const WRAPPED_ALIAS =
   'status 422: {"error": "RRset test.mdj-test.online. IN ALIAS: Conflicts with pre-existing RRset"}';

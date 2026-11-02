@@ -1,5 +1,5 @@
 import { breakpointForWidth, isBreakpoint } from './use-breakpoint';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('breakpointForWidth', () => {
   it('maps widths below 768px to mobile', () => {

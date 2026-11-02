@@ -1,7 +1,7 @@
 import { findTypingBeforeHydration } from './hydration-guard';
-import { describe, expect, it } from 'bun:test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { describe, expect, it } from 'vitest';
 
 describe('findTypingBeforeHydration', () => {
   it('flags typing into a page right after visiting it', () => {

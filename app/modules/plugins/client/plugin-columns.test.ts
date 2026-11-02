@@ -4,7 +4,7 @@ import {
   EXTENSION_CARD_PROJECT_HOME,
   EXTENSION_COLUMN_PROJECT_HOME,
 } from '@/modules/plugins/types';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 function column(title: string, extra: { order?: number; serviceRef?: string } = {}) {
   return {

@@ -332,7 +332,7 @@ The `static` and `kubeconfig` sources are hard-disabled outside development buil
 The fastest inner loop for pure UI iteration, borrowed from OpenShift Console's dev-mode plugin flag:
 
 ```bash
-PORTAL_PLUGINS="compute=http://localhost:7777" bun run dev
+PORTAL_PLUGINS="compute=http://localhost:7777" npm run dev
 ```
 
 For each entry the portal synthesizes the equivalent of a `PortalPlugin` and runs the identical pipeline from there: server-side manifest fetch, schema and SDK-range validation, asset proxying, module-federated loading under the catch-all mount. It is byte-for-byte the production loading path — only discovery is short-circuited.
@@ -367,7 +367,7 @@ $ task plugin:dev            # plugin dev server on :7777 (manifest + remote, HM
 $ kubectl --kubeconfig .devenv/kubeconfig apply -f config/portal/
                              # your Service + ServiceConfiguration,
                              # assets.baseURL: http://localhost:7777
-$ PLUGIN_REGISTRY_KUBECONFIG=.devenv/kubeconfig bun run dev
+$ PLUGIN_REGISTRY_KUBECONFIG=.devenv/kubeconfig npm run dev
 
 # log in with your real remote account, open a real project —
 # your plugin's nav item is there

@@ -5,7 +5,7 @@ import {
   parseDnsRrsetConflict,
   unwrapDnsError,
 } from './error-formatting.helper';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 const WRAPPED_ALIAS =
   'status 422: {"error": "RRset testing.mdj-test.online. IN ALIAS: Conflicts with pre-existing RRset"}';

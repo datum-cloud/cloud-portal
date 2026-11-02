@@ -13,7 +13,7 @@ import {
   weightShares,
 } from './backend-pool';
 import { toHttpProxyBackend, type HttpProxy } from '@/resources/http-proxies';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const blue = toHttpProxyBackend({ endpoint: 'https://blue.fly.dev', weight: 95 });
 const green = toHttpProxyBackend({ endpoint: 'https://green.fly.dev', weight: 5 });

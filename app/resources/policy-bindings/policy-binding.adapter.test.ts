@@ -5,7 +5,7 @@ import {
   toUpdatePolicyBindingPayload,
 } from './policy-binding.adapter';
 import { rawMetadata } from '@/test/factories/k8s';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toPolicyBinding', () => {
   it('maps subjects, roleRef and the resourceRef selector', () => {

@@ -1,5 +1,5 @@
 import { SIDEBAR_COOKIE_NAME, getSidebarState, parseSidebarState } from './sidebar.server';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 describe('parseSidebarState', () => {
   test('reads an expanded sidebar as true', () => {

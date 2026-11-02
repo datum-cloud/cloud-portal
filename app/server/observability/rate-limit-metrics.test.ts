@@ -3,8 +3,8 @@ import {
   rateLimitPenaltiesTotal,
   rateLimitRejectionsTotal,
 } from './rate-limit-metrics';
-import { describe, expect, test } from 'bun:test';
 import { register } from 'prom-client';
+import { describe, expect, test } from 'vitest';
 
 async function valueOf(name: string, labels: Record<string, string> = {}): Promise<number> {
   const metric = await register.getSingleMetric(name)?.get();

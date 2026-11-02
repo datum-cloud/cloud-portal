@@ -5,7 +5,7 @@ import {
   toUpdateExportPolicyPayload,
 } from './export-policy.adapter';
 import { rawMetadata } from '@/test/factories/k8s';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toExportPolicy', () => {
   it('maps spec sources/sinks and defaults labels/annotations to empty objects', () => {

@@ -4,9 +4,9 @@ import {
   clearActiveProject,
   type ActiveProject,
 } from './search.active-project';
-import { beforeEach, describe, expect, it } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'vitest';
 
-// localStorage polyfill for bun:test
+// localStorage polyfill for vitest
 if (typeof globalThis.localStorage === 'undefined') {
   const store = new Map<string, string>();
   globalThis.localStorage = {

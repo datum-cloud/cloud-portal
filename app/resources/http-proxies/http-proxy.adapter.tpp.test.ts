@@ -4,7 +4,7 @@ import {
   toTrafficProtectionPolicySpecPatch,
 } from './http-proxy.adapter';
 import type { ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy } from '@/modules/control-plane/networking';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 function policy(
   overrides?: Partial<ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy>

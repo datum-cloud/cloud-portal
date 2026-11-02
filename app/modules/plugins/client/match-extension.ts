@@ -1,6 +1,6 @@
 /**
  * Pure extension selection + path matching for the plugin mount — CLIENT-SAFE,
- * no React, no side effects, so it can be exercised directly by `bun test`.
+ * no React, no side effects, so it can be exercised directly by vitest.
  *
  * The mount receives a splat (`*`) path relative to
  * `/project/:projectId/services/<slug>/` and must decide which

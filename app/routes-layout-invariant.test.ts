@@ -1,6 +1,6 @@
 import routeConfig from './routes';
 import { paths } from '@/utils/config/paths.config';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 /**
  * The blocking-page invariant, asserted once so three defensive guards

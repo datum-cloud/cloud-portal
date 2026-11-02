@@ -45,7 +45,7 @@ app/modules/control-plane/
 The easiest way to generate OpenAPI clients is using the interactive generator:
 
 ```bash
-bun run openapi
+npm run openapi
 ```
 
 This will:
@@ -68,7 +68,7 @@ export API_URL=https://api.datum.net
 export API_TOKEN=your-bearer-token-here
 
 # Then run the generator
-bun run openapi
+npm run openapi
 ```
 
 ### Getting a Bearer Token
@@ -171,7 +171,7 @@ When the Control Plane API changes:
 1. **Run the generator:**
 
    ```bash
-   bun run openapi
+   npm run openapi
    ```
 
 2. **Select the resources** that need updating
@@ -188,12 +188,12 @@ When the Control Plane API changes:
 4. **Run type check:**
 
    ```bash
-   bun run typecheck
+   npm run typecheck
    ```
 
 5. **Test the changes:**
    ```bash
-   bun run test:e2e
+   npm run test:e2e
    ```
 
 ---
@@ -205,7 +205,7 @@ When the Control Plane API changes:
 ```bash
 # Restart TypeScript server in VS Code
 # Or run:
-bun run typecheck
+npm run typecheck
 ```
 
 ### Types don't match API response
@@ -213,7 +213,7 @@ bun run typecheck
 The spec may be outdated. Re-run the generator:
 
 ```bash
-bun run openapi
+npm run openapi
 ```
 
 ### Generation fails
@@ -232,7 +232,7 @@ For advanced use cases, you can still use `@hey-api/openapi-ts` directly:
 
 ```bash
 # Generate from a local spec file
-bunx openapi-ts --input ./specs/api.json --output ./app/modules/control-plane/api-name
+npx openapi-ts --input ./specs/api.json --output ./app/modules/control-plane/api-name
 ```
 
 Or configure in `openapi-ts.config.ts`:

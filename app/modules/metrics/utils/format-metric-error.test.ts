@@ -1,6 +1,6 @@
 import { formatMetricError } from './format-metric-error';
 import { PrometheusError } from '@/modules/prometheus';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('formatMetricError', () => {
   it('never surfaces the Bun/OTEL captureStackTrace leak', () => {

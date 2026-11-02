@@ -2,7 +2,7 @@ import type { TimerHandle, WatchClock } from './watch-clock';
 import { WatchManager, type WatchManagerOptions } from './watch.manager';
 import type { ResyncPayload, WatchEvent } from './watch.types';
 import { resetRateLimitGate } from '@/modules/rate-limit';
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 const realFetch = globalThis.fetch;
 const rateLimited = () =>
@@ -133,7 +133,7 @@ function createHub() {
     return new Response(body, { status: 200 });
   };
 
-  const fetchMock = mock(async (input: unknown, init?: RequestInit) => {
+  const fetchMock = vi.fn(async (input: unknown, init?: RequestInit) => {
     const url = String(input);
     if (url.startsWith('/api/watch/stream')) {
       calls.push('stream');

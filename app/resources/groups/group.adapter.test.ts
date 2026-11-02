@@ -1,6 +1,6 @@
 import { toGroup, toGroupList } from './group.adapter';
 import { rawMetadata } from '@/test/factories/k8s';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toGroup', () => {
   it('maps metadata fields onto the domain Group', () => {

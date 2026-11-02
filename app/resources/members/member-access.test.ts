@@ -1,7 +1,7 @@
 import { waitForMembershipRolesApplied } from './member-access';
 import type { ComMiloapisResourcemanagerV1Alpha1OrganizationMembership } from '@/modules/control-plane/resource-manager';
 import { AuthorizationError } from '@/utils/errors';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 type Membership = ComMiloapisResourcemanagerV1Alpha1OrganizationMembership;
 

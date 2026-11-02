@@ -1,5 +1,5 @@
 import { SentryProvider, scrubSensitiveRequestData } from './sentry';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 type Hook = (event: any, hint?: any) => any;
 

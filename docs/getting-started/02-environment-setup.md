@@ -16,7 +16,7 @@ cd cloud-portal
 ## Step 2: Install Dependencies
 
 ```bash
-bun install
+npm install
 ```
 
 ---
@@ -79,7 +79,7 @@ GRAFANA_URL=http://localhost:3002
 Run TypeScript check to ensure environment is properly configured:
 
 ```bash
-bun run typecheck
+npm run typecheck
 ```
 
 **Expected:** No errors. If you see environment-related errors, check your `.env` file.

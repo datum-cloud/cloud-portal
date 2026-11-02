@@ -1,5 +1,5 @@
 import { toActivityLog, toActivityLogList } from './activity-log.adapter';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toActivityLog', () => {
   it('maps an audit event to an ActivityLog with a Date timestamp', () => {

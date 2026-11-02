@@ -1,6 +1,6 @@
 import { planZoneRecord, relativeRecordName } from './zone-record-plan';
 import type { IFlattenedDnsRecord } from '@/resources/dns-records';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 const ZONE = 'mdj-test.online';
 const TARGET = '28f4e7ee780ee3c7ae68d43fa9c441bf.acme-validation.datum-staging.net';

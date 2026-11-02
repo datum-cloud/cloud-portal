@@ -1,5 +1,5 @@
 import { createRateLimitStore, type RedisLike } from './rate-limit-store';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 function fakeRedis(status = 'ready'): RedisLike & { hits: Map<string, number>; calls: string[] } {
   const hits = new Map<string, number>();
