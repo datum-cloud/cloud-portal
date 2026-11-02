@@ -10,9 +10,10 @@ import tseslint from 'typescript-eslint';
 export default [
   // Global ignores (must be separate config object)
   {
-    // Generated code: @hey-api/openapi-ts writes the control-plane *.gen.ts
-    // files, so a hand fix there is lost on the next `bun run openapi`.
-    ignores: ['app/modules/gqlts/generated/**', 'app/modules/control-plane/**/*.gen.ts'],
+    // Generated code: gqlts writes app/modules/graphql/generated and
+    // @hey-api/openapi-ts writes the control-plane *.gen.ts files, so a hand
+    // fix in either is lost on the next regeneration.
+    ignores: ['app/modules/graphql/generated/**', 'app/modules/control-plane/**/*.gen.ts'],
   },
   {
     files: ['**/*.ts', '**/*.tsx'],
