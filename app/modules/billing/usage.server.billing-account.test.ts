@@ -2,7 +2,7 @@ import { lookupUsageBillingAccount, type BillingAccountLookupDeps } from './usag
 import type { BillingAccount } from '@/features/billing/types';
 import { logger } from '@/modules/logger';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
-import { afterAll, beforeEach, describe, expect, it, spyOn } from 'bun:test';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const ACCOUNT = {
   name: 'acme-billing',
@@ -35,7 +35,7 @@ const rejectWith =
     throw error;
   };
 
-const errorSpy = spyOn(logger, 'error').mockImplementation(() => {});
+const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
 
 // Other files log through the same logger, so start each case from zero.
 beforeEach(() => {
