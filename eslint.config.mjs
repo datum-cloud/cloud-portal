@@ -48,7 +48,7 @@ export default [
       ...eslintPluginPrettier.configs.recommended.rules,
       'prettier/prettier': ['error', prettierConfig],
       'react/react-in-jsx-scope': 'off',
-      'react-hooks/exhaustive-deps': 'off',
+      'react-hooks/exhaustive-deps': 'warn',
 
       // Disable React Compiler rules (React 19) - not using React Compiler yet
       'react-hooks/preserve-manual-memoization': 'off',

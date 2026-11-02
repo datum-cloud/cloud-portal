@@ -85,7 +85,7 @@ jobs:
             ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/package.json') }}
-      - run: npm run lint && npm run format
+      - run: npm run lint:check && npm run format:check
 
   typecheck:
     name: Type Check
