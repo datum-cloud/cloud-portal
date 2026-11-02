@@ -10,7 +10,9 @@ import tseslint from 'typescript-eslint';
 export default [
   // Global ignores (must be separate config object)
   {
-    ignores: ['app/modules/gqlts/generated/**', 'app/modules/control-plane/**/client.gen.ts'],
+    // Generated code: @hey-api/openapi-ts writes the control-plane *.gen.ts
+    // files, so a hand fix there is lost on the next `bun run openapi`.
+    ignores: ['app/modules/gqlts/generated/**', 'app/modules/control-plane/**/*.gen.ts'],
   },
   {
     files: ['**/*.ts', '**/*.tsx'],
@@ -42,10 +44,10 @@ export default [
       'unused-imports': unusedImports,
     },
     rules: {
-      // recommendedTypeChecked is [base, eslint-recommended, recommended-type-checked];
-      // [0] carries no rules, so spread the two entries that do.
-      ...tseslint.configs.recommendedTypeChecked[1].rules,
-      ...tseslint.configs.recommendedTypeChecked[2].rules,
+      // recommendedTypeChecked is an array of config objects and only some of
+      // them carry rules. Merge every entry's rules rather than picking by
+      // index: spreading [0] alone once left all of them off without a sign.
+      ...Object.assign({}, ...tseslint.configs.recommendedTypeChecked.map((c) => c.rules ?? {})),
       ...eslintPluginReact.configs.recommended.rules,
       ...eslintPluginReactHooks.configs.recommended.rules,
       ...eslintPluginPrettier.configs.recommended.rules,
