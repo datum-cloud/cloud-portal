@@ -1,5 +1,3 @@
-import { env } from '@/utils/env';
-
 /**
  * Centralized authentication configuration
  *
@@ -24,11 +22,6 @@ export const AUTH_CONFIG = {
    * Default: 30 days
    */
   REFRESH_COOKIE_MAX_AGE: 60 * 60 * 24 * 30,
-
-  /**
-   * Enable debug logging for auth operations
-   */
-  DEBUG: env.isDev,
 } as const;
 
 /**

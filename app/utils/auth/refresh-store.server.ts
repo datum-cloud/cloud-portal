@@ -3,20 +3,11 @@
  * locks, the encrypted Redis payloads they share, and the rotation links that
  * lead a consumed refresh token to its newest session.
  */
-import { AUTH_CONFIG } from './auth.config';
 import type { IAccessTokenSession } from './auth.types';
+import { logger } from '@/modules/logger';
 import { redisClient } from '@/modules/redis';
 import { env } from '@/utils/env/env.server';
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto';
-
-/**
- * Debug logger - only logs in development
- */
-export function debugLog(message: string, data?: Record<string, unknown>): void {
-  if (AUTH_CONFIG.DEBUG) {
-    console.log(`[AuthService] ${message}`, data ?? '');
-  }
-}
 
 /**
  * In-memory refresh lock to prevent concurrent refresh attempts (fallback)
@@ -192,7 +183,7 @@ export async function publishRedisPayload(
     const ttlMs = payload.kind === 'ok' ? ROTATION_LINK_TTL_MS : REDIS_RESULT_TTL_MS;
     await redisClient.set(redisResultKey(key), encryptPayload(payload), 'PX', ttlMs);
   } catch (error) {
-    debugLog('Failed to publish Redis refresh payload', { error: String(error) });
+    logger.debug('[auth] Failed to publish Redis refresh payload', { error: String(error) });
   }
 }
 
@@ -208,7 +199,7 @@ export async function releaseRedisLockIfOwned(key: string, lockValue: string): P
   try {
     await redisClient.eval(RELEASE_LOCK_LUA, 1, redisLockKey(key), lockValue);
   } catch (error) {
-    debugLog('Failed to release Redis refresh lock', { error: String(error) });
+    logger.debug('[auth] Failed to release Redis refresh lock', { error: String(error) });
   }
 }
 
