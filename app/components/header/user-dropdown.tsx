@@ -1,7 +1,6 @@
 import { DarkModeIcon } from '@/components/icon/dark-mode';
 import { LightModeIcon } from '@/components/icon/light-mode';
 import { SystemModeIcon } from '@/components/icon/system-mode';
-import { FeatureFlag, useFeatureFlag } from '@/modules/feature-flags';
 import { useApp } from '@/providers/app.provider';
 import { ThemeValue, useUpdateUserPreferences } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
@@ -40,8 +39,7 @@ export const UserDropdown = ({
 }) => {
   const navigate = useNavigate();
   const { resolvedTheme, setTheme } = useTheme();
-  const { user, userPreferences, setUser } = useApp();
-  const billingEnabled = useFeatureFlag(FeatureFlag.Billing);
+  const { user, userPreferences, setUser, ownsAnyOrg } = useApp();
   const userId = user?.sub ?? 'me';
 
   const [currentTheme, setCurrentTheme] = useState<ThemeValue>(resolvedTheme as ThemeValue);
@@ -131,7 +129,7 @@ export const UserDropdown = ({
               </Text>
             </div>
           </DropdownMenuItem>
-          {billingEnabled && !hideBillingAccount && (
+          {ownsAnyOrg && !hideBillingAccount && (
             <DropdownMenuItem
               data-e2e="user-menu-billing"
               className="cursor-pointer rounded-lg px-3 py-2 font-normal"

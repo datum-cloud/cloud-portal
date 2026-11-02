@@ -1,5 +1,5 @@
 import { MinimalLayout } from '@/layouts';
-import { requireBillingForAnyOrg } from '@/modules/feature-flags/billing-gate.server';
+import { requireOwnedBillingOrgs } from '@/modules/billing/billing-access.server';
 import { createOrganizationService } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
@@ -13,15 +13,12 @@ export const handle = {
 export const meta: MetaFunction = mergeMeta(() => metaObject('Billing Accounts'));
 
 /**
- * Gate the entire user-level billing section behind the Billing feature
- * flag. We don't have a single org context here — this is a cross-org
- * surface — so "enabled for this user" is true when the flag is on for
- * any org the user belongs to. Closed-by-default if the eval fails so
- * a broken evaluator never silently exposes the section.
+ * Billing accounts belong to orgs, and only an org's owners see its
+ * billing. A user who owns none of their orgs has nothing to see here.
  */
 export const loader = async () => {
   const organizations = await createOrganizationService().list();
-  await requireBillingForAnyOrg(organizations.items.map((o) => o.name));
+  await requireOwnedBillingOrgs(organizations.items.map((o) => o.name));
   return null;
 };
 

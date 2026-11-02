@@ -4,7 +4,6 @@
  */
 export const FeatureFlag = {
   MultiBillingAccounts: 'billing.miloapis.com/multi-billing-accounts',
-  Billing: 'billing.miloapis.com/cloud-portal-billing',
 } as const;
 
 export type FeatureFlagKey = (typeof FeatureFlag)[keyof typeof FeatureFlag];
@@ -21,7 +20,7 @@ export type FeatureFlagKey = (typeof FeatureFlag)[keyof typeof FeatureFlag];
  * cross-cutting flags. Per-page flags should stay in their layout
  * loader's `companions` block as before.
  */
-export const ROOT_FEATURE_FLAGS: readonly FeatureFlagKey[] = [FeatureFlag.Billing] as const;
+export const ROOT_FEATURE_FLAGS: readonly FeatureFlagKey[] = [] as const;
 
 /** Map of FeatureFlagKey → resolved boolean, served through AppContext. */
 export type FeatureFlagMap = Partial<Record<FeatureFlagKey, boolean>>;

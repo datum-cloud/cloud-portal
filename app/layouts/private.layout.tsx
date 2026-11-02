@@ -9,6 +9,7 @@ import { RbacProvider } from '@/modules/rbac';
 import { RybbitProvider } from '@/modules/rybbit';
 import { WatchProvider } from '@/modules/watch';
 import { AppProvider, useApp } from '@/providers/app.provider';
+import { listOwnedOrgIds } from '@/resources/members/member-owner';
 import { listOrganizationsForRequest } from '@/resources/organizations/organization-request-cache.server';
 import { createUserService, ThemeValue, type User } from '@/resources/users';
 import { sessionContext } from '@/server/context';
@@ -70,6 +71,12 @@ export const loader = withMiddleware(
         }
       })();
 
+      // Billing is for org owners, so the header only links to it for a
+      // user who owns at least one org. Streams like the flags; never rejects.
+      const ownsAnyOrg: Promise<boolean> = listOwnedOrgIds()
+        .then((orgIds) => orgIds.length > 0)
+        .catch(() => false);
+
       // Re-use the user fetched by fraudStatusMiddleware when available,
       // avoiding a second upstream API call on the same request.
       const cachedUser = getRequestContext()?.cachedUser;
@@ -90,6 +97,7 @@ export const loader = withMiddleware(
       return data({
         user,
         featureFlags,
+        ownsAnyOrg,
         helpscoutSignature: helpscoutSignaturePromise,
         helpscoutBeaconId: serverEnv.public.helpscoutBeaconId ?? null,
       });
@@ -153,6 +161,7 @@ export default function PrivateLayout() {
   const data: {
     user: User;
     featureFlags: Promise<FeatureFlagMap>;
+    ownsAnyOrg: Promise<boolean>;
     helpscoutSignature: Promise<string | null>;
     helpscoutBeaconId: string | null;
   } = useLoaderData<typeof loader>();
@@ -175,6 +184,20 @@ export default function PrivateLayout() {
     };
   }, [data?.featureFlags]);
 
+  const [ownsAnyOrg, setOwnsAnyOrg] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve(data?.ownsAnyOrg)
+      .then((owns) => {
+        if (active) setOwnsAnyOrg(owns ?? false);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [data?.ownsAnyOrg]);
+
   useEffect(() => {
     if (data?.user) {
       const userTheme = data?.user?.preferences?.theme;
@@ -187,7 +210,10 @@ export default function PrivateLayout() {
 
   return (
     <WatchProvider>
-      <AppProvider initialUser={data?.user} initialFeatureFlags={featureFlags}>
+      <AppProvider
+        initialUser={data?.user}
+        initialFeatureFlags={featureFlags}
+        ownsAnyOrg={ownsAnyOrg}>
         <RybbitWrapper>
           <TaskQueueProvider config={{ storageType: 'memory' }}>
             <ConfirmationDialogProvider>

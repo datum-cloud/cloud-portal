@@ -1,6 +1,5 @@
 import { ProjectBillingCard } from '@/features/project/settings/billing-card';
-import { FeatureFlag } from '@/modules/feature-flags';
-import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
+import { requireBillingOwner } from '@/modules/billing/billing-access.server';
 import { useProjectContext } from '@/providers/project.provider';
 import { createProjectService } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
@@ -19,19 +18,16 @@ export const handle = {
 
 export const shouldRevalidate = skipRevalidateWithinSameProject;
 
+/** Only the owners of the project's org see its billing. */
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const projectId = params.projectId;
   if (!projectId) {
     throw redirect(paths.account.root);
   }
   const project = await createProjectService().get(projectId);
-  const orgId = project?.organizationId;
-  const enabled = orgId
-    ? await isFeatureEnabled(FeatureFlag.Billing, orgId).catch(() => false)
-    : false;
-  if (!enabled) {
+  await requireBillingOwner(project?.organizationId).catch(() => {
     throw redirect(getPathWithParams(paths.project.detail.settings.general, { projectId }));
-  }
+  });
   return null;
 };
 

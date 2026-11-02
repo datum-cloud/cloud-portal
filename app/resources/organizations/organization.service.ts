@@ -285,18 +285,21 @@ export function createOrganizationService() {
       }
     },
 
-    async fetchMembershipForOrganization(
-      orgId: string
-    ): Promise<ComMiloapisResourcemanagerV1Alpha1OrganizationMembership | undefined> {
+    async fetchMemberships(): Promise<ComMiloapisResourcemanagerV1Alpha1OrganizationMembership[]> {
       const response =
         await listResourcemanagerMiloapisComV1Alpha1OrganizationMembershipForAllNamespaces({
           baseURL: getUserScopedBase(),
           query: { limit: 1000 },
         });
 
-      return response.data?.items?.find(
-        (membership) => membership.spec?.organizationRef?.name === orgId
-      );
+      return response.data?.items ?? [];
+    },
+
+    async fetchMembershipForOrganization(
+      orgId: string
+    ): Promise<ComMiloapisResourcemanagerV1Alpha1OrganizationMembership | undefined> {
+      const memberships = await this.fetchMemberships();
+      return memberships.find((membership) => membership.spec?.organizationRef?.name === orgId);
     },
 
     async delete(name: string): Promise<void> {
