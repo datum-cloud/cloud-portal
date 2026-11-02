@@ -6,7 +6,7 @@ import {
   patchProjectListDeleting,
 } from './project.helpers';
 import type { Project, ProjectList } from './project.schema';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const deletedAt = new Date('2024-02-02T00:00:00Z');
 

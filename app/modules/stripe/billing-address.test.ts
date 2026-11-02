@@ -1,6 +1,6 @@
 import { addressSignature, buildContactAddressPrefill } from './billing-address';
 import type { StripeAddressElementChangeEvent } from '@stripe/stripe-js';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('buildContactAddressPrefill', () => {
   it('returns undefined for null/undefined contact', () => {

@@ -1,5 +1,5 @@
 import { findCoveringDomain } from './covering-domain';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 const domains = [
   { name: 'mdj', domainName: 'mdj-test.online' },

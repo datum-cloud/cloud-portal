@@ -1,7 +1,6 @@
-/// <reference types="bun-types/test" />
 import type { PortalPluginSpec } from '../types';
 import { PluginRegistry } from './registry';
-import { describe, expect, mock, test } from 'bun:test';
+import { describe, expect, test, vi } from 'vitest';
 
 function manifest(overrides: Record<string, unknown> = {}) {
   return {
@@ -34,7 +33,7 @@ function spec(overrides: Partial<PortalPluginSpec> = {}): PortalPluginSpec {
 
 /** Serves a manifest body keyed by base URL so different specs get different manifests. */
 function registryServing(byBaseUrl: Record<string, unknown>) {
-  const fetchImpl = mock(async (url: string) => {
+  const fetchImpl = vi.fn(async (url: string) => {
     for (const [base, body] of Object.entries(byBaseUrl)) {
       if (url.startsWith(base)) return new Response(JSON.stringify(body), { status: 200 });
     }

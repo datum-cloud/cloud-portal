@@ -1,11 +1,11 @@
 import { REPLAY_OPTIONS, addReplayIntegration, runWhenIdle, type ReplaySdk } from './replay';
-import { afterEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const realWindow = globalThis.window;
 
 afterEach(() => {
   globalThis.window = realWindow;
-  mock.restore();
+  vi.restoreAllMocks();
 });
 
 describe('REPLAY_OPTIONS', () => {
@@ -24,8 +24,8 @@ describe('REPLAY_OPTIONS', () => {
 
 describe('runWhenIdle', () => {
   it('schedules on requestIdleCallback with a timeout, and the cleanup cancels it', () => {
-    const requestIdleCallback = mock(() => 7);
-    const cancelIdleCallback = mock(() => {});
+    const requestIdleCallback = vi.fn(() => 7);
+    const cancelIdleCallback = vi.fn(() => {});
     globalThis.window = { requestIdleCallback, cancelIdleCallback } as unknown as Window &
       typeof globalThis;
     const task = () => {};
@@ -39,9 +39,9 @@ describe('runWhenIdle', () => {
 
   it('falls back to a timer where requestIdleCallback is missing', () => {
     globalThis.window = {} as unknown as Window & typeof globalThis;
-    const setTimeoutSpy = spyOn(globalThis, 'setTimeout');
-    const clearTimeoutSpy = spyOn(globalThis, 'clearTimeout');
-    const task = mock(() => {});
+    const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+    const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+    const task = vi.fn(() => {});
 
     const cancel = runWhenIdle(task);
     expect(setTimeoutSpy).toHaveBeenCalledWith(task, 2000);
@@ -53,18 +53,18 @@ describe('runWhenIdle', () => {
 });
 
 describe('addReplayIntegration', () => {
-  // A fake SDK: under `bun test` the package resolves to its server build,
+  // A fake SDK: under Vitest's node environment the package resolves to its server build,
   // which has no `lazyLoadIntegration`, so spying on the namespace proves
   // nothing.
   function fakeSdk({ dsn, load }: { dsn: boolean; load?: () => Promise<unknown> }) {
     const integration = { name: 'Replay' };
-    const replayIntegration = mock(() => integration);
+    const replayIntegration = vi.fn(() => integration);
     const sdk = {
-      getClient: mock(() => ({
+      getClient: vi.fn(() => ({
         getDsn: () => (dsn ? { host: 'o1.ingest.sentry.io' } : undefined),
       })),
-      lazyLoadIntegration: mock(load ?? (() => Promise.resolve(replayIntegration))),
-      addIntegration: mock(() => {}),
+      lazyLoadIntegration: vi.fn(load ?? (() => Promise.resolve(replayIntegration))),
+      addIntegration: vi.fn(() => {}),
     };
     return { sdk: sdk as unknown as ReplaySdk, calls: sdk, integration, replayIntegration };
   }

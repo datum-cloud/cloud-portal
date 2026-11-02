@@ -12,7 +12,7 @@
  * Client-certificate auth is also honored opportunistically (real admin
  * kubeconfigs), passed through to the TLS layer.
  */
-import type { TlsFetchInit } from './plugin-fetch';
+import { tlsDispatcher, type TlsFetchInit, type TlsOptions } from './plugin-fetch';
 import { load as loadYaml } from 'js-yaml';
 import { execFile } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -271,6 +271,7 @@ export interface KubeClientOptions {
 export class KubeClient {
   readonly server: string;
   private readonly tls: ResolvedTls;
+  private readonly dispatcher: TlsFetchInit['dispatcher'];
   private readonly auth: ResolvedAuth;
   private readonly fetchImpl: typeof fetch;
   private readonly execProvider?: ExecCredentialProvider;
@@ -280,6 +281,8 @@ export class KubeClient {
     this.tls = context.tls;
     this.auth = context.auth;
     this.fetchImpl = options.fetchImpl ?? fetch;
+    const tls = this.tlsOptions();
+    this.dispatcher = tls ? tlsDispatcher(tls) : undefined;
     if (context.auth.kind === 'exec') {
       this.execProvider = new ExecCredentialProvider(context.auth, {
         runner: options.runner,
@@ -299,11 +302,8 @@ export class KubeClient {
     }
   }
 
-  private tlsInit(): TlsFetchInit['tls'] {
-    const tls: NonNullable<TlsFetchInit['tls']> & {
-      cert?: string;
-      key?: string;
-    } = {};
+  private tlsOptions(): TlsOptions | undefined {
+    const tls: TlsOptions = {};
     if (this.tls.insecureSkipTlsVerify) tls.rejectUnauthorized = false;
     if (this.tls.caPem) tls.ca = this.tls.caPem;
     if (this.tls.clientCertPem) tls.cert = this.tls.clientCertPem;
@@ -314,12 +314,11 @@ export class KubeClient {
   /** Issues an authenticated request against `{server}{path}`. */
   async request(path: string, init: RequestInit = {}): Promise<Response> {
     const auth = await this.authHeader();
-    const tls = this.tlsInit();
     const fetchInit: TlsFetchInit = {
       ...init,
       headers: { ...auth, ...(init.headers as Record<string, string> | undefined) },
     };
-    if (tls) fetchInit.tls = tls;
+    if (this.dispatcher) fetchInit.dispatcher = this.dispatcher;
     return this.fetchImpl(`${this.server}${path}`, fetchInit as RequestInit);
   }
 }

@@ -1,7 +1,6 @@
-/// <reference types="bun-types/test" />
 import { organizationsListQueryKey } from './organization.gql-queries';
 import { organizationKeys } from './organization.service';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 /**
  * `invalidateQueries({ queryKey })` in TanStack Query matches by PREFIX. Every

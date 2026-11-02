@@ -15,7 +15,7 @@ import {
   resetGuardedIncrease,
   toStatusClassPatterns,
 } from './queries';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('resetGuardedIncrease', () => {
   it('multiplies increase() by a resets()-equals-zero guard over the same series and window', () => {
@@ -75,7 +75,7 @@ describe('alb query builders', () => {
 
   it('counts total requests over a window for traffic presence', () => {
     const query = albRequestCountQuery(scope, '24h');
-    expect(query).toStartWith('sum(increase(envoy_vhost_vcluster_upstream_rq{');
+    expect(query.startsWith('sum(increase(envoy_vhost_vcluster_upstream_rq{')).toBe(true);
     expect(query).toContain('gateway_name="gw-1"');
     expect(query).toContain('[24h])) or sum(envoy_vhost_vcluster_upstream_rq{');
   });
@@ -150,7 +150,7 @@ describe('project-wide query builders', () => {
     expect(numerator).toContain('envoy_response_code=~"[45].."');
     expect(numerator).toContain('or vector(0)');
     expect(denominator).not.toContain('envoy_response_code');
-    expect(denominator).toEndWith('> 0)');
+    expect(denominator.endsWith('> 0)')).toBe(true);
   });
 
   it('counts only blocked and dropped WAF events', () => {

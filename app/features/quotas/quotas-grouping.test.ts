@@ -6,7 +6,7 @@ import {
 } from './quotas-grouping';
 import type { AllowanceBucket } from '@/resources/allowance-buckets';
 import type { ResourceRegistration } from '@/resources/resource-registrations';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const row = (partial: Partial<QuotaRow>): QuotaRow => ({
   resourceType: 'x/y',

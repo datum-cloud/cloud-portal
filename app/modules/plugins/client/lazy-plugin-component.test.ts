@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'bun:test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { describe, expect, it } from 'vitest';
 
 /**
  * Regression guard for first paint on project pages. The federation host pulls

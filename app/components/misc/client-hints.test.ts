@@ -1,6 +1,6 @@
 import { getHints, viewportHint } from './client-hints';
 import { DESKTOP_MIN, TABLET_MIN, breakpointForWidth } from '@/hooks/use-breakpoint';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 /** Runs the hint's inline snippet the way the check script does, against a fake window. */
 function evaluateViewportCode(innerWidth: number): string {

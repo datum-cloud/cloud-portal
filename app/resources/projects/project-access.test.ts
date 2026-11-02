@@ -4,7 +4,7 @@ import {
   policyBindingTargetsProject,
 } from './project-access';
 import type { PolicyBinding } from '@/resources/policy-bindings/policy-binding.schema';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const projectId = 'project-abc';
 

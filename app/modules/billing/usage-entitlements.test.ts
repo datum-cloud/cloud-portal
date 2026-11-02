@@ -1,6 +1,6 @@
 import { filterUsageByEntitlement } from './usage-entitlements';
 import type { UsageFetchResult } from './usage.types';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 const meter = (meterDefinition: string, groupId: string): UsageFetchResult['meters'][number] =>
   ({

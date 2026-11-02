@@ -1,15 +1,11 @@
-/// <reference types="bun-types/test" />
-import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 type Call = [string, string, Record<string, unknown>];
 let calls: Call[] = [];
 let allowed: (resource: string, verb: string, options: Record<string, unknown>) => boolean;
 
-const actualRbac = await import('@/modules/rbac');
-const realRbac = { ...actualRbac };
-
-mock.module('@/modules/rbac', () => ({
-  ...realRbac,
+vi.mock('@/modules/rbac', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/modules/rbac')>()),
   usePermission: (resource: string, verb: string, options: Record<string, unknown> = {}) => {
     calls.push([resource, verb, options]);
     return {
@@ -24,10 +20,6 @@ mock.module('@/modules/rbac', () => ({
 }));
 
 const { useAlbLogsPermission } = await import('./use-alb-logs-permission');
-
-afterAll(() => {
-  mock.module('@/modules/rbac', () => realRbac);
-});
 
 beforeEach(() => {
   calls = [];

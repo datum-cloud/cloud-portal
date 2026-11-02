@@ -1,6 +1,6 @@
 import { classifyQuotaError, isQuotaError, parseQuotaError } from './quota-error';
 import { AppError } from '@/utils/errors/app-error';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 const forbidden = (originalMessage: string, k8sDetails?: { kind?: string; group?: string }) =>
   new AppError('parsed message', {

@@ -1,6 +1,6 @@
 import { toAllowanceBucket, toAllowanceBucketList } from './allowance-bucket.adapter';
 import { rawMetadata } from '@/test/factories/k8s';
-import { describe, expect, it, test } from 'bun:test';
+import { describe, expect, it, test } from 'vitest';
 
 describe('toAllowanceBucket', () => {
   it('maps metadata + resourceType and normalizes createdAt to an ISO string', () => {

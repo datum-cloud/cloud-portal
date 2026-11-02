@@ -6,25 +6,13 @@ Before you can run the Datum Cloud Portal locally, ensure you have the following
 
 ## Required Tools
 
-### Bun (Runtime)
+### Node.js (Runtime)
 
-Bun is the JavaScript runtime used for this project.
-
-```bash
-# Install Bun
-curl -fsSL https://bun.sh/install | bash
-
-# Verify installation
-bun --version  # Should be >= 1.2.17
-```
-
-### Node.js
-
-Some tooling still requires Node.js.
+Node.js is the JavaScript runtime used for this project, with npm as the package manager. The pinned version is in `.nvmrc`.
 
 ```bash
 # Verify installation
-node --version  # Should be >= 20.0.0
+node --version  # Should be 26.12.1
 ```
 
 ### Git
@@ -71,7 +59,7 @@ docker-compose --version
 Run this command to verify all required tools are installed:
 
 ```bash
-bun --version && node --version && git --version
+node --version && npm --version && git --version
 ```
 
 **Expected output:** All three version numbers displayed without errors.

@@ -9,7 +9,7 @@ without a full cluster and without touching the remote platform control plane.
 The guiding principle from the design: **the platform control plane stays
 remote; the local environment is the plugin registry.** The portal still
 authenticates and fetches orgs, projects, entitlements, and every existing
-resource from the remote environment exactly as `bun run dev` does today. Only
+resource from the remote environment exactly as `npm run dev` does today. Only
 the plugin registry and the plugin under development run locally.
 
 ## The two tiers
@@ -65,7 +65,7 @@ task plugin:preview
 
 # 3. Register the sample plugin, then run the portal against the registry.
 task devenv:register
-task devenv:portal        # PLUGIN_REGISTRY_KUBECONFIG=.devenv/kubeconfig AUTH_DEV_TOKEN_EXCHANGE=1 bun run dev
+task devenv:portal        # PLUGIN_REGISTRY_KUBECONFIG=.devenv/kubeconfig AUTH_DEV_TOKEN_EXCHANGE=1 npm run dev
 ```
 
 Then log in with your real remote account, open a real project, and the sample
@@ -175,7 +175,7 @@ already has:
 DATUM_ORG=<org-id> task devenv:platform-kubeconfig
 #   → writes .devenv/platform-kubeconfig (kubectl exec-plugin backed by datumctl)
 
-PLUGIN_REGISTRY_KUBECONFIG=.devenv/platform-kubeconfig AUTH_DEV_TOKEN_EXCHANGE=1 bun run dev
+PLUGIN_REGISTRY_KUBECONFIG=.devenv/platform-kubeconfig AUTH_DEV_TOKEN_EXCHANGE=1 npm run dev
 ```
 
 `devenv:platform-kubeconfig` is a documented convenience for humans validating

@@ -1,10 +1,12 @@
 import { requireBillingOwner, requireOwnedBillingOrgs } from './billing-access.server';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const isOwnerMock = mock(async (_orgId: string): Promise<boolean> => false);
-const ownedMock = mock(async (): Promise<string[]> => []);
+const { isOwnerMock, ownedMock } = vi.hoisted(() => ({
+  isOwnerMock: vi.fn(async (_orgId: string): Promise<boolean> => false),
+  ownedMock: vi.fn(async (): Promise<string[]> => []),
+}));
 
-mock.module('@/resources/members/member-owner', () => ({
+vi.mock('@/resources/members/member-owner', () => ({
   isUserOrgOwner: isOwnerMock,
   listOwnedOrgIds: ownedMock,
 }));
@@ -29,7 +31,7 @@ describe('requireBillingOwner', () => {
   });
 
   it('treats a failed lookup as not an owner', async () => {
-    isOwnerMock.mockRejectedValue(new Error('boom'));
+    isOwnerMock.mockRejectedValueOnce(new Error('boom'));
     const thrown = await requireBillingOwner('org-acme').catch((e) => e);
     expect(locationOf(thrown)).toBe('/org/org-acme');
   });
@@ -58,7 +60,7 @@ describe('requireOwnedBillingOrgs', () => {
   });
 
   it('redirects when the ownership lookup fails', async () => {
-    ownedMock.mockRejectedValue(new Error('boom'));
+    ownedMock.mockRejectedValueOnce(new Error('boom'));
     const thrown = await requireOwnedBillingOrgs(['org-a']).catch((e) => e);
     expect(locationOf(thrown)).toBe('/account');
   });

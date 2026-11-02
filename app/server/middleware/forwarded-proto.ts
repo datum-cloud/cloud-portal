@@ -7,7 +7,7 @@ const HTTP_PREFIX = 'http://';
  * Restores the public `https://` scheme on requests that arrive through the
  * TLS-terminating gateway (Envoy in staging/production).
  *
- * The gateway forwards plain HTTP, so Bun builds `request.url` as
+ * The gateway forwards plain HTTP, so the server builds `request.url` as
  * `http://<host>/...` while the browser sends `Origin: https://<host>`.
  * react-router >= 8.3.1 compares the two INCLUDING the scheme before running
  * any action, so every action POST fails with a 400 unless the scheme is

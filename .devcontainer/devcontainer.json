@@ -15,7 +15,7 @@
     "ghcr.io/devcontainers/features/docker-in-docker": {
       "moby": false
     },
-    "ghcr.io/audacioustux/devcontainers/bun": {},
+    "ghcr.io/devcontainers/features/node:1": { "version": "26.13.0" },
     "ghcr.io/audacioustux/devcontainers/kustomize": {}
   },
   "customizations": {

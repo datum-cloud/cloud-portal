@@ -1,5 +1,5 @@
 import { resolveInitialSidebarOpen } from './initial-sidebar-open';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('resolveInitialSidebarOpen', () => {
   it('opens the nav on desktop when the user has no preference', () => {

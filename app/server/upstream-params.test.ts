@@ -1,5 +1,5 @@
 import { encodePathSegments, isDns1123Label, isLowercaseUuid } from './upstream-params';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const TRAVERSAL_AND_INJECTION = [
   '',

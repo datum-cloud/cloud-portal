@@ -1,6 +1,5 @@
-/// <reference types="bun-types/test" />
 import { serializeForInlineScript } from './inline-script.helper';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 describe('serializeForInlineScript', () => {
   test('a value containing </script><script> renders inert', () => {

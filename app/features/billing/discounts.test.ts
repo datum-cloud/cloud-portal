@@ -5,7 +5,7 @@ import {
   type AccountDiscount,
 } from './discounts';
 import type { BillingAccount } from './types';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const discount = (serviceDisplayName: string, percentage: number): AccountDiscount => ({
   serviceDisplayName,

@@ -11,7 +11,7 @@ import {
 } from './http-proxy.adapter';
 import type { HttpProxy } from './http-proxy.schema';
 import type { ComDatumapisNetworkingV1AlphaHttpProxy } from '@/modules/control-plane/networking';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const hostFilter = {
   type: 'RequestHeaderModifier' as const,

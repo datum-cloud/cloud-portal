@@ -2,7 +2,7 @@ import {
   defaultOnboardingProjectDisplayName,
   orgDisplayNameFromContact,
 } from './org-contact-info-schema';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const sampleContact = {
   email: 'jane@example.com',

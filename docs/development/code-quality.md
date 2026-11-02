@@ -21,17 +21,17 @@ This document covers the tools and practices for maintaining code quality.
 
 ```bash
 # Linting
-bun run lint              # Lint and auto-fix
+npm run lint              # Lint and auto-fix
 
 # Formatting
-bun run format            # Format all files
-bun run format:check      # Check formatting (CI)
+npm run format            # Format all files
+npm run format:check      # Check formatting (CI)
 
 # Type Checking
-bun run typecheck         # Run TypeScript compiler
+npm run typecheck         # Run TypeScript compiler
 
 # All checks
-bun run lint && bun run format:check && bun run typecheck
+npm run lint && npm run format:check && npm run typecheck
 ```
 
 ---
@@ -51,10 +51,10 @@ ESLint is configured in `eslint.config.js` with:
 
 ```bash
 # Lint with auto-fix
-bun run lint
+npm run lint
 
 # Lint specific files
-bunx eslint "app/routes/**/*.tsx" --fix
+npx eslint "app/routes/**/*.tsx" --fix
 ```
 
 ### Key Rules
@@ -107,13 +107,13 @@ Prettier config in `.prettierrc`:
 
 ```bash
 # Format all files
-bun run format
+npm run format
 
 # Format specific files
-bunx prettier --write "app/routes/**/*.tsx"
+npx prettier --write "app/routes/**/*.tsx"
 
 # Check without writing
-bun run format:check
+npm run format:check
 ```
 
 ### Editor Integration
@@ -140,7 +140,7 @@ TypeScript is configured in `tsconfig.json` with strict mode enabled.
 ### Running Type Check
 
 ```bash
-bun run typecheck
+npm run typecheck
 ```
 
 This runs:
@@ -155,7 +155,7 @@ Two TypeScript packages are installed side by side:
 | devDependency       | Resolves to                          | Used for                                                         |
 | ------------------- | ------------------------------------ | ---------------------------------------------------------------- |
 | `typescript`        | real `typescript@^6.0.3` (classic)   | `typescript-eslint` and editor/language-server integrations      |
-| `typescript-native` | `npm:typescript@^7.0.2` (native, Go) | `bun run typecheck` and the Lefthook pre-commit `typecheck` hook |
+| `typescript-native` | `npm:typescript@^7.0.2` (native, Go) | `npm run typecheck` and the Lefthook pre-commit `typecheck` hook |
 
 `typescript` stays on 6.x deliberately: `typescript-eslint` (and VS Code's
 built-in TypeScript language server) need the classic JS compiler API, which
@@ -163,9 +163,9 @@ TypeScript 7 removed. `typescript-native` gives us the ~5x faster native `tsc`
 for the type-check gate without touching that API surface.
 
 **Both packages declare a `tsc` (and `tsserver`) bin**, so
-`node_modules/.bin/tsc` and `bunx tsc` are **nondeterministic** — they resolve
+`node_modules/.bin/tsc` and `npx tsc` are **nondeterministic** — they resolve
 to whichever package happened to install its bin symlink last, not
-necessarily the one you want. Never call `tsc` or `bunx tsc` bare. Always use
+necessarily the one you want. Never call `tsc` or `npx tsc` bare. Always use
 an explicit path:
 
 ```bash
@@ -253,12 +253,12 @@ pre-commit:
   commands:
     lint:
       glob: '*.{ts,tsx}'
-      run: bunx eslint {staged_files} --fix
+      run: npx eslint {staged_files} --fix
     format:
       glob: '*.{ts,tsx,json,css,md}'
-      run: bunx prettier --write {staged_files}
+      run: npx prettier --write {staged_files}
     types:
-      run: bun run typecheck
+      run: npm run typecheck
 ```
 
 ### How It Works
@@ -386,13 +386,13 @@ jobs:
   quality:
     steps:
       - name: Lint
-        run: bun run lint
+        run: npm run lint
 
       - name: Format Check
-        run: bun run format:check
+        run: npm run format:check
 
       - name: Type Check
-        run: bun run typecheck
+        run: npm run typecheck
 ```
 
 PRs are blocked if any check fails.
@@ -408,7 +408,7 @@ PRs are blocked if any check fails.
 ls eslint.config.js
 
 # Run with debug
-DEBUG=eslint:* bunx eslint app/
+DEBUG=eslint:* npx eslint app/
 ```
 
 ### Prettier/ESLint Conflicts
@@ -417,14 +417,14 @@ Ensure Prettier runs after ESLint:
 
 ```bash
 # In lefthook or CI
-bun run lint && bun run format
+npm run lint && npm run format
 ```
 
 ### TypeScript Errors After Refactor
 
 ```bash
 # Regenerate route types
-bun run typecheck
+npm run typecheck
 
 # If still failing, restart TS server
 # VS Code: Cmd+Shift+P → "TypeScript: Restart TS Server"

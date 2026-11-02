@@ -1,6 +1,5 @@
-/// <reference types="bun-types/test" />
 import { BulkPermissionCheckSchema, PermissionCheckSchema } from './types';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 describe('PermissionCheckSchema', () => {
   const logsApi = {
