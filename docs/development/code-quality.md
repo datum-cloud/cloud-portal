@@ -200,7 +200,6 @@ Preview)" VS Code extension for a faster native editor LSP.
 | `strict: true`     | Enable all strict checks       |
 | `noImplicitAny`    | Error on implicit `any`        |
 | `strictNullChecks` | Nullable types must be handled |
-| `noUnusedLocals`   | Error on unused variables      |
 
 ### Handling Type Errors
 
@@ -268,9 +267,11 @@ pre-commit:
 On `git commit`:
 
 1. ESLint fixes staged `.js/.jsx/.ts/.tsx` files
-2. Prettier formats staged files
+2. Prettier formats staged `.js/.jsx/.ts/.tsx/.json` files
 3. The native TypeScript compiler type-checks the project
 4. If any fail, commit is blocked
+
+The hook does not format `.md` or `.css` files, but `npm run format:check` in CI does. Run `npm run format` before committing changes to those files.
 
 ### Bypassing Hooks
 
