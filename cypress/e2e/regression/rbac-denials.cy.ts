@@ -53,7 +53,9 @@ describe('RBAC denials — project routes', () => {
       cy.visit(`/project/${PROJECT}/alb`, { failOnStatusCode: false });
       cy.wait('@bulkCheck');
       cy.contains('Access restricted').should('not.exist');
-      cy.get('[data-e2e="create-alb-button"]', { timeout: 10000 }).should('be.disabled');
+      // Empty project: the empty state's "New" action stands in for the header
+      // button and is disabled when httpproxies:create is denied.
+      cy.contains('button', /^New$|Add load balancer/, { timeout: 10000 }).should('be.disabled');
     });
 
     it('detail direct-link renders RestrictedState when httpproxies:get denied (server-side gate)', () => {
@@ -91,7 +93,7 @@ describe('RBAC denials — project routes', () => {
       cy.denyPermissions(['dnszones:create']);
       cy.visit(`/project/${PROJECT}/dns-zones`, { failOnStatusCode: false });
       cy.wait('@bulkCheck');
-      cy.get('[data-e2e="create-dns-zone-button"]', { timeout: 10000 }).should('be.disabled');
+      cy.contains('button', 'Add zone', { timeout: 10000 }).should('be.disabled');
     });
 
     it('detail direct-link renders RestrictedState when dnszones:get denied (server-side gate)', () => {

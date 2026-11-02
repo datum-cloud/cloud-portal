@@ -42,14 +42,20 @@ describe('RBAC denials — project area', () => {
       cy.visit(`/project/${PROJECT_ID}/domains`, { failOnStatusCode: false });
       cy.wait('@bulkCheck');
       cy.contains("You don't have permission to view domains.").should('not.exist');
-      cy.get('[data-e2e="create-domain-button"]', { timeout: 10000 }).should('be.disabled');
+      // The header button renders only when canCreate is true
+      // (routes/project/detail/domains/index.tsx), so a denied user gets the
+      // empty state's disabled "Add domains" instead of a disabled header button.
+      cy.get('[data-e2e="create-domain-button"]').should('not.exist');
+      cy.contains('button', 'Add domains', { timeout: 10000 }).should('be.disabled');
     });
 
     it('secrets "Create secret" disabled when secrets:create denied', () => {
       cy.denyPermissions(['secrets:create']);
       cy.visit(`/project/${PROJECT_ID}/secrets`, { failOnStatusCode: false });
       cy.wait('@bulkCheck');
-      cy.get('[data-e2e="create-secret-button"]', { timeout: 10000 }).should('be.disabled');
+      // In the shard's fresh project the list is empty, so the empty state's
+      // "Add secret" action is what the user sees; it is disabled when denied.
+      cy.contains('button', 'Add secret', { timeout: 10000 }).should('be.disabled');
     });
   });
 
@@ -87,7 +93,7 @@ describe('RBAC denials — project area', () => {
     it('settings/general RestrictedState when projects:patch denied', () => {
       cy.denyPermissions(['projects:patch']);
       cy.visit(`/project/${PROJECT_ID}/settings/general`, { failOnStatusCode: false });
-      cy.contains("You don't have permission to edit this project.").should('be.visible');
+      cy.expectRestricted("You don't have permission to edit this project.");
     });
 
     it('export policies list RestrictedState when exportpolicies:list denied', () => {

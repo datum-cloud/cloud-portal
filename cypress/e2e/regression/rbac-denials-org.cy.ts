@@ -113,13 +113,13 @@ describe('RBAC denials — org area', () => {
     it('quotas RestrictedState when allowancebuckets:list denied', () => {
       cy.denyPermissions(['allowancebuckets:list']);
       cy.visit(`/org/${ORG}/settings/quotas`, { failOnStatusCode: false });
-      cy.contains("You don't have permission to view quotas.").should('be.visible');
+      cy.expectRestricted("You don't have permission to view quotas.");
     });
 
     it('settings/general RestrictedState when organizations:patch denied', () => {
       cy.denyPermissions(['organizations:patch']);
       cy.visit(`/org/${ORG}/settings/general`, { failOnStatusCode: false });
-      cy.contains("You don't have permission to edit this organization.").should('be.visible');
+      cy.expectRestricted("You don't have permission to edit this organization.");
     });
   });
 });
