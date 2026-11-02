@@ -1,3 +1,4 @@
+import { toNativeRequest } from '@/server/native-request';
 import type { Variables } from '@/server/types';
 import { createMiddleware } from 'hono/factory';
 
@@ -29,7 +30,7 @@ export function forwardedProtoMiddleware() {
     const raw = c.req.raw;
 
     if (c.req.header('X-Forwarded-Proto') === 'https' && raw.url.startsWith(HTTP_PREFIX)) {
-      c.req.raw = new Request(`https://${raw.url.slice(HTTP_PREFIX.length)}`, raw);
+      c.req.raw = toNativeRequest(raw, `https://${raw.url.slice(HTTP_PREFIX.length)}`);
     }
 
     await next();

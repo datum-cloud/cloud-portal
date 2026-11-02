@@ -2,7 +2,7 @@ import { AuthError } from '@/components/error/auth';
 import { GenericError } from '@/components/error/generic';
 import { ClientHintCheck, getHints } from '@/components/misc/client-hints';
 import { DynamicFaviconLinks } from '@/components/misc/dynamic-favicon';
-import { useNonce } from '@/hooks/useNonce';
+import { ENV_SCRIPT_ID, useNonce } from '@/hooks/useNonce';
 import { GraphQLProvider } from '@/modules/graphql/provider';
 import { loadReplayWhenIdle } from '@/modules/sentry/replay';
 import { preloadStripeWhenIdle } from '@/modules/stripe/preload';
@@ -19,7 +19,7 @@ import { combineHeaders } from '@/utils/helpers/path.helper';
 import CanelaFont from '@datum-cloud/datum-ui/fonts/CanelaText-Regular.ttf?url';
 import { ConformAdapter } from '@datum-cloud/datum-ui/form/adapters/conform';
 import { configureProgress, startProgress, stopProgress } from '@datum-cloud/datum-ui/nprogress';
-import { ThemeProvider, ThemeScript, useTheme } from '@datum-cloud/datum-ui/theme';
+import { ThemeProvider, useTheme } from '@datum-cloud/datum-ui/theme';
 import { Toaster, useToast } from '@datum-cloud/datum-ui/toast';
 import * as Sentry from '@sentry/react-router';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -37,6 +37,7 @@ import {
   isRouteErrorResponse,
   useFetchers,
   useLoaderData,
+  useRouteLoaderData,
   useMatches,
   useNavigation,
   useRouteError,
@@ -127,23 +128,50 @@ export function shouldRevalidate({
   return false;
 }
 
-export function Layout({ children }: { children: React.ReactNode }) {
+/**
+ * The provider renders its own inline theme script ahead of its children, so it
+ * must sit inside <body>: above <html> the script lands outside the document,
+ * which breaks hydration and, without the nonce, is blocked by the CSP.
+ */
+function ThemeBoundary({ children, nonce }: { children: React.ReactNode; nonce: string }) {
   return (
     <ThemeProvider
       defaultTheme="light"
       attribute="class"
       storageKey="datum-cloud-theme"
-      enableSystem>
+      enableSystem
+      nonce={nonce}>
       {children}
     </ThemeProvider>
   );
 }
 
-function Document({ children, nonce }: { children: React.ReactNode; nonce: string }) {
-  const data = useLoaderData<typeof loader>();
-
+function ThemedToaster() {
   const { resolvedTheme } = useTheme();
+  return <Toaster position="top-right" theme={resolvedTheme as 'light' | 'dark'} />;
+}
 
+/**
+ * Publishes the client env as `window.ENV`. Both document shells render it:
+ * entry.client reads the CSP nonce back from this script by id, so the nonce
+ * comes from a script we own rather than one an extension injected. On an error
+ * page the root loader may have no data; the client then uses its defaults.
+ */
+function EnvScript({ nonce }: { nonce: string }) {
+  const data = useRouteLoaderData<typeof loader>('root');
+
+  return (
+    <script
+      id={ENV_SCRIPT_ID}
+      nonce={nonce}
+      dangerouslySetInnerHTML={{
+        __html: `window.ENV = ${serializeForInlineScript(data?.ENV)}`,
+      }}
+    />
+  );
+}
+
+function Document({ children, nonce }: { children: React.ReactNode; nonce: string }) {
   return (
     <html
       lang="en"
@@ -157,21 +185,17 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
 
         <ClientHintCheck nonce={nonce} />
         <Meta />
-        <ThemeScript nonce={nonce} defaultTheme="light" attribute="class" />
-        <Links />
+        <Links nonce={nonce} />
       </head>
       <body className="!bg-background h-auto w-full">
-        {children}
+        <ThemeBoundary nonce={nonce}>
+          {children}
 
-        <Toaster position="top-right" theme={resolvedTheme as 'light' | 'dark'} />
+          <ThemedToaster />
+        </ThemeBoundary>
         <ScrollRestoration nonce={nonce} />
         {/* ENV must be set before module Scripts so client `@/utils/env` can read it. */}
-        <script
-          nonce={nonce}
-          dangerouslySetInnerHTML={{
-            __html: `window.ENV = ${serializeForInlineScript(data?.ENV)}`,
-          }}
-        />
+        <EnvScript nonce={nonce} />
         <Scripts nonce={nonce} />
       </body>
     </html>
@@ -307,14 +331,16 @@ function ErrorLayout({ children }: { children: React.ReactNode }) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
-        <ThemeScript nonce={nonce} defaultTheme="light" attribute="class" />
-        <Links />
+        <Links nonce={nonce} />
       </head>
       <body className="!bg-background h-auto w-full">
-        <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10">
-          <div className="w-full max-w-sm md:max-w-3xl">{children}</div>
-        </div>
+        <ThemeBoundary nonce={nonce}>
+          <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10">
+            <div className="w-full max-w-sm md:max-w-3xl">{children}</div>
+          </div>
+        </ThemeBoundary>
         <ScrollRestoration nonce={nonce} />
+        <EnvScript nonce={nonce} />
         <Scripts nonce={nonce} />
       </body>
     </html>

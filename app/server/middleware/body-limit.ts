@@ -1,3 +1,4 @@
+import { toNativeRequest } from '@/server/native-request';
 import type { Variables } from '@/server/types';
 import type { Context, MiddlewareHandler } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
@@ -34,22 +35,6 @@ function countsBody(raw: Request): boolean {
     raw.body !== null &&
     (!raw.headers.has('content-length') || raw.headers.has('transfer-encoding'))
   );
-}
-
-/**
- * bodyLimit rebuilds with `new Request(c.req.raw, init)`. The Node adapter
- * leaves the global Request native, and Node's Request takes @hono/node-server's
- * lightweight request for a URL string, failing with "Failed to parse URL from
- * [object Request]". A native copy built from the URL is accepted.
- */
-function toNativeRequest(raw: Request): Request {
-  return new Request(raw.url, {
-    method: raw.method,
-    headers: raw.headers,
-    body: raw.body,
-    duplex: 'half',
-    signal: raw.signal,
-  } as RequestInit);
 }
 
 /**

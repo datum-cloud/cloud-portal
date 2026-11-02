@@ -1,6 +1,9 @@
 import { forwardedProtoMiddleware } from './forwarded-proto';
+import { serve, type ServerType } from '@hono/node-server';
 import { Hono } from 'hono';
-import { describe, expect, it } from 'vitest';
+import { once } from 'node:events';
+import type { AddressInfo } from 'node:net';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 /**
  * Mirrors react-router-hono-server: the request handler is invoked with
@@ -97,6 +100,56 @@ describe('forwardedProtoMiddleware', () => {
     expect(await res.json()).toMatchObject({
       url: 'https://localhost:3100/echo',
       same: true,
+    });
+  });
+});
+
+// app.request() hands the middleware a native Request. The real server hands it
+// @hono/node-server's lightweight one, with the global Request left native as
+// react-router-hono-server's Node adapter leaves it.
+describe('forwardedProtoMiddleware behind the Node server', () => {
+  let server: ServerType;
+  let origin: string;
+
+  beforeAll(async () => {
+    server = serve({ fetch: appEchoingRawRequest().fetch, port: 0, overrideGlobalObjects: false });
+    await once(server, 'listening');
+    origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  });
+
+  afterAll(() => {
+    server.close();
+  });
+
+  it('rewrites a GET to https', async () => {
+    const res = await fetch(`${origin}/echo`, { headers: { 'X-Forwarded-Proto': 'https' } });
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      url: `${origin.replace('http://', 'https://')}/echo`,
+      method: 'GET',
+      same: false,
+    });
+  });
+
+  it('rewrites a POST to https, keeping headers and body', async () => {
+    const res = await fetch(`${origin}/echo`, {
+      method: 'POST',
+      headers: {
+        'X-Forwarded-Proto': 'https',
+        Cookie: 'session=abc',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'projectId=x&orgId=y',
+    });
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      url: `${origin.replace('http://', 'https://')}/echo`,
+      method: 'POST',
+      cookie: 'session=abc',
+      body: 'projectId=x&orgId=y',
+      same: false,
     });
   });
 });
