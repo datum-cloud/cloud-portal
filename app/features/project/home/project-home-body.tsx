@@ -186,8 +186,7 @@ export function ProjectHomeBody({ projectId }: { projectId: string }) {
           <HomeColumns
             projectId={projectId}
             beforeTraffic={
-              !inline &&
-              !setup.isLoading && (
+              !inline && (
                 <NextSuggestions
                   projectId={projectId}
                   steps={setup.steps}
