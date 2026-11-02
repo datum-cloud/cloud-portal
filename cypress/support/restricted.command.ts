@@ -9,7 +9,11 @@ export function registerExpectRestrictedCommand(): void {
   Cypress.Commands.add('expectRestricted', (message: string) => {
     cy.location('pathname').then((pathname) => {
       cy.get('body', { timeout: 10000 }).should(($body) => {
-        const text = $body.text().replace(/\s+/g, ' ').trim();
+        // innerText is the rendered text. jQuery's text() also returns the
+        // inline <script> bodies (theme bootstrap, route manifest, loader
+        // data), which fill the quoted prefix and can contain the copy before
+        // it renders.
+        const text = $body[0].innerText.replace(/\s+/g, ' ').trim();
         expect(
           text,
           `restricted copy at ${pathname}; page text starts: ${text.slice(0, 600)}`
