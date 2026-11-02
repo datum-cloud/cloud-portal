@@ -11,6 +11,7 @@ import { forwardedProtoMiddleware } from './middleware/forwarded-proto';
 import { loggerMiddleware } from './middleware/logger';
 import { requestContextMiddleware } from './middleware/request-context';
 import { secureHeadersMiddleware } from './middleware/secure-headers';
+import { ensureRuntimeMetrics } from './observability/runtime-metrics';
 import { createApiApp } from './routes/api';
 import { createWebsiteRoutes } from './routes/website';
 import { createWebsiteLoginRoute } from './routes/website/login';
@@ -177,6 +178,7 @@ if (env.public.otelEnabled) {
   // Prometheus metrics — pass prom-client's global default registry so that
   // RBAC and any other module-level metrics (auto-registered to `register`)
   // are serialized alongside Hono's own HTTP metrics on /metrics.
+  ensureRuntimeMetrics();
   const { printMetrics, registerMetrics } = prometheus({ registry: register });
   // Register metrics collection middleware (before other middleware)
   // Cast needed: @hono/prometheus ships its own hono peer dep whose generics
