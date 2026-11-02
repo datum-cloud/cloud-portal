@@ -1,7 +1,7 @@
 import { countSkips } from './skip-guard';
-import { describe, expect, it } from 'bun:test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { describe, expect, it } from 'vitest';
 
 describe('countSkips', () => {
   it('counts skipped tests and suites', () => {

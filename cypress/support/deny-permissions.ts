@@ -8,7 +8,7 @@
  * - client-side gates get it from the `/api/permissions/*` intercepts built here.
  *
  * Entries are `resource:verb` (any API group) or `group:resource:verb`. This
- * module has no Cypress globals so bun can test it.
+ * module has no Cypress globals so Vitest can test it.
  */
 
 /** Must match E2E_DENY_COOKIE in app/modules/rbac/server/e2e-deny.server.ts. */

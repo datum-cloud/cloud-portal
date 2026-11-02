@@ -1,4 +1,3 @@
-/// <reference types="bun-types/test" />
 import {
   E2E_DENY_REASON,
   isE2eDenyActive,
@@ -8,7 +7,7 @@ import {
 } from './e2e-deny.server';
 import { RbacService } from './rbac.service';
 import { withRequestContext } from '@/modules/axios/request-context';
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 const TEST_ENV = { CYPRESS: 'true', NODE_ENV: 'test' };
 
@@ -120,7 +119,7 @@ describe('RbacService with the e2e-deny hook', () => {
   }
 
   test('checkPermission short-circuits a listed pair without calling upstream', async () => {
-    const create = mock(async () => ({ allowed: true, denied: false }));
+    const create = vi.fn(async () => ({ allowed: true, denied: false }));
     const svc = new RbacService(() => ({ create }) as never);
 
     const result = await inRequest('e2e-deny=secrets:get', () =>
@@ -132,7 +131,7 @@ describe('RbacService with the e2e-deny hook', () => {
   });
 
   test('checkPermission leaves an unlisted pair to the real decision', async () => {
-    const create = mock(async () => ({ allowed: true, denied: false }));
+    const create = vi.fn(async () => ({ allowed: true, denied: false }));
     const svc = new RbacService(() => ({ create }) as never);
 
     const result = await inRequest('e2e-deny=secrets:get', () =>
@@ -144,7 +143,7 @@ describe('RbacService with the e2e-deny hook', () => {
   });
 
   test('checkPermissions denies only the listed items', async () => {
-    const create = mock(async () => ({ allowed: true, denied: false }));
+    const create = vi.fn(async () => ({ allowed: true, denied: false }));
     const svc = new RbacService(() => ({ create }) as never);
 
     const results = await inRequest('e2e-deny=projects:create', () =>
@@ -162,7 +161,7 @@ describe('RbacService with the e2e-deny hook', () => {
 
   test('a production build ignores the cookie', async () => {
     process.env.NODE_ENV = 'production';
-    const create = mock(async () => ({ allowed: true, denied: false }));
+    const create = vi.fn(async () => ({ allowed: true, denied: false }));
     const svc = new RbacService(() => ({ create }) as never);
 
     const result = await inRequest('e2e-deny=secrets:get', () =>

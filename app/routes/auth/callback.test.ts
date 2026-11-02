@@ -1,11 +1,10 @@
-/// <reference types="bun-types/test" />
 import { handleAuthCallback, type AuthCallbackDeps } from './callback.server';
 import type { ReturnToAccess } from './post-login-access';
 import { withRequestContext } from '@/modules/axios/request-context';
 import { logger } from '@/modules/logger';
 import type { IAuthSession } from '@/utils/auth/auth.types';
 import { paths } from '@/utils/config/paths.config';
-import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, test, vi, type MockInstance } from 'vitest';
 
 const SUB = 'user-123';
 const REQUEST_ID = 'req-abc';
@@ -34,7 +33,7 @@ function credentials(overrides: Partial<IAuthSession> = {}): IAuthSession {
 }
 
 function access(canRead = true) {
-  const read = mock(async (id: string) => {
+  const read = vi.fn(async (id: string) => {
     if (!canRead) throw new Error(`no access to ${id}`);
     return { name: id };
   });
@@ -44,18 +43,18 @@ function access(canRead = true) {
 function deps(overrides: Partial<AuthCallbackDeps> = {}) {
   const reads = access();
   const base = {
-    getSession: mock(async () => ({ session: undefined, headers: cookieHeaders('_session=') })),
-    authenticate: mock(async () => credentials()),
-    setSession: mock(async () => cookieHeaders('_session=new')),
-    setRefreshToken: mock(async () => cookieHeaders('_refresh_token=new')),
-    readEmailVerified: mock(() => true),
-    setIdTokenSession: mock(async () => ({ headers: cookieHeaders('_id_token=new') })),
-    getRedirectIntent: mock(async () => ({ path: undefined, sub: undefined })),
-    clearRedirectIntent: mock(async () => ({
+    getSession: vi.fn(async () => ({ session: undefined, headers: cookieHeaders('_session=') })),
+    authenticate: vi.fn(async () => credentials()),
+    setSession: vi.fn(async () => cookieHeaders('_session=new')),
+    setRefreshToken: vi.fn(async () => cookieHeaders('_refresh_token=new')),
+    readEmailVerified: vi.fn(() => true),
+    setIdTokenSession: vi.fn(async () => ({ headers: cookieHeaders('_id_token=new') })),
+    getRedirectIntent: vi.fn(async () => ({ path: undefined, sub: undefined })),
+    clearRedirectIntent: vi.fn(async () => ({
       headers: cookieHeaders('_redirect_intent=; Max-Age=0'),
     })),
     allowedOrigins: ['https://www.datum.net'],
-    accessFor: mock(() => reads),
+    accessFor: vi.fn(() => reads),
   };
   return { ...base, ...overrides, reads };
 }
@@ -70,14 +69,14 @@ function run(d: AuthCallbackDeps): Promise<Response> {
 }
 
 describe('handleAuthCallback', () => {
-  let debugSpy: ReturnType<typeof spyOn>;
-  let warnSpy: ReturnType<typeof spyOn>;
-  let errorSpy: ReturnType<typeof spyOn>;
+  let debugSpy: MockInstance;
+  let warnSpy: MockInstance;
+  let errorSpy: MockInstance;
 
   beforeEach(() => {
-    debugSpy = spyOn(logger, 'debug').mockImplementation(() => {});
-    warnSpy = spyOn(logger, 'warn').mockImplementation(() => {});
-    errorSpy = spyOn(logger, 'error').mockImplementation(() => {});
+    debugSpy = vi.spyOn(logger, 'debug').mockImplementation(() => {});
+    warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -88,7 +87,7 @@ describe('handleAuthCallback', () => {
 
   test('redirects home without authenticating when a session already exists', async () => {
     const d = deps({
-      getSession: mock(async () => ({
+      getSession: vi.fn(async () => ({
         session: { sub: SUB },
         headers: cookieHeaders('_session=x'),
       })),
@@ -131,7 +130,7 @@ describe('handleAuthCallback', () => {
 
   test('redirects to a reachable saved intent and clears it', async () => {
     const d = deps({
-      getRedirectIntent: mock(async () => ({ path: '/org/acme/projects', sub: SUB })),
+      getRedirectIntent: vi.fn(async () => ({ path: '/org/acme/projects', sub: SUB })),
     });
 
     const response = await run(d);
@@ -146,8 +145,8 @@ describe('handleAuthCallback', () => {
   test('clears an unreachable saved intent and falls back', async () => {
     const reads = access(false);
     const d = deps({
-      getRedirectIntent: mock(async () => ({ path: '/project/secret-1', sub: SUB })),
-      accessFor: mock(() => reads),
+      getRedirectIntent: vi.fn(async () => ({ path: '/project/secret-1', sub: SUB })),
+      accessFor: vi.fn(() => reads),
     });
 
     const response = await run(d);
@@ -158,7 +157,7 @@ describe('handleAuthCallback', () => {
 
   test('clears an intent saved for another user and falls back', async () => {
     const d = deps({
-      getRedirectIntent: mock(async () => ({ path: '/org/acme', sub: 'someone-else' })),
+      getRedirectIntent: vi.fn(async () => ({ path: '/org/acme', sub: 'someone-else' })),
     });
 
     const response = await run(d);
@@ -170,7 +169,7 @@ describe('handleAuthCallback', () => {
 
   test('keeps an allow-listed website return URL', async () => {
     const d = deps({
-      getRedirectIntent: mock(async () => ({ path: 'https://www.datum.net/pricing', sub: SUB })),
+      getRedirectIntent: vi.fn(async () => ({ path: 'https://www.datum.net/pricing', sub: SUB })),
     });
 
     const response = await run(d);
@@ -179,7 +178,7 @@ describe('handleAuthCallback', () => {
   });
 
   test('still signs in without a refresh token and logs a warning', async () => {
-    const d = deps({ authenticate: mock(async () => credentials({ refreshToken: undefined })) });
+    const d = deps({ authenticate: vi.fn(async () => credentials({ refreshToken: undefined })) });
 
     const response = await run(d);
 
@@ -192,7 +191,7 @@ describe('handleAuthCallback', () => {
   });
 
   test('skips the id-token cookie when no id token is returned', async () => {
-    const d = deps({ authenticate: mock(async () => credentials({ idToken: undefined })) });
+    const d = deps({ authenticate: vi.fn(async () => credentials({ idToken: undefined })) });
 
     const response = await run(d);
 
@@ -203,7 +202,7 @@ describe('handleAuthCallback', () => {
   test('redirects to login and logs the error when authenticate throws', async () => {
     const failure = new Error('ALREADY_DONE');
     const d = deps({
-      authenticate: mock(async () => {
+      authenticate: vi.fn(async () => {
         throw failure;
       }),
     });
@@ -220,7 +219,7 @@ describe('handleAuthCallback', () => {
   });
 
   test('redirects to login when authenticate returns no credentials', async () => {
-    const d = deps({ authenticate: mock(async () => undefined) });
+    const d = deps({ authenticate: vi.fn(async () => undefined) });
 
     const response = await run(d);
 
@@ -231,7 +230,7 @@ describe('handleAuthCallback', () => {
 
   test('redirects to login when a cookie write fails', async () => {
     const d = deps({
-      setSession: mock(async () => {
+      setSession: vi.fn(async () => {
         throw new Error('cookie too large');
       }),
     });

@@ -1,10 +1,9 @@
-/// <reference types="bun-types/test" />
 import {
   resolveReturnTo,
   type ResolveReturnToInput,
   type ReturnToAccess,
 } from './post-login-access';
-import { describe, expect, mock, test } from 'bun:test';
+import { describe, expect, test, vi } from 'vitest';
 
 const FALLBACK = '/account/organizations';
 const WEBSITE = 'https://www.datum.net';
@@ -15,10 +14,10 @@ function access(denied: { orgs?: string[]; projects?: string[] } = {}) {
     throw new Error(`${kind} ${id} not visible`);
   };
   const impl = {
-    getOrganization: mock(async (orgId: string) =>
+    getOrganization: vi.fn(async (orgId: string) =>
       denied.orgs?.includes(orgId) ? deny('org', orgId) : { name: orgId }
     ),
-    getProject: mock(async (projectId: string) =>
+    getProject: vi.fn(async (projectId: string) =>
       denied.projects?.includes(projectId) ? deny('project', projectId) : { name: projectId }
     ),
   } satisfies ReturnToAccess;

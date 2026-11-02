@@ -10,7 +10,7 @@ import {
   E2E_DENY_COOKIE as SERVER_COOKIE,
   parseE2eDenyCookie,
 } from '@/modules/rbac/server/e2e-deny.server';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('deny-permissions', () => {
   it('uses the cookie name the server hook reads', () => {
