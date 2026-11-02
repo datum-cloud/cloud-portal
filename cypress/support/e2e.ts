@@ -1,4 +1,4 @@
-import './deny-permissions.command';
+import { registerDenyPermissionsCommand } from './deny-permissions.command';
 import {
   completeOrgBillingSetup,
   completeOrgContactInfo,
@@ -9,6 +9,8 @@ import { waitForProjectQuota } from './quota-wait';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import '@testing-library/cypress/add-commands';
+
+registerDenyPermissionsCommand();
 
 /**
  * Neutralize Radix UI's "close on window blur" behavior in the test runner.

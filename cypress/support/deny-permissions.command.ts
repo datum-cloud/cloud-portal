@@ -18,38 +18,46 @@ import {
  * Entries are `resource:verb` or `group:resource:verb`. Call after `cy.login()`:
  * `cy.session` clears cookies when it restores a session.
  */
-Cypress.Commands.add('denyPermissions', (entries: DenyEntry[]) => {
-  const baseUrl = Cypress.config('baseUrl');
-  if (!baseUrl) {
-    throw new Error('baseUrl is required in Cypress configuration');
-  }
-  const url = new URL(baseUrl);
-  const denied = new Set<string>(entries);
+/**
+ * Register `cy.denyPermissions`. Called from `e2e.ts` through an imported
+ * binding on purpose: a bare `import './deny-permissions.command'` of a
+ * module with no exports was dropped from the Vite support bundle, so the
+ * command never existed in CI.
+ */
+export function registerDenyPermissionsCommand(): void {
+  Cypress.Commands.add('denyPermissions', (entries: DenyEntry[]) => {
+    const baseUrl = Cypress.config('baseUrl');
+    if (!baseUrl) {
+      throw new Error('baseUrl is required in Cypress configuration');
+    }
+    const url = new URL(baseUrl);
+    const denied = new Set<string>(entries);
 
-  cy.setCookie(E2E_DENY_COOKIE, denyCookieValue(entries), {
-    path: '/',
-    domain: url.hostname,
-    secure: url.protocol === 'https:',
-    sameSite: 'lax',
+    cy.setCookie(E2E_DENY_COOKIE, denyCookieValue(entries), {
+      path: '/',
+      domain: url.hostname,
+      secure: url.protocol === 'https:',
+      sameSite: 'lax',
+    });
+
+    cy.intercept('POST', '/api/permissions/check', (req) => {
+      req.reply({
+        statusCode: 200,
+        body: { success: true, data: checkResult(denied, req.body as PermissionCheckBody) },
+      });
+    }).as('permissionCheck');
+
+    cy.intercept('POST', '/api/permissions/bulk-check', (req) => {
+      req.reply({
+        statusCode: 200,
+        body: {
+          success: true,
+          data: { results: bulkCheckResults(denied, readBulkChecks(req.body)) },
+        },
+      });
+    }).as('bulkCheck');
   });
-
-  cy.intercept('POST', '/api/permissions/check', (req) => {
-    req.reply({
-      statusCode: 200,
-      body: { success: true, data: checkResult(denied, req.body as PermissionCheckBody) },
-    });
-  }).as('permissionCheck');
-
-  cy.intercept('POST', '/api/permissions/bulk-check', (req) => {
-    req.reply({
-      statusCode: 200,
-      body: {
-        success: true,
-        data: { results: bulkCheckResults(denied, readBulkChecks(req.body)) },
-      },
-    });
-  }).as('bulkCheck');
-});
+}
 
 declare global {
   namespace Cypress {
