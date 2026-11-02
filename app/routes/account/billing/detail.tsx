@@ -15,6 +15,7 @@ import {
   PaymentTermsCard,
   PaymentTermsPrompt,
   getBillingAccountDisplayName,
+  isStaleInvoice,
   accountDiscounts,
   summarizeDiscounts,
   toPastInvoiceRow,
@@ -413,7 +414,7 @@ function AccountBillingAccountDetailPageInner() {
   const pastInvoices = useMemo(
     () =>
       (invoicesQuery.data ?? initialInvoices)
-        .filter((inv) => inv.spec?.billingAccountRef?.name === accountName)
+        .filter((inv) => inv.spec?.billingAccountRef?.name === accountName && !isStaleInvoice(inv))
         .map(toPastInvoiceRow),
     [invoicesQuery.data, initialInvoices, accountName]
   );
