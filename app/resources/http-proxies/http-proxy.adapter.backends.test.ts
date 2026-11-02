@@ -6,7 +6,7 @@ import {
   toUpdateHttpProxyPayload,
 } from './http-proxy.adapter';
 import type { ComDatumapisNetworkingV1AlphaHttpProxy } from '@/modules/control-plane/networking';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 type RawBackends = NonNullable<
   NonNullable<ComDatumapisNetworkingV1AlphaHttpProxy['spec']>['rules']

@@ -1,6 +1,6 @@
 import { limitSeriesByVolume } from './limit-series';
 import type { ChartSeries, FormattedMetricData } from '@/modules/prometheus';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 function series(name: string, values: number[]): ChartSeries {
   return {

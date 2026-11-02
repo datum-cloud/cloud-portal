@@ -73,6 +73,7 @@ describe('Projects — regression', () => {
 
   it('should update the project display name', () => {
     cy.visit(getPathWithParams(paths.project.detail.settings.general, { projectId: resourceId }));
+    cy.waitForHydration();
     const suffix = '-updated';
     cy.get('[data-e2e="edit-project-name-input"]', { timeout: 10000 })
       .should('be.visible')
@@ -96,6 +97,7 @@ describe('Projects — regression', () => {
   // missing element instead of the assertion that actually failed.
   it('should delete the project and remove it from the list', { retries: 0 }, () => {
     cy.visit(getPathWithParams(paths.project.detail.settings.general, { projectId: resourceId }));
+    cy.waitForHydration();
     // Root-scoped, so the path carries no `control-plane` segment the way the
     // project-scoped resources in domains.cy.ts do. Anchored past the name so a
     // sub-resource DELETE cannot satisfy this wait. The browser client's base is

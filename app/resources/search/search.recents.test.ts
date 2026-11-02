@@ -1,10 +1,10 @@
 import { clearRecents, pushRecentHit, pushRecentQuery, readRecents } from './search.recents';
 import type { SearchHit } from './search.schema';
-import { beforeEach, describe, expect, it } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 // app/resources/search/search.recents.test.ts
 //
-// localStorage polyfill — bun:test runs in a Node-like environment where
+// localStorage polyfill — vitest runs in a Node environment where
 // localStorage is not available (typeof localStorage === 'undefined').
 // This polyfill must be set up BEFORE the module under test is imported so
 // that the top-level typeof guard in search.recents.ts sees a defined value.
@@ -91,7 +91,7 @@ describe('search.recents', () => {
   });
 
   it('degrades silently when localStorage throws', () => {
-    // bun:test has no `Storage` global — patch the polyfill instance directly.
+    // Patch the polyfill instance directly.
     const original = localStorage.setItem.bind(localStorage);
     localStorage.setItem = () => {
       throw new Error('quota');

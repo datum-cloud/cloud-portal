@@ -1,6 +1,6 @@
 import { getDnsZoneDelegationState, getNameserverSetupStatus } from './nameserver.helper';
 import type { DnsZone } from '@/resources/dns-zones';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 const DATUM_NS = ['ns1.datum.net', 'ns2.datum.net'];
 

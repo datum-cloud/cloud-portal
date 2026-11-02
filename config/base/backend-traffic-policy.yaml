@@ -34,7 +34,7 @@ spec:
   timeout:
     http:
       requestTimeout: "0s"
-      # Must stay below the portal's Bun idleTimeout (75s, in
+      # Must stay below the portal's keep-alive timeout (75s, in
       # app/server/entry.ts) so Envoy closes idle upstream connections
-      # before Bun does.
+      # before the portal does.
       connectionIdleTimeout: 60s

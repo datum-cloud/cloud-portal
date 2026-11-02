@@ -1,8 +1,8 @@
 import { emailVerifiedGuardMiddleware } from './email-verification';
 import type { Variables } from '@/server/types';
 import type { UserAccessResult } from '@/utils/fraud/user-access';
-import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { Hono } from 'hono';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 // The user loader is the seam — injected rather than mock.module'd, which is
 // process-global in bun and would leak this stub into user-access.test.ts.

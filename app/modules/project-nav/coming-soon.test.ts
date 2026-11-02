@@ -1,7 +1,7 @@
 import { comingSoonHref, resolveComingSoonService } from './coming-soon';
 import type { PublicPlugin } from '@/modules/plugins/types';
 import { EXTENSION_NAV_PROJECT } from '@/modules/plugins/types';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 describe('comingSoonHref', () => {
   test('builds the host holding-page path', () => {

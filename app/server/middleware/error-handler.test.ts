@@ -1,7 +1,7 @@
 import { errorHandler } from './error-handler';
 import { AuthenticationError, NotFoundError } from '@/utils/errors/app-error';
-import { describe, expect, test } from 'bun:test';
 import { Hono } from 'hono';
+import { describe, expect, test } from 'vitest';
 
 /**
  * A 401 reaches this handler by three different routes, and the caller cannot

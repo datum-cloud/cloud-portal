@@ -5,7 +5,7 @@ import {
   toUpdateContactPayload,
 } from './contact.adapter';
 import { rawMetadata } from '@/test/factories/k8s';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toContact', () => {
   it('builds displayName from given+family name and maps providers', () => {

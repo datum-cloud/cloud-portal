@@ -1,5 +1,5 @@
 import { isEmailVerificationGateEnabled } from './email-verification-gate';
-import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 const original = process.env.EMAIL_VERIFICATION_GATE;
 

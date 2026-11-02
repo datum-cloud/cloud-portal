@@ -1,4 +1,3 @@
-/// <reference types="bun-types/test" />
 /**
  * Tests for the Redis singleflight refresh lock (multi-pod coordination).
  *
@@ -13,16 +12,7 @@
  * failure, best-effort publish after a successful rotation, and fallback to the
  * in-memory path when Redis coordination throws.
  */
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  mock,
-  setSystemTime,
-  spyOn,
-  test,
-} from 'bun:test';
+import { afterEach, beforeEach, describe, expect, test, vi, type MockInstance } from 'vitest';
 
 // A JWT whose payload is {"sub":"user-123"} (jwtDecode reads the access token's sub).
 const ACCESS_JWT = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyLTEyMyJ9.c2ln';
@@ -67,14 +57,14 @@ function createFakeRedis() {
 }
 
 const fakeRedis = createFakeRedis();
-mock.module('@/modules/redis', () => ({ redisClient: fakeRedis }));
+vi.mock('@/modules/redis', () => ({ redisClient: fakeRedis }));
 
 // Controllable refresh: tests reassign `refreshImpl` per scenario.
 let refreshCalls = 0;
 let refreshImpl: (token: string) => Promise<unknown> = async () => {
   throw new Error('refreshImpl not set');
 };
-mock.module('@/modules/auth/strategies/zitadel.server', () => ({
+vi.mock('@/modules/auth/strategies/zitadel.server', () => ({
   zitadelIssuer: 'https://zitadel.example.test',
   zitadelStrategy: {
     refreshToken: (token: string) => refreshImpl(token),
@@ -94,7 +84,7 @@ const fakeEnv = {
     authOidcClientId: 'test-client-id',
   },
 };
-mock.module('@/utils/env/env.server', () => ({ env: fakeEnv }));
+vi.mock('@/utils/env/env.server', () => ({ env: fakeEnv }));
 
 const { AuthService, sessionStorage, refreshTokenStorage } = await import('./auth.service');
 const { AUTH_COOKIE_KEYS } = await import('./auth.config');
@@ -343,11 +333,11 @@ describe('rotation links', () => {
       expect(resolved?.session.sub).toBe('user-123');
       expect(await refreshTokenIn(resolved!.headers)).toBe('RT1-memory>next');
 
-      setSystemTime(new Date(Date.now() + 60_001));
+      vi.setSystemTime(new Date(Date.now() + 60_001));
       expect(await AuthService.resolveRotatedSession(cookieHeader)).toBeNull();
     } finally {
       fakeRedis.status = 'ready';
-      setSystemTime();
+      vi.useRealTimers();
     }
   });
 
@@ -368,7 +358,7 @@ describe('rotation links', () => {
 
   test('the refresh hook fires for the leader and for resolveRotatedSession', async () => {
     refreshImpl = rotatingRefresh();
-    const hook = mock((_event: { userId: string; accessToken: string }) => undefined);
+    const hook = vi.fn((_event: { userId: string; accessToken: string }) => undefined);
     AuthService.registerRefreshHook(hook);
 
     const { sessionRaw, refreshRaw } = await rawSessions();
@@ -384,11 +374,11 @@ describe('rotation links', () => {
 
 describe('retryWithRotatedSession', () => {
   const RETRY_LOG = '[AuthService] Retried a 401 with a rotated session';
-  let warn: ReturnType<typeof spyOn<Console, 'warn'>>;
+  let warn: MockInstance<typeof console.warn>;
   const retryLogs = () => warn.mock.calls.filter((call) => call[0] === RETRY_LOG);
 
   beforeEach(() => {
-    warn = spyOn(console, 'warn').mockImplementation(() => undefined);
+    warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
@@ -403,7 +393,7 @@ describe('retryWithRotatedSession', () => {
 
   test('retries once with the newest token and returns its cookies', async () => {
     await rotateRT1();
-    const call = mock(async (token: string) => token);
+    const call = vi.fn(async (token: string) => token);
 
     const retried = await AuthService.retryWithRotatedSession(
       await cookieHeaderFor('RT1'),
@@ -419,7 +409,7 @@ describe('retryWithRotatedSession', () => {
   });
 
   test('returns null without a link and does not call', async () => {
-    const call = mock(async (token: string) => token);
+    const call = vi.fn(async (token: string) => token);
 
     const retried = await AuthService.retryWithRotatedSession(
       await cookieHeaderFor('never-rotated'),
@@ -435,7 +425,7 @@ describe('retryWithRotatedSession', () => {
 
   test('returns null when the linked token is the one that just failed', async () => {
     await rotateRT1();
-    const call = mock(async (token: string) => token);
+    const call = vi.fn(async (token: string) => token);
 
     const retried = await AuthService.retryWithRotatedSession(
       await cookieHeaderFor('RT1'),
@@ -451,7 +441,7 @@ describe('retryWithRotatedSession', () => {
 
   test('logs retry_failed and returns the result when the retry is rejected', async () => {
     await rotateRT1();
-    const call = mock(async () => ({ status: 401 }));
+    const call = vi.fn(async () => ({ status: 401 }));
 
     const retried = await AuthService.retryWithRotatedSession(
       await cookieHeaderFor('RT1'),

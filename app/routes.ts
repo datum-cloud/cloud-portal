@@ -55,7 +55,6 @@ export default [
         route('general', 'routes/account/settings/general.tsx'),
         route('security', 'routes/account/settings/security.tsx'),
         route('active-sessions', 'routes/account/settings/active-sessions.tsx'),
-        route('access-tokens', 'routes/account/settings/access-tokens.tsx'),
         route('notifications', 'routes/account/settings/notifications.tsx'),
         route('activity', 'routes/account/settings/activity.tsx'),
       ]),
@@ -103,10 +102,8 @@ export default [
         // Settings of an organization
         layout('routes/org/detail/settings/layout.tsx', [
           route('general', 'routes/org/detail/settings/general.tsx'),
-          route('notifications', 'routes/org/detail/settings/notifications.tsx'),
           route('quotas', 'routes/org/detail/settings/quotas.tsx'),
           route('activity', 'routes/org/detail/settings/activity.tsx'),
-          // route('policy-bindings', 'routes/org/detail/settings/policy-bindings.tsx'),
         ]),
       ]),
     ]),
@@ -133,7 +130,6 @@ export default [
         // Settings
         layout('routes/project/detail/settings/layout.tsx', [
           route('general', 'routes/project/detail/settings/general.tsx'),
-          route('notifications', 'routes/project/detail/settings/notifications.tsx'),
           route('billing', 'routes/project/detail/settings/billing.tsx'),
         ]),
 
@@ -190,7 +186,6 @@ export default [
             { id: 'dns-zone-detail' },
             [
               index('routes/project/detail/dns-zones/detail/index.tsx'),
-              // route('overview', 'routes/project/detail/dns-zones/detail/overview.tsx'),
               route('dns-records', 'routes/project/detail/dns-zones/detail/dns-records.tsx'),
               route('nameservers', 'routes/project/detail/dns-zones/detail/nameservers.tsx'),
               route('activity', 'routes/project/detail/dns-zones/detail/activity.tsx'),

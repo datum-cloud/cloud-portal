@@ -5,7 +5,7 @@ import {
   isTrafficProtectionProgrammed,
   mergeTrafficProtectionView,
 } from './http-proxy.waf-status';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('isTrafficProtectionProgrammed', () => {
   it('returns false when ancestors are missing', () => {

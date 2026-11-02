@@ -1,7 +1,6 @@
-/// <reference types="bun-types/test" />
 import { partitionPermissionChecks, type PermissionCheckInput } from './hooks/usePermissionCheck';
 import { buildChecks, detectInstanceGrantMisuse, flagNameFor } from './use-resource-permissions';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 describe('flagNameFor', () => {
   test('primary verbs map to canList / canCreate / canPatch / canDelete', () => {

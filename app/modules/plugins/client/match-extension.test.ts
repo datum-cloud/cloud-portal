@@ -21,7 +21,7 @@ import {
   type PageProjectExtension,
   type PluginExtension,
 } from '@/modules/plugins/types';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 function pageExt(path: string, codeRef = 'Comp'): PageProjectExtension {
   return {
@@ -309,7 +309,7 @@ describe('parseCodeRef', () => {
 
 describe('pickCodeRefExport', () => {
   // Explicit generics keep the result concretely typed; without them the
-  // `unknown` return trips bun's `expect` overloads (Matchers<undefined>).
+  // `unknown` return trips `expect`'s overloads (Matchers<undefined>).
   it('returns the default export for a bare ref', () => {
     const comp = () => null;
     const result = pickCodeRefExport<() => null>({ default: comp }, parseCodeRef('Mod'));

@@ -20,7 +20,7 @@ The cloud portal can be deployed via:
 
 ```bash
 # Build the application
-bun run build
+npm run build
 
 # Output structure
 build/
@@ -81,27 +81,25 @@ HOST=0.0.0.0
 ### Dockerfile
 
 ```dockerfile
-FROM oven/bun:1 AS builder
+FROM node:26.12.1-alpine3.24 AS builder
 
 WORKDIR /app
-COPY package.json bun.lockb ./
-RUN bun install --frozen-lockfile
+COPY package.json package-lock.json ./
+RUN npm ci --include=dev --ignore-scripts
 
 COPY . .
-RUN bun run build
+RUN npm run build && npm prune --omit=dev --ignore-scripts
 
-FROM oven/bun:1-slim AS runner
+FROM node:26.12.1-alpine3.24 AS runner
 
 WORKDIR /app
-COPY --from=builder /app/build ./build
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app /app
 
 ENV NODE_ENV=production
 ENV PORT=3000
 
 EXPOSE 3000
-CMD ["bun", "run", "start"]
+CMD ["node", "./observability/start.js"]
 ```
 
 ### Building the Image
@@ -394,18 +392,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: oven-sh/setup-bun@v1
+      - uses: actions/setup-node@v7
         with:
-          bun-version: latest
+          node-version-file: '.nvmrc'
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: npm ci
 
       - name: Run tests
-        run: bun run test
+        run: npm run test
 
       - name: Build
-        run: bun run build
+        run: npm run build
 
       - name: Build Docker image
         run: docker build -t gcr.io/datum/cloud-portal:${{ github.sha }} .

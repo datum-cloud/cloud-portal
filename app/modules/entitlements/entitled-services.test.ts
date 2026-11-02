@@ -4,7 +4,7 @@ import {
   isServiceVisible,
   unionActiveServiceIds,
 } from './entitled-services';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 const active = (serviceName: string, ref?: string) => ({
   metadata: { name: `proj--${serviceName.replace(/\./g, '-')}` },

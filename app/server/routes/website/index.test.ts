@@ -1,8 +1,8 @@
 import { createWebsiteRoutes } from './index';
 import { createStatusCache } from './status-cache';
 import type { Variables } from '@/server/types';
-import { describe, expect, test } from 'bun:test';
 import { Hono } from 'hono';
+import { describe, expect, test } from 'vitest';
 
 const ORIGIN = 'https://www.datum.net';
 

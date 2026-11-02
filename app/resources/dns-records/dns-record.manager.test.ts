@@ -1,18 +1,17 @@
-/// <reference types="bun-types/test" />
 import { DnsRecordManager, DuplicateRecordError } from './dns-record.manager';
 import type { CreateDnsRecordSchema, DnsRecordSet } from './dns-record.schema';
 import type { DnsRecordService } from './dns-record.service';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-mock.module('@/modules/logger', () => ({
+vi.mock('@/modules/logger', () => ({
   logger: {
-    debug: mock(() => {}),
-    info: mock(() => {}),
-    warn: mock(() => {}),
-    error: mock(() => {}),
-    request: mock(() => {}),
-    api: mock(() => {}),
-    service: mock(() => {}),
+    debug: vi.fn(() => {}),
+    info: vi.fn(() => {}),
+    warn: vi.fn(() => {}),
+    error: vi.fn(() => {}),
+    request: vi.fn(() => {}),
+    api: vi.fn(() => {}),
+    service: vi.fn(() => {}),
   },
 }));
 
@@ -43,15 +42,15 @@ function txtForm(name: string, content: string): CreateDnsRecordSchema {
 }
 
 function stubService(overrides: Partial<DnsRecordService> = {}): DnsRecordService & {
-  listByTypeAndZone: ReturnType<typeof mock>;
-  update: ReturnType<typeof mock>;
-  create: ReturnType<typeof mock>;
+  listByTypeAndZone: ReturnType<typeof vi.fn>;
+  update: ReturnType<typeof vi.fn>;
+  create: ReturnType<typeof vi.fn>;
 } {
-  const listByTypeAndZone = mock(async () => [] as DnsRecordSet[]);
-  const update = mock(async (_projectId: string, name: string, input: { records: unknown[] }) =>
+  const listByTypeAndZone = vi.fn(async () => [] as DnsRecordSet[]);
+  const update = vi.fn(async (_projectId: string, name: string, input: { records: unknown[] }) =>
     recordSet({ name, recordType: 'TXT', records: input.records as DnsRecordSet['records'] })
   );
-  const create = mock(
+  const create = vi.fn(
     async (_projectId: string, input: { recordType: string; records: unknown[] }) =>
       recordSet({
         name: `created-${input.recordType}`,
@@ -61,21 +60,21 @@ function stubService(overrides: Partial<DnsRecordService> = {}): DnsRecordServic
   );
 
   return {
-    list: mock(),
-    fetchList: mock(),
-    listRaw: mock(),
-    get: mock(),
-    fetchOne: mock(),
-    delete: mock(),
-    getStatus: mock(),
+    list: vi.fn(),
+    fetchList: vi.fn(),
+    listRaw: vi.fn(),
+    get: vi.fn(),
+    fetchOne: vi.fn(),
+    delete: vi.fn(),
+    getStatus: vi.fn(),
     create,
     update,
     listByTypeAndZone,
     ...overrides,
   } as DnsRecordService & {
-    listByTypeAndZone: ReturnType<typeof mock>;
-    update: ReturnType<typeof mock>;
-    create: ReturnType<typeof mock>;
+    listByTypeAndZone: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+    create: ReturnType<typeof vi.fn>;
   };
 }
 

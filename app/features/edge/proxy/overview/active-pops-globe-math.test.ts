@@ -6,7 +6,7 @@ import {
   projectLocation,
 } from './active-pops-globe-math';
 import { REGION_COORDINATES } from './region-coordinates';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const LOCATIONS = Object.entries(REGION_COORDINATES);
 

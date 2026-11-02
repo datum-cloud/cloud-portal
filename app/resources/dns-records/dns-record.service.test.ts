@@ -1,46 +1,43 @@
-/// <reference types="bun-types/test" />
 import {
   DNS_RECORD_MAX_PAGES,
   DNS_RECORD_PAGE_SIZE,
   createDnsRecordService,
 } from './dns-record.service';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const listSpy = mock();
+const listSpy = vi.fn();
 
-// NOTE: `mock.module` in Bun is process-global and persists for the rest of
-// the run, so it can leak into other test files. Keep these mocks faithful to
-// the real modules' shape/output (e.g. the real scoped-base URL format, the
-// full logger surface, and every SDK call the service imports) so execution
-// order can never matter.
-mock.module('@/modules/control-plane/dns-networking', () => ({
+// Keep these mocks faithful to the real modules' shape/output (e.g. the real
+// scoped-base URL format, the full logger surface, and every SDK call the
+// service imports).
+vi.mock('@/modules/control-plane/dns-networking', () => ({
   listDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet: (...args: unknown[]) =>
     listSpy(...args),
-  readDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet: mock(() => {}),
-  createDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet: mock(() => {}),
-  patchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet: mock(() => {}),
-  deleteDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet: mock(() => {}),
-  readDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSetStatus: mock(() => {}),
+  readDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet: vi.fn(() => {}),
+  createDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet: vi.fn(() => {}),
+  patchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet: vi.fn(() => {}),
+  deleteDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet: vi.fn(() => {}),
+  readDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSetStatus: vi.fn(() => {}),
 }));
 
-mock.module('@/resources/base/utils', () => ({
+vi.mock('@/resources/base/utils', () => ({
   getProjectScopedBase: (id: string) =>
     `/apis/resourcemanager.miloapis.com/v1alpha1/projects/${id}/control-plane`,
 }));
 
-mock.module('@/utils/errors/error-mapper', () => ({
+vi.mock('@/utils/errors/error-mapper', () => ({
   mapApiError: (e: unknown) => e,
 }));
 
-mock.module('@/modules/logger', () => ({
+vi.mock('@/modules/logger', () => ({
   logger: {
-    debug: mock(() => {}),
-    info: mock(() => {}),
-    warn: mock(() => {}),
-    error: mock(() => {}),
-    request: mock(() => {}),
-    api: mock(() => {}),
-    service: mock(() => {}),
+    debug: vi.fn(() => {}),
+    info: vi.fn(() => {}),
+    warn: vi.fn(() => {}),
+    error: vi.fn(() => {}),
+    request: vi.fn(() => {}),
+    api: vi.fn(() => {}),
+    service: vi.fn(() => {}),
   },
 }));
 

@@ -4,7 +4,7 @@ import {
   type SubscriptionSavePlan,
   type SubscriptionState,
 } from './notification-subscriptions';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const membership = (contactGroupName: string, name = `m-${contactGroupName}`) =>
   ({ name, contactGroupName, namespace: 'milo-system' }) as never;

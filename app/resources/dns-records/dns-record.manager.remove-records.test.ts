@@ -1,18 +1,17 @@
-/// <reference types="bun-types/test" />
 import { DnsRecordManager, RecordNotFoundError } from './dns-record.manager';
 import type { DnsRecordSet } from './dns-record.schema';
 import type { DnsRecordService } from './dns-record.service';
-import { describe, expect, it, mock } from 'bun:test';
+import { describe, expect, it, vi } from 'vitest';
 
-mock.module('@/modules/logger', () => ({
+vi.mock('@/modules/logger', () => ({
   logger: {
-    debug: mock(() => {}),
-    info: mock(() => {}),
-    warn: mock(() => {}),
-    error: mock(() => {}),
-    request: mock(() => {}),
-    api: mock(() => {}),
-    service: mock(() => {}),
+    debug: vi.fn(() => {}),
+    info: vi.fn(() => {}),
+    warn: vi.fn(() => {}),
+    error: vi.fn(() => {}),
+    request: vi.fn(() => {}),
+    api: vi.fn(() => {}),
+    service: vi.fn(() => {}),
   },
 }));
 
@@ -36,22 +35,22 @@ const THREE_A_RECORDS = recordSet([
 ]);
 
 function stubService(set: DnsRecordSet) {
-  const get = mock(async () => set);
-  const update = mock(async (_p: string, name: string, input: { records: unknown[] }) =>
+  const get = vi.fn(async () => set);
+  const update = vi.fn(async (_p: string, name: string, input: { records: unknown[] }) =>
     recordSet(input.records as DnsRecordSet['records'])
   );
-  const del = mock(async () => undefined);
+  const del = vi.fn(async () => undefined);
   const service = {
     get,
     update,
     delete: del,
-    list: mock(),
-    fetchList: mock(),
-    listRaw: mock(),
-    fetchOne: mock(),
-    getStatus: mock(),
-    create: mock(),
-    listByTypeAndZone: mock(),
+    list: vi.fn(),
+    fetchList: vi.fn(),
+    listRaw: vi.fn(),
+    fetchOne: vi.fn(),
+    getStatus: vi.fn(),
+    create: vi.fn(),
+    listByTypeAndZone: vi.fn(),
   } as unknown as DnsRecordService;
   return { service, get, update, del };
 }

@@ -1,6 +1,6 @@
 import { toConnector, toConnectorList } from './connector.adapter';
 import { rawMetadata } from '@/test/factories/k8s';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toConnector', () => {
   it('maps spec fields and device annotations, coercing createdAt to a Date', () => {

@@ -3,7 +3,7 @@ import {
   createDnsRecordSchema,
   txtRecordDataSchema,
 } from './dns-record.schema';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('txtRecordDataSchema', () => {
   it('accepts DKIM-length content beyond a single 255-octet TXT string', () => {

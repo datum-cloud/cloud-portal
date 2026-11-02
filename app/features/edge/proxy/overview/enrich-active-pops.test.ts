@@ -7,7 +7,7 @@ import {
 } from './enrich-active-pops';
 import { getRegionCoordinates } from './region-coordinates';
 import type { Location } from '@/resources/locations';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const ashburn: Location = {
   name: 'us-east-1',

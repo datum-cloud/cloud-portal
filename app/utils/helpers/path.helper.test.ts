@@ -1,5 +1,5 @@
 import { getDocumentPathname } from './path.helper';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('getDocumentPathname', () => {
   it('strips the single-fetch .data suffix', () => {

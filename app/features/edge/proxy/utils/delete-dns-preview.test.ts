@@ -5,7 +5,7 @@ import {
 } from './delete-dns-preview';
 import type { IFlattenedDnsRecord } from '@/resources/dns-records';
 import type { HttpProxy } from '@/resources/http-proxies';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const zone = (domainName: string) => ({ name: domainName.replace(/\./g, '-'), domainName });
 

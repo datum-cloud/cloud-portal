@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 /**
  * Precompress Client Assets
  *
@@ -10,7 +10,7 @@
  * Compressing once at build time covers fonts too and uses maximum quality.
  * Envoy leaves a response alone when it already has a Content-Encoding.
  *
- * Usage: bun scripts/precompress-assets.ts [dir]   (default build/client/assets)
+ * Usage: node scripts/precompress-assets.ts [dir]   (default build/client/assets)
  */
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';

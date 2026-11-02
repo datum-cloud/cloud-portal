@@ -6,7 +6,7 @@ import {
   PENALTY_TRIPS,
 } from './rate-limit-penalty';
 import type { RedisLike } from './rate-limit-store';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 /** Enough of INCR/EXPIRE/SET/DEL/TTL to drive the Redis penalty box. */
 function fakeRedis(status = 'ready') {

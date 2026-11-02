@@ -90,6 +90,14 @@ export interface PortalPluginSpec {
   deprecated: boolean;
   /** Platform-operator kill switch; suspended plugins are never served. */
   suspend: boolean;
+  /**
+   * Canonical reverse-DNS id of the catalog Service (`Service.spec.serviceName`,
+   * e.g. `compute.miloapis.com`). The primary key an Active ServiceEntitlement
+   * is matched on. Absent for dev-synthesized specs.
+   */
+  serviceName?: string;
+  /** Catalog Service object name (`spec.serviceRef.name`, e.g. `compute`). */
+  serviceRefName?: string;
   assets: PluginAssets;
   visibility: PluginVisibility;
   /**

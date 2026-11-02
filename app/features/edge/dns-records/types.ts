@@ -4,22 +4,6 @@
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 
 // =============================================================================
-// Card Component Types
-// =============================================================================
-
-/**
- * Props for DNS record card wrapper component
- * Used in overview pages to display records in a card with optional row limit
- */
-export interface DnsRecordCardProps {
-  records: IFlattenedDnsRecord[];
-  projectId: string;
-  maxRows?: number;
-  title?: string;
-  actions?: React.ReactNode;
-}
-
-// =============================================================================
 // Form Component Types
 // =============================================================================
 

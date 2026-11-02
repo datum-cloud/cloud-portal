@@ -4,7 +4,7 @@ import {
   buildResourceChallenge,
   resourceMetadataUrl,
 } from './agent-discovery';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 const APP = 'https://portal.example';
 const ISSUER = 'https://auth.example';

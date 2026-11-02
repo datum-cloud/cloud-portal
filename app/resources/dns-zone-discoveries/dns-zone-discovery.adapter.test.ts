@@ -5,7 +5,7 @@ import {
   toDnsZoneDiscoveryList,
 } from './dns-zone-discovery.adapter';
 import { rawMetadata } from '@/test/factories/k8s';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toDnsZoneDiscovery', () => {
   it('maps metadata and status.recordSets, normalizing createdAt to ISO', () => {

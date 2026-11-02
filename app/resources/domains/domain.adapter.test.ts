@@ -7,7 +7,7 @@ import {
   toUpdateDomainPayload,
 } from './domain.adapter';
 import { rawMetadata } from '@/test/factories/k8s';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toDomain', () => {
   it('maps metadata + spec fields and coerces createdAt to a Date', () => {

@@ -55,6 +55,7 @@ describe('Members & Invitations — regression', () => {
 
   it('should invite a member', () => {
     cy.visit(getPathWithParams(paths.org.detail.team.invite, { orgId }));
+    cy.waitForHydration();
     // Role is required — open the combobox and pick the first available option
     cy.get('[role="combobox"]').first().click();
     cy.get('[role="option"]').first().click();

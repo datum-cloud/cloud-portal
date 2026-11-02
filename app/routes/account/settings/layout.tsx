@@ -30,10 +30,6 @@ export default function AccountSettingsLayout() {
       label: 'Active Sessions',
       href: paths.account.settings.activeSessions,
     },
-    // {
-    //   label: 'Access Tokens',
-    //   href: paths.account.settings.accessTokens,
-    // },
     {
       label: 'Activity',
       href: paths.account.settings.activity,

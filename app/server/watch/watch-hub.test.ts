@@ -9,18 +9,7 @@ import {
 } from './watch-hub';
 import type { WatchClient, WatchSubscribeRequest } from './watch-hub.types';
 import { buildWatchUpstreamPath } from '@/modules/watch/watch-path';
-import { env as loadedEnv } from '@/utils/env/env.server';
-import { afterEach, beforeEach, describe, expect, it, jest, mock, spyOn } from 'bun:test';
-
-// Other test files replace this module with stubs that have no `public` block,
-// and Bun keeps module mocks across files. subscribe() builds the upstream URL
-// from env.public.apiUrl, so keep whatever env is loaded and make sure it is set.
-mock.module('@/utils/env/env.server', () => ({
-  env: {
-    ...loadedEnv,
-    public: { ...loadedEnv?.public, apiUrl: loadedEnv?.public?.apiUrl ?? 'https://api.test.local' },
-  },
-}));
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
  * Minimal stand-in for Hono's SSE stream. Records every write so a test can
@@ -74,7 +63,7 @@ describe('WatchHub heartbeat', () => {
   });
 
   it('writes to a connected client before the idle timeout elapses', () => {
-    const intervalSpy = spyOn(globalThis, 'setInterval');
+    const intervalSpy = vi.spyOn(globalThis, 'setInterval');
 
     hub = new WatchHub();
     const { writes, accepted } = registerFakeClient(hub, 'client-1');
@@ -179,7 +168,7 @@ function mockUpstreamFetch() {
   const statuses: number[] = [];
   const hooks: Array<() => void> = [];
   const encoder = new TextEncoder();
-  const spy = spyOn(globalThis, 'fetch').mockImplementation(((
+  const spy = vi.spyOn(globalThis, 'fetch').mockImplementation(((
     input: string | URL | Request,
     init?: RequestInit
   ) => {
@@ -215,6 +204,14 @@ function mockUpstreamFetch() {
   return { calls, statuses, hooks, restore: () => spy.mockRestore() };
 }
 
+const FAKED_TIMERS: NonNullable<Parameters<typeof vi.useFakeTimers>[0]>['toFake'] = [
+  'setTimeout',
+  'clearTimeout',
+  'setInterval',
+  'clearInterval',
+  'Date',
+];
+
 /** Let pending fetch promises and stream reads settle. */
 async function flush(): Promise<void> {
   for (let i = 0; i < 10; i++) await Promise.resolve();
@@ -239,7 +236,7 @@ describe('WatchHub upstream lifecycle', () => {
   let upstream: ReturnType<typeof mockUpstreamFetch>;
 
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers({ toFake: FAKED_TIMERS });
     upstream = mockUpstreamFetch();
     hub = new WatchHub();
   });
@@ -247,7 +244,7 @@ describe('WatchHub upstream lifecycle', () => {
   afterEach(() => {
     hub.shutdown();
     upstream.restore();
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('an upstream that ends during the grace window with no subscribers is closed', async () => {
@@ -296,7 +293,7 @@ describe('WatchHub upstream lifecycle', () => {
     await hub.subscribe(domainsReq(CLIENT_A));
     await flush();
     for (let i = 0; i < 5; i++) {
-      jest.advanceTimersByTime(16_000);
+      vi.advanceTimersByTime(16_000);
       await flush();
     }
     const failedCalls = upstream.calls.length;
@@ -314,21 +311,21 @@ describe('WatchHub upstream lifecycle', () => {
     await hub.subscribe(domainsReq(CLIENT_A));
     await flush();
     for (let i = 0; i < 5; i++) {
-      jest.advanceTimersByTime(16_000);
+      vi.advanceTimersByTime(16_000);
       await flush();
     }
     expect(upstream.calls).toHaveLength(6);
     expect(hub.getStats().upstreams).toBe(1);
 
-    jest.advanceTimersByTime(UPSTREAM_BACKOFF_RETRY_MS - 1);
+    vi.advanceTimersByTime(UPSTREAM_BACKOFF_RETRY_MS - 1);
     await flush();
     expect(upstream.calls).toHaveLength(6);
 
-    jest.advanceTimersByTime(1);
+    vi.advanceTimersByTime(1);
     await flush();
     expect(upstream.calls).toHaveLength(7);
 
-    jest.advanceTimersByTime(UPSTREAM_BACKOFF_RETRY_MS);
+    vi.advanceTimersByTime(UPSTREAM_BACKOFF_RETRY_MS);
     await flush();
     expect(upstream.calls).toHaveLength(8);
     expect(hub.getStats().upstreams).toBe(1);
@@ -341,14 +338,14 @@ describe('WatchHub upstream lifecycle', () => {
     const channel = await hub.subscribe(domainsReq(CLIENT_A));
     await flush();
     for (const ms of [1_000, 2_000, 4_000, 8_000]) {
-      jest.advanceTimersByTime(ms);
+      vi.advanceTimersByTime(ms);
       await flush();
     }
     expect(upstream.calls).toHaveLength(5);
 
     // The client leaves and the grace period closes that upstream.
     hub.unsubscribe(CLIENT_A, channel);
-    jest.advanceTimersByTime(10_000);
+    vi.advanceTimersByTime(10_000);
     await flush();
     expect(hub.getStats().upstreams).toBe(0);
 
@@ -358,7 +355,7 @@ describe('WatchHub upstream lifecycle', () => {
     expect(upstream.calls).toHaveLength(6);
 
     // The old upstream's timer comes due and must not touch the new one.
-    jest.advanceTimersByTime(6_000);
+    vi.advanceTimersByTime(6_000);
     await flush();
 
     expect(upstream.calls).toHaveLength(6);
@@ -381,10 +378,10 @@ describe('WatchHub upstream lifecycle', () => {
     for (const delay of [1_000, 2_000, 4_000]) {
       await failOnce();
       const before = upstream.calls.length;
-      jest.advanceTimersByTime(delay - 1);
+      vi.advanceTimersByTime(delay - 1);
       await flush();
       expect(upstream.calls).toHaveLength(before);
-      jest.advanceTimersByTime(1);
+      vi.advanceTimersByTime(1);
       await flush();
       expect(upstream.calls).toHaveLength(before + 1);
     }
@@ -399,18 +396,18 @@ describe('WatchHub upstream lifecycle', () => {
       call.push({ type: 'ERROR', object: { code: 500 } });
       call.end();
       await flush();
-      jest.advanceTimersByTime(delay);
+      vi.advanceTimersByTime(delay);
       await flush();
     }
     expect(upstream.calls).toHaveLength(3);
 
-    jest.advanceTimersByTime(UPSTREAM_HEALTHY_AFTER_MS);
+    vi.advanceTimersByTime(UPSTREAM_HEALTHY_AFTER_MS);
     await flush();
     const call = upstream.calls[2];
     call.push({ type: 'ERROR', object: { code: 500 } });
     call.end();
     await flush();
-    jest.advanceTimersByTime(1_000);
+    vi.advanceTimersByTime(1_000);
     await flush();
 
     expect(upstream.calls).toHaveLength(4);
@@ -438,7 +435,7 @@ describe('WatchHub resync events', () => {
   let upstream: ReturnType<typeof mockUpstreamFetch>;
 
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers({ toFake: FAKED_TIMERS });
     upstream = mockUpstreamFetch();
     hub = new WatchHub();
   });
@@ -446,7 +443,7 @@ describe('WatchHub resync events', () => {
   afterEach(() => {
     hub.shutdown();
     upstream.restore();
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('joining a streaming upstream sends resync joined to that client only', async () => {
@@ -475,7 +472,7 @@ describe('WatchHub resync events', () => {
     await flush();
     expect(events(a.writes, 'resync')).toEqual([]);
 
-    jest.advanceTimersByTime(100);
+    vi.advanceTimersByTime(100);
     await flush();
 
     expect(new URL(upstream.calls[1].url).searchParams.get('resourceVersion')).toBe('0');
@@ -491,7 +488,7 @@ describe('WatchHub resync events', () => {
     for (let pushed = 0; pushed < upstream.calls.length && pushed < 10; pushed++) {
       upstream.calls[pushed].push({ type: 'ERROR', object: { code: 410, reason: 'Expired' } });
       await flush();
-      jest.advanceTimersByTime(100);
+      vi.advanceTimersByTime(100);
       await flush();
     }
 
@@ -510,7 +507,7 @@ describe('WatchHub resync events', () => {
     await hub.subscribe(domainsReq(CLIENT_A));
     await flush();
     for (let i = 0; i < 5; i++) {
-      jest.advanceTimersByTime(16_000);
+      vi.advanceTimersByTime(16_000);
       await flush();
     }
     expect(events(a.writes, 'resync')).toEqual([
@@ -518,12 +515,12 @@ describe('WatchHub resync events', () => {
     ]);
 
     // Still failing: no second `degraded`.
-    jest.advanceTimersByTime(UPSTREAM_BACKOFF_RETRY_MS);
+    vi.advanceTimersByTime(UPSTREAM_BACKOFF_RETRY_MS);
     await flush();
     expect(upstream.calls).toHaveLength(7);
     expect(events(a.writes, 'resync')).toHaveLength(1);
 
-    jest.advanceTimersByTime(UPSTREAM_BACKOFF_RETRY_MS);
+    vi.advanceTimersByTime(UPSTREAM_BACKOFF_RETRY_MS);
     await flush();
     expect(events(a.writes, 'resync')).toEqual([
       { channel: DOMAINS_CHANNEL, reason: 'degraded', degraded: true },
@@ -538,7 +535,7 @@ describe('WatchHub resync events', () => {
     await hub.subscribe(domainsReq(CLIENT_A));
     await flush();
     for (let i = 0; i < 5; i++) {
-      jest.advanceTimersByTime(16_000);
+      vi.advanceTimersByTime(16_000);
       await flush();
     }
 
@@ -571,7 +568,7 @@ describe('WatchHub resync events', () => {
     expect(events(a.writes, 'resync')).toEqual([{ channel: DOMAINS_CHANNEL, reason: 'auth' }]);
     expect(hub.getStats().upstreams).toBe(0);
 
-    jest.advanceTimersByTime(60_000);
+    vi.advanceTimersByTime(60_000);
     await flush();
     expect(upstream.calls).toHaveLength(1);
     expect(events(a.writes, 'resync')).toHaveLength(1);
@@ -586,7 +583,7 @@ describe('WatchHub resync events', () => {
     upstream.statuses.push(401);
     upstream.calls[0].end();
     await flush();
-    jest.advanceTimersByTime(1000);
+    vi.advanceTimersByTime(1000);
     await flush();
 
     expect(hub.getStats()).toEqual({ clients: 2, upstreams: 0, subscriptions: {} });
@@ -615,15 +612,15 @@ describe('WatchHub resync events', () => {
     ]);
     expect(hub.getStats().upstreams).toBe(1);
 
-    jest.advanceTimersByTime(UPSTREAM_BACKOFF_RETRY_MS - 1);
+    vi.advanceTimersByTime(UPSTREAM_BACKOFF_RETRY_MS - 1);
     await flush();
     expect(upstream.calls).toHaveLength(1);
 
-    jest.advanceTimersByTime(1);
+    vi.advanceTimersByTime(1);
     await flush();
     expect(upstream.calls).toHaveLength(2);
 
-    jest.advanceTimersByTime(UPSTREAM_BACKOFF_RETRY_MS);
+    vi.advanceTimersByTime(UPSTREAM_BACKOFF_RETRY_MS);
     await flush();
     expect(upstream.calls).toHaveLength(3);
     expect(events(a.writes, 'resync')).toEqual([
@@ -692,13 +689,13 @@ describe('WatchHub resync events', () => {
 describe('WatchHub stream ownership', () => {
   let hub: WatchHubType;
   const registry = {
-    registerOwner: mock(async (_cid: string, _userId: string) => {}),
-    refreshOwners: mock(async (_owners: Iterable<[string, string]>) => {}),
-    releaseOwner: mock(async (_cid: string) => {}),
+    registerOwner: vi.fn(async (_cid: string, _userId: string) => {}),
+    refreshOwners: vi.fn(async (_owners: Iterable<[string, string]>) => {}),
+    releaseOwner: vi.fn(async (_cid: string) => {}),
   };
 
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers({ toFake: FAKED_TIMERS });
     for (const fn of Object.values(registry)) fn.mockClear();
     hub = new WatchHub();
     hub.setOwnerRegistry(registry);
@@ -706,7 +703,7 @@ describe('WatchHub stream ownership', () => {
 
   afterEach(() => {
     hub.shutdown();
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('registers the owner when a stream opens and releases it when the stream aborts', () => {
@@ -728,7 +725,7 @@ describe('WatchHub stream ownership', () => {
     expect(registry.registerOwner).toHaveBeenCalledTimes(1);
     expect(registry.releaseOwner).not.toHaveBeenCalled();
     // The original stream still gets events.
-    jest.advanceTimersByTime(HEARTBEAT_INTERVAL_MS);
+    vi.advanceTimersByTime(HEARTBEAT_INTERVAL_MS);
     expect(a.writes.some((w) => w.event === 'heartbeat')).toBe(true);
   });
 
@@ -755,10 +752,10 @@ describe('WatchHub stream ownership', () => {
     registerClient(hub, CLIENT_A, 'user-1');
     registerClient(hub, CLIENT_B, 'user-2');
 
-    jest.advanceTimersByTime(OWNER_REFRESH_MS - HEARTBEAT_INTERVAL_MS);
+    vi.advanceTimersByTime(OWNER_REFRESH_MS - HEARTBEAT_INTERVAL_MS);
     expect(registry.refreshOwners).not.toHaveBeenCalled();
 
-    jest.advanceTimersByTime(HEARTBEAT_INTERVAL_MS);
+    vi.advanceTimersByTime(HEARTBEAT_INTERVAL_MS);
     expect(registry.refreshOwners).toHaveBeenCalledTimes(1);
     expect(Array.from(registry.refreshOwners.mock.calls[0][0])).toEqual([
       [CLIENT_A, 'user-1'],

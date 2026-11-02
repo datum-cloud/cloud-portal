@@ -2,7 +2,7 @@ import { listOriginDisplay, summarizeBackends } from './backend-summary';
 import { COMPUTE_WORKLOAD_NAME_LABEL } from './compute-backend';
 import type { ComDatumapisNetworkingV1AlphaNetworkService } from '@/modules/control-plane/networking';
 import { toHttpProxyBackend, type HttpProxy } from '@/resources/http-proxies';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 function proxy(overrides: Partial<HttpProxy> = {}): HttpProxy {
   return {

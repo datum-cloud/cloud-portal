@@ -33,6 +33,7 @@ export {
 export {
   toSecret,
   toSecretList,
+  toSecretData,
   toCreateSecretPayload,
   toUpdateSecretPayload,
 } from './secret.adapter';

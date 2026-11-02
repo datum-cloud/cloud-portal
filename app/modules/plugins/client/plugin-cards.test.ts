@@ -1,7 +1,7 @@
 import { collectHomeCards, isEntitled } from './plugin-cards';
 import type { PublicPlugin } from '@/modules/plugins/types';
 import { EXTENSION_CARD_PROJECT_HOME } from '@/modules/plugins/types';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 function plugin(partial: { slug: string; serviceRef?: string }): PublicPlugin {
   return {

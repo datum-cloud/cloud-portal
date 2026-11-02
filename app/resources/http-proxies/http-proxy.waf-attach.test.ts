@@ -3,7 +3,7 @@ import {
   policyAttachesToProxy,
   selectPolicyForProxy,
 } from './http-proxy.waf-attach';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('policyAttachesToProxy', () => {
   it('requires a Gateway or HTTPRoute targetRef matching the proxy name', () => {

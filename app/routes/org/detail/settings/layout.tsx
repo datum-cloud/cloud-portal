@@ -23,15 +23,6 @@ export default function OrgSettingsLayout() {
         label: 'General',
         href: getPathWithParams(paths.org.detail.settings.general, { orgId }),
       },
-      /* {
-        label: 'Policy bindings',
-        href: getPathWithParams(paths.org.detail.policyBindings.root, { orgId }),
-        hidden: org?.type === 'Personal',
-      }, */
-      /* {
-        label: 'Notifications',
-        href: getPathWithParams(paths.org.detail.settings.notifications, { orgId }),
-      }, */
       {
         label: 'Quotas',
         href: getPathWithParams(paths.org.detail.settings.quotas, { orgId }),

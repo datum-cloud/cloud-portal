@@ -1,6 +1,6 @@
 import { isHttpProxyProvisioning } from './http-proxy.provisioning';
 import type { HttpProxy } from './http-proxy.schema';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 function proxy(overrides: Partial<HttpProxy>): HttpProxy {
   return {

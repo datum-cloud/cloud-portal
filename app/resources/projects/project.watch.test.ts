@@ -3,7 +3,7 @@ import { projectKeys } from './project.service';
 import { projectListWatchCache } from './project.watch';
 import { applyWatchEvent } from '@/modules/watch/watch-cache-handler';
 import { QueryClient } from '@tanstack/react-query';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const project = (name: string, organizationId: string, resourceVersion = '1'): Project => ({
   uid: name,

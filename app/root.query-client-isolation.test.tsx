@@ -1,13 +1,13 @@
 import AppWithProviders from './root';
 import type { Organization, OrganizationList } from '@/resources/organizations';
 import { useOrganizations } from '@/resources/organizations/organization.queries';
-import { describe, expect, it } from 'bun:test';
 import { PassThrough } from 'node:stream';
 import { Suspense, use } from 'react';
 import { renderToString } from 'react-dom/server';
 // Same renderer as entry.server.tsx; see the comment there for why `.node`.
 import { renderToPipeableStream } from 'react-dom/server.node';
 import { createRoutesStub, useLoaderData } from 'react-router';
+import { describe, expect, it } from 'vitest';
 
 /**
  * Two sequential server renders for two different users, through the real

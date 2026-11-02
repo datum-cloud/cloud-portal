@@ -1,5 +1,5 @@
 import { decomposeHostname, getUnverifiedHostnameError } from './hostname-verification';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 const verified = (domainName: string) => ({
   domainName,

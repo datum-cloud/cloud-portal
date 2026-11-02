@@ -1,3 +1,4 @@
+import { BillingCycleAlert } from './components/billing-cycle-alert';
 import { IdleMeterList } from './components/idle-meter-list';
 import { MeterCard } from './components/meter-card';
 import { SpendValue } from './components/spend-value';
@@ -95,6 +96,7 @@ function UsagePageHeader({
   hideProjectSelect,
   spend,
   spendUnavailable,
+  billingCycleError,
 }: {
   projects: UsageProjectOption[];
   billingCycles: { value: 'current' | 'previous'; label: string }[];
@@ -103,29 +105,34 @@ function UsagePageHeader({
   hideProjectSelect?: boolean;
   spend?: UsageSpend;
   spendUnavailable?: boolean;
+  /** The billing account lookup failed, so the cycles are defaults. */
+  billingCycleError?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-      <div className="flex min-w-0 flex-1 flex-col gap-4">
-        <PageTitle title="Usage" titleClassName="text-3xl" />
-        <UsageToolbar
-          projects={projects}
-          billingCycles={billingCycles}
-          isLoading={isLoading}
-          isPlaceholder={isPlaceholder}
-          hideProjectSelect={hideProjectSelect}
-        />
-      </div>
-      {spend || spendUnavailable ? (
-        <div className="shrink-0 text-left lg:text-right">
-          <Text as="p" size="xs" textColor="muted">
-            Spend this period
-          </Text>
-          <Text as="p" size="xl" weight="semibold" textColor="default" className="sm:text-2xl">
-            <SpendValue spend={spend} unavailable={spendUnavailable} />
-          </Text>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
+          <PageTitle title="Usage" titleClassName="text-3xl" />
+          <UsageToolbar
+            projects={projects}
+            billingCycles={billingCycles}
+            isLoading={isLoading}
+            isPlaceholder={isPlaceholder}
+            hideProjectSelect={hideProjectSelect}
+          />
         </div>
-      ) : null}
+        {spend || spendUnavailable ? (
+          <div className="shrink-0 text-left lg:text-right">
+            <Text as="p" size="xs" textColor="muted">
+              Spend this period
+            </Text>
+            <Text as="p" size="xl" weight="semibold" textColor="default" className="sm:text-2xl">
+              <SpendValue spend={spend} unavailable={spendUnavailable} />
+            </Text>
+          </div>
+        ) : null}
+      </div>
+      <BillingCycleAlert show={billingCycleError} />
     </div>
   );
 }
@@ -194,6 +201,7 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
 
   const result = dashboard?.usage;
   const billingCycles = dashboard?.billingCycles ?? [];
+  const billingCycleError = dashboard?.billingAccountError ?? false;
   const isRefetching = isFetching && !isLoading;
 
   const selectedProjectLabel =
@@ -261,6 +269,7 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
           billingCycles={billingCycles}
           isLoading={isRefetching}
           hideProjectSelect={hideProjectSelect}
+          billingCycleError={billingCycleError}
         />
         <EmptyState
           title="No billing account linked"
@@ -284,6 +293,7 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
           billingCycles={billingCycles}
           isLoading={isRefetching}
           hideProjectSelect={hideProjectSelect}
+          billingCycleError={billingCycleError}
         />
         <EmptyState
           title="No usage to display"
@@ -309,6 +319,7 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
         billingCycles={billingCycles}
         isLoading={isRefetching}
         hideProjectSelect={hideProjectSelect}
+        billingCycleError={billingCycleError}
         spend={view.spend}
         spendUnavailable={view.spendUnavailable}
       />

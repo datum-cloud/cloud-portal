@@ -5,7 +5,7 @@ import {
   toUpdateInvitationStatePayload,
 } from './invitation.adapter';
 import { rawMetadata } from '@/test/factories/k8s';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toInvitation', () => {
   it('maps spec/status, taking the first role and defaulting role namespace + state', () => {
