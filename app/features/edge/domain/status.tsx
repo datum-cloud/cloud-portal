@@ -57,17 +57,21 @@ export const DomainStatus = ({ domainStatus }: { domainStatus: Domain['status'] 
 
   return (
     <HoverCard openDelay={300}>
-      <HoverCardTrigger
-        className={cn(
-          'w-fit',
-          currentStatus?.status === ControlPlaneStatus.Success ? 'pointer-events-none' : ''
-        )}>
-        <BadgeStatus
-          status={currentStatus}
-          label={statusLabel}
-          showIcon={false}
-          showTooltip={false}
-        />
+      {/* A span, not the default <a>: the badge sits inside row links, and an
+          <a> nested in an <a> is invalid HTML that fails hydration. */}
+      <HoverCardTrigger asChild>
+        <span
+          className={cn(
+            'inline-flex w-fit',
+            currentStatus?.status === ControlPlaneStatus.Success ? 'pointer-events-none' : ''
+          )}>
+          <BadgeStatus
+            status={currentStatus}
+            label={statusLabel}
+            showIcon={false}
+            showTooltip={false}
+          />
+        </span>
       </HoverCardTrigger>
       <HoverCardContent
         className={cn('w-96', priorityConditions.length > 0 && 'border-amber-200 bg-amber-50')}>
