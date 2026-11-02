@@ -10,19 +10,18 @@ import {
 } from './deny-permissions';
 
 /**
- * Deny the listed permissions for the rest of the test, on both sides:
+ * Register `cy.denyPermissions`, which denies the listed permissions for the
+ * rest of the test, on both sides:
  * - sets the `e2e-deny` cookie, which SSR loader gates honour when the app runs
  *   with CYPRESS=true and NODE_ENV=test (app/modules/rbac/server/e2e-deny.server.ts);
  * - overrides the ambient `/api/permissions/*` stubs from e2e.ts so client-side
  *   gates agree (a later `cy.intercept` for the same route wins).
  * Entries are `resource:verb` or `group:resource:verb`. Call after `cy.login()`:
  * `cy.session` clears cookies when it restores a session.
- */
-/**
- * Register `cy.denyPermissions`. Called from `e2e.ts` through an imported
- * binding on purpose: a bare `import './deny-permissions.command'` of a
- * module with no exports was dropped from the Vite support bundle, so the
- * command never existed in CI.
+ *
+ * Called from `e2e.ts` through an imported binding on purpose: a bare
+ * `import './deny-permissions.command'` of a module with no exports was
+ * dropped from the Vite support bundle, so the command never existed in CI.
  */
 export function registerDenyPermissionsCommand(): void {
   Cypress.Commands.add('denyPermissions', (entries: DenyEntry[]) => {
