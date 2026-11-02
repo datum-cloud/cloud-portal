@@ -5,4 +5,5 @@ export * from './constants';
 export * from './dialogs/add-payment-method-dialog';
 export * from './dialogs/create-billing-account-dialog';
 export * from './discounts';
+export * from './stale-invoices';
 export * from './types';
