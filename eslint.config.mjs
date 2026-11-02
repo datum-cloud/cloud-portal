@@ -150,11 +150,15 @@ export default [
     },
   },
   {
-    // Bun tests call mock.module() without awaiting it; those suites are being
-    // rewritten in the Node migration (#1755), so warn here instead of editing them.
+    // An async mockImplementation() on a mock typed `ReturnType<typeof vi.fn>`
+    // reads as a void callback (1 hit after the vitest port); warn, don't edit tests.
+    // no-floating-promises had no test hits under vitest and stays an error.
     files: ['**/*.test.ts', '**/*.test.tsx'],
     rules: {
-      '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/no-misused-promises': [
+        'warn',
+        { checksVoidReturn: { attributes: false } },
+      ],
     },
   },
   {

@@ -81,7 +81,7 @@ npx eslint "app/routes/**/*.tsx" --fix
 
 Rules at `warn` had existing hits when they were turned on. `eslint.config.mjs` notes each one's starting count; drive them down and promote a rule to `error` once it reaches zero. CI fails on errors, not warnings.
 
-The two promise rules are warnings in the auth, RBAC and server paths, which are being reworked separately. In test files only `no-floating-promises` drops to a warning, because Bun's `mock.module()` is called without `await`; `no-misused-promises` stays an error there.
+The two promise rules are warnings in the auth, RBAC and server paths, which are being reworked separately. In test files only `no-misused-promises` drops to a warning, because an async `mockImplementation()` on a mock typed `ReturnType<typeof vi.fn>` reads as a void callback; `no-floating-promises` stays an error there.
 
 The Lefthook pre-commit hook runs `eslint --fix`, so autofixable warnings (for example `no-unnecessary-type-assertion`) get fixed in every file you commit.
 
