@@ -319,18 +319,19 @@ import { env } from '../../utils/env';
 
 `.dependency-cruiser.cjs` enforces which parts of `app/` may import which:
 
-| Rule                        | Forbids                                                                     |
-| --------------------------- | --------------------------------------------------------------------------- |
-| `resources-not-to-routes`   | `app/resources` importing `app/routes`                                      |
-| `resources-not-to-features` | `app/resources` importing `app/features`                                    |
-| `modules-not-to-routes`     | `app/modules` importing `app/routes`                                        |
-| `modules-not-to-features`   | `app/modules` importing `app/features`                                      |
-| `client-not-to-server`      | Code outside `server/` directories and `*.server.ts` importing `app/server` |
-| `no-circular`               | Circular imports                                                            |
+| Rule                        | Forbids                                                                                         |
+| --------------------------- | ----------------------------------------------------------------------------------------------- |
+| `resources-not-to-routes`   | `app/resources` importing `app/routes`                                                          |
+| `resources-not-to-features` | `app/resources` importing `app/features`                                                        |
+| `features-not-to-routes`    | `app/features` importing `app/routes`                                                           |
+| `modules-not-to-routes`     | `app/modules` importing `app/routes`                                                            |
+| `modules-not-to-features`   | `app/modules` importing `app/features`                                                          |
+| `client-not-to-server`      | Code outside `server/` directories, `*.server.ts` and `entry.server.tsx` importing `app/server` |
+| `no-circular`               | Circular imports                                                                                |
 
 Routes may import anything. Tests are exempt from the layering rules.
 
-Violations that existed when the check was added are listed in `.dependency-cruiser-known-violations.json`, and `npm run depcruise` skips them (`--ignore-known`). A new violation fails CI. After removing old violations, regenerate the baseline so it can't grow back:
+Violations that existed when the check was added are listed in `.dependency-cruiser-known-violations.json`, and `npm run depcruise` skips them (`--ignore-known`). Each entry names one import edge (and, for a cycle, the whole cycle path), so a new import from a file that is already listed still fails CI. A known cycle is matched by its full path: changing an import inside an existing cycle can report it again, and if the cycle is still expected, regenerate the baseline. After removing old violations, regenerate the baseline so it can't grow back:
 
 ```bash
 npx depcruise app --output-type baseline > .dependency-cruiser-known-violations.json
@@ -402,7 +403,7 @@ Quality checks run in `.github/workflows/ci.yml`:
 | `Type Check`    | `npm run typecheck`                                               |
 | `Build`         | `npm run build`                                                   |
 
-Neither lint, format nor depcruise writes files in CI, so any ESLint error or unformatted file fails the job. ESLint warnings do not fail it.
+Neither lint, format nor depcruise writes files in CI, so any ESLint error, unformatted file or new layering violation fails the job. ESLint warnings do not fail it.
 
 ---
 

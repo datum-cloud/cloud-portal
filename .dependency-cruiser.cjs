@@ -25,6 +25,13 @@ module.exports = {
       to: { path: '^app/features/' },
     },
     {
+      name: 'features-not-to-routes',
+      comment: 'Features are composed by routes; they must not depend on route modules.',
+      severity: 'error',
+      from: { path: '^app/features/', pathNot: TESTS },
+      to: { path: '^app/routes/' },
+    },
+    {
       name: 'modules-not-to-routes',
       comment: 'Modules are shared infrastructure and must not depend on route modules.',
       severity: 'error',
