@@ -1,4 +1,6 @@
 /// <reference types="cypress" />
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 
 /**
  * Org-area deny scenarios for the Phase 2 RBAC migration.
@@ -9,6 +11,10 @@
  * `app/modules/rbac/server/e2e-deny.server.ts`, and the browser's
  * `/api/permissions/*` calls hit a matching intercept. Every other check is
  * decided by the real upstream for the regression user.
+ *
+ * Settings URLs come from `paths`: the settings pages sit under a pathless
+ * `layout()` in app/routes.ts, so they live at `/org/:orgId/general`, not
+ * `/org/:orgId/settings/general`.
  *
  * The org is the shard's shared regression org (`cy.ensureSharedResources()`),
  * so the org layout loader resolves. The group ID is a placeholder: the group
@@ -112,13 +118,17 @@ describe('RBAC denials — org area', () => {
 
     it('quotas RestrictedState when allowancebuckets:list denied', () => {
       cy.denyPermissions(['allowancebuckets:list']);
-      cy.visit(`/org/${ORG}/settings/quotas`, { failOnStatusCode: false });
+      cy.visit(getPathWithParams(paths.org.detail.settings.quotas, { orgId: ORG }), {
+        failOnStatusCode: false,
+      });
       cy.expectRestricted("You don't have permission to view quotas.");
     });
 
-    it('settings/general RestrictedState when organizations:patch denied', () => {
+    it('general settings RestrictedState when organizations:patch denied', () => {
       cy.denyPermissions(['organizations:patch']);
-      cy.visit(`/org/${ORG}/settings/general`, { failOnStatusCode: false });
+      cy.visit(getPathWithParams(paths.org.detail.settings.general, { orgId: ORG }), {
+        failOnStatusCode: false,
+      });
       cy.expectRestricted("You don't have permission to edit this organization.");
     });
   });

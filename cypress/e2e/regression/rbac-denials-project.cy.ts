@@ -1,4 +1,6 @@
 /// <reference types="cypress" />
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 
 /**
  * Project-area deny scenarios for the Phase 3 RBAC migration.
@@ -90,9 +92,15 @@ describe('RBAC denials — project area', () => {
       cy.contains("You don't have permission to view this service account.").should('be.visible');
     });
 
-    it('settings/general RestrictedState when projects:patch denied', () => {
+    it('general settings RestrictedState when projects:patch denied', () => {
       cy.denyPermissions(['projects:patch']);
-      cy.visit(`/project/${PROJECT_ID}/settings/general`, { failOnStatusCode: false });
+      // Pathless settings layout: the page is /project/:projectId/general.
+      cy.visit(
+        getPathWithParams(paths.project.detail.settings.general, { projectId: PROJECT_ID }),
+        {
+          failOnStatusCode: false,
+        }
+      );
       cy.expectRestricted("You don't have permission to edit this project.");
     });
 
