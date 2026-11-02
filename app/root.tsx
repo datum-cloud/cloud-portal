@@ -2,7 +2,7 @@ import { AuthError } from '@/components/error/auth';
 import { GenericError } from '@/components/error/generic';
 import { ClientHintCheck, getHints } from '@/components/misc/client-hints';
 import { DynamicFaviconLinks } from '@/components/misc/dynamic-favicon';
-import { useNonce } from '@/hooks/useNonce';
+import { ENV_SCRIPT_ID, useNonce } from '@/hooks/useNonce';
 import { GraphQLProvider } from '@/modules/graphql/provider';
 import { loadReplayWhenIdle } from '@/modules/sentry/replay';
 import { preloadStripeWhenIdle } from '@/modules/stripe/preload';
@@ -37,6 +37,7 @@ import {
   isRouteErrorResponse,
   useFetchers,
   useLoaderData,
+  useRouteLoaderData,
   useMatches,
   useNavigation,
   useRouteError,
@@ -150,9 +151,27 @@ function ThemedToaster() {
   return <Toaster position="top-right" theme={resolvedTheme as 'light' | 'dark'} />;
 }
 
-function Document({ children, nonce }: { children: React.ReactNode; nonce: string }) {
-  const data = useLoaderData<typeof loader>();
+/**
+ * Publishes the client env as `window.ENV`. Both document shells render it:
+ * entry.client reads the CSP nonce back from this script by id, so the nonce
+ * comes from a script we own rather than one an extension injected. On an error
+ * page the root loader may have no data; the client then uses its defaults.
+ */
+function EnvScript({ nonce }: { nonce: string }) {
+  const data = useRouteLoaderData<typeof loader>('root');
 
+  return (
+    <script
+      id={ENV_SCRIPT_ID}
+      nonce={nonce}
+      dangerouslySetInnerHTML={{
+        __html: `window.ENV = ${serializeForInlineScript(data?.ENV)}`,
+      }}
+    />
+  );
+}
+
+function Document({ children, nonce }: { children: React.ReactNode; nonce: string }) {
   return (
     <html
       lang="en"
@@ -176,12 +195,7 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
         </ThemeBoundary>
         <ScrollRestoration nonce={nonce} />
         {/* ENV must be set before module Scripts so client `@/utils/env` can read it. */}
-        <script
-          nonce={nonce}
-          dangerouslySetInnerHTML={{
-            __html: `window.ENV = ${serializeForInlineScript(data?.ENV)}`,
-          }}
-        />
+        <EnvScript nonce={nonce} />
         <Scripts nonce={nonce} />
       </body>
     </html>
@@ -326,6 +340,7 @@ function ErrorLayout({ children }: { children: React.ReactNode }) {
           </div>
         </ThemeBoundary>
         <ScrollRestoration nonce={nonce} />
+        <EnvScript nonce={nonce} />
         <Scripts nonce={nonce} />
       </body>
     </html>

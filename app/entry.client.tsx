@@ -1,4 +1,4 @@
-import { NonceProvider } from '@/hooks/useNonce';
+import { ENV_SCRIPT_ID, NonceProvider } from '@/hooks/useNonce';
 import { configureBrowserClient } from '@/modules/control-plane/setup.client';
 import { shouldDropSentryEventClient } from '@/modules/sentry/filters';
 import { env } from '@/utils/env';
@@ -103,8 +103,9 @@ window.addEventListener('load', () => {
 // The server renders the request's CSP nonce on inline scripts. Browsers hide
 // the attribute once the page loads, but the `nonce` property keeps it, so
 // read it back: client renders need the same value or hydration flags every
-// nonce'd element as a mismatch.
-const nonce = document.querySelector<HTMLScriptElement>('script[nonce]')?.nonce ?? '';
+// nonce'd element as a mismatch. Read it from root's own ENV script, not the
+// first nonce'd script, which could be one a browser extension injected.
+const nonce = document.querySelector<HTMLScriptElement>(`script#${ENV_SCRIPT_ID}`)?.nonce ?? '';
 
 async function main() {
   startTransition(() => {
