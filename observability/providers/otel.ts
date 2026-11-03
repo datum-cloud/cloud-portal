@@ -66,8 +66,6 @@ export class OtelProvider extends BaseProvider {
         return false;
       }
 
-      this.warnTypedErrorsAreMangled();
-
       if (this.isInitialized) {
         console.log('✅ OpenTelemetry already initialized');
         return true;
@@ -139,26 +137,6 @@ export class OtelProvider extends BaseProvider {
   // ============================================================================
   // PRIVATE METHODS
   // ============================================================================
-
-  /**
-   * With OTEL instrumentation loaded, axios's `request()` wrapper calls
-   * `Error.captureStackTrace({})`, which throws under Bun — and the thrown
-   * error REPLACES the original. Typed AppErrors lose `status`, so
-   * `classifyError` reports 'unknown-failure': the 4xx Sentry filter stops
-   * working and a missing resource renders "Whoops! Something went wrong —
-   * First argument must be an Error object" instead of the not-found page.
-   *
-   * Reproduced on this branch and on main; not reproducible outside a running
-   * app with OTEL loaded, so no automated test guards it. This warning is the
-   * guard.
-   */
-  private warnTypedErrorsAreMangled(): void {
-    console.warn(
-      '⚠️ OTEL enabled: known Bun+axios incompatibility replaces typed errors, ' +
-        'dropping HTTP status. Sentry 4xx filtering and not-found pages will ' +
-        'misbehave until that is fixed.'
-    );
-  }
 
   private logDisabledStatus(): void {
     console.log('📊 OpenTelemetry is disabled or endpoint not configured');
@@ -281,9 +259,10 @@ export class OtelProvider extends BaseProvider {
     return new NodeSDK({
       instrumentations: [
         getNodeAutoInstrumentations({
-          // Disable instrumentations not supported by Bun runtime
-          // - runtime-node uses perf_hooks.monitorEventLoopDelay (not implemented in Bun)
-          // - fs uses Node.js fs internals not available in Bun
+          // Disabled on purpose:
+          // - runtime-node: /metrics already exports Node runtime metrics
+          //   through prom-client, so this would only duplicate them.
+          // - fs: a span per file system call is noise, not signal.
           '@opentelemetry/instrumentation-runtime-node': { enabled: false },
           '@opentelemetry/instrumentation-fs': { enabled: false },
         }),

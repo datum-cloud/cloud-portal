@@ -196,7 +196,8 @@ and the `tsc6` fallback binary silently no-ops on every invocation. See the
 [#1401](https://github.com/datum-cloud/cloud-portal/pull/1401) for the full
 repro (reproduced in an isolated scratch project, independent of this repo's
 other dependencies). The two-separate-packages setup above sidesteps the bug
-entirely by never aliasing `typescript` itself.
+entirely by never aliasing `typescript` itself. The repo has since moved from
+Bun to pnpm, so the dual-alias pattern may now work; it has not been retried.
 
 **Collapse plan:** once `typescript-eslint` supports the TypeScript 7.1 API
 (tracked for ~Oct 2026), drop `typescript-native` and move `typescript` to

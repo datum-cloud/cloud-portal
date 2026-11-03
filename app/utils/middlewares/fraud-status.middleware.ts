@@ -27,10 +27,9 @@ import { redirect } from 'react-router';
 export async function fraudStatusMiddleware(
   ctx: MiddlewareContext,
   next: NextFunction,
-  // Injectable so the suite can drive each exit without `mock.module`, which is
-  // process-global in bun. Mocking this module wholesale replaced it for every
-  // suite that ran afterwards, including user-access's own. The middleware
-  // chain calls this with two arguments, so the real loader is the default.
+  // Injectable so the suite can drive each exit without mocking the
+  // user-access module. The middleware chain calls this with two arguments, so
+  // the real loader is the default.
   deps: { loadUser?: typeof getUserWithAccessRetry } = {}
 ): Promise<Response> {
   const loadUser = deps.loadUser ?? getUserWithAccessRetry;

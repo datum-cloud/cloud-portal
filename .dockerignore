@@ -27,7 +27,6 @@ LICENSE
 .github
 .vscode
 .cursor
-.husky
 
 # Caches and logs
 .cache

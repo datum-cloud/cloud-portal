@@ -6,14 +6,8 @@ import { AuthorizationError } from '@/utils/errors';
 import { describe, expect, it, vi } from 'vitest';
 
 /**
- * Drives the collaborators through `deps` rather than `mock.module`.
- *
- * `mock.module` is process-global in bun and could not reach this code. The
- * fraud middleware suites import user-access first, binding it to the real
- * auth barrel and user service, so a stub registered here landed on a rebuilt
- * copy that the module under test never called. The real getRefreshToken then
- * ran, found no token on the fake cookie header below, and the refresh path
- * returned early.
+ * Drives the collaborators through `deps` rather than module mocks, so each
+ * test hands the module under test exactly the auth and user stubs it calls.
  */
 function buildDeps(overrides: Partial<UserAccessDeps> = {}) {
   const getRefreshToken = vi.fn(async () => ({

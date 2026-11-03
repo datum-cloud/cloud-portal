@@ -25,9 +25,8 @@ import { createMiddleware } from 'hono/factory';
  * Costs nothing while the flag is off — the shipping default — because that
  * check runs before the user is fetched.
  *
- * `loadUser` is injectable so tests can drive every branch without
- * `mock.module`, which is process-global in bun and would leak this module's
- * stub into any suite that runs afterwards.
+ * `loadUser` is injectable so tests can drive every branch without mocking
+ * the user-access module.
  */
 export function emailVerifiedGuardMiddleware(
   options: { loadUser?: typeof getUserWithAccessRetry } = {}
