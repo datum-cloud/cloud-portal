@@ -32,6 +32,7 @@ export function websiteCorsMiddleware({ origins }: WebsiteCorsOptions) {
 
     c.header('Access-Control-Allow-Origin', origin);
     c.header('Access-Control-Allow-Credentials', 'true');
+    c.header('Access-Control-Expose-Headers', 'X-Request-Id');
     c.header('Vary', 'Origin', { append: true });
     c.header('Cache-Control', 'no-store');
 

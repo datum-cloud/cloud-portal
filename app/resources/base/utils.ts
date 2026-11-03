@@ -25,30 +25,41 @@ function getScopedBaseUrl(scopePath: string): string {
   return `${baseUrl}${scopePath}`;
 }
 
+/** Control-plane path (no host) for a user. Uses the iam.miloapis.com group. */
+export function getUserControlPlanePath(userId: string): string {
+  return `/apis/iam.miloapis.com/v1alpha1/users/${encodeURIComponent(userId)}/control-plane`;
+}
+
+/** Control-plane path (no host) for an organization. */
+export function getOrganizationControlPlanePath(organizationName: string): string {
+  return `/apis/resourcemanager.miloapis.com/v1alpha1/organizations/${encodeURIComponent(organizationName)}/control-plane`;
+}
+
+/** Control-plane path (no host) for a project. */
+export function getProjectControlPlanePath(projectName: string): string {
+  return `/apis/resourcemanager.miloapis.com/v1alpha1/projects/${encodeURIComponent(projectName)}/control-plane`;
+}
+
 /**
  * Get user-scoped base URL for endpoints that require user context.
  * Uses /users/me/ which gets replaced by axios interceptor with actual userId.
  */
 export function getUserScopedBase(userId: string = 'me'): string {
-  return getScopedBaseUrl(`/apis/iam.miloapis.com/v1alpha1/users/${userId}/control-plane`);
+  return getScopedBaseUrl(getUserControlPlanePath(userId));
 }
 
 /**
  * Get organization-scoped base URL for endpoints that require org context.
  */
 export function getOrgScopedBase(orgId: string): string {
-  return getScopedBaseUrl(
-    `/apis/resourcemanager.miloapis.com/v1alpha1/organizations/${orgId}/control-plane`
-  );
+  return getScopedBaseUrl(getOrganizationControlPlanePath(orgId));
 }
 
 /**
  * Get project-scoped base URL for endpoints that require project context.
  */
 export function getProjectScopedBase(projectId: string): string {
-  return getScopedBaseUrl(
-    `/apis/resourcemanager.miloapis.com/v1alpha1/projects/${projectId}/control-plane`
-  );
+  return getScopedBaseUrl(getProjectControlPlanePath(projectId));
 }
 
 /**

@@ -1,11 +1,24 @@
 import { z } from 'zod';
 
+/** Longest DNS-1123 label, the name format of projects, organizations and most resources. */
+export const RESOURCE_NAME_MAX_LENGTH = 63;
+
+/** DNS-1123 label characters: lowercase alphanumerics and hyphens, alphanumeric at both ends. */
+export const RESOURCE_NAME_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
+
+/** True when `value` is a valid DNS-1123 label resource name (also safe in a URL path segment). */
+export function isResourceName(value: string): boolean {
+  return value.length <= RESOURCE_NAME_MAX_LENGTH && RESOURCE_NAME_PATTERN.test(value);
+}
+
 export const createNameSchema = (fieldName = 'Resource name') =>
   z
     .string({ error: `${fieldName} is required.` })
     .min(1, { message: `${fieldName} is required.` })
-    .max(63, { message: `${fieldName} must be at most 63 characters long.` })
-    .regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/, {
+    .max(RESOURCE_NAME_MAX_LENGTH, {
+      message: `${fieldName} must be at most ${RESOURCE_NAME_MAX_LENGTH} characters long.`,
+    })
+    .regex(RESOURCE_NAME_PATTERN, {
       message: `${fieldName} must use lowercase letters, numbers, and hyphens only. Must start and end with a letter or number.`,
     });
 

@@ -1,10 +1,5 @@
 export type { ActivityResourceKind } from './kinds';
-export {
-  createActivityClientConfig,
-  getOrganizationControlPlanePath,
-  getProjectControlPlanePath,
-  getUserControlPlanePath,
-} from './activity-client';
+export { createActivityClientConfig } from './activity-client';
 export {
   createOrgResourceLinkResolver,
   createResourceLinkResolver,

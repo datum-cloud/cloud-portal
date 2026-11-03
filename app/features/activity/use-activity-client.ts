@@ -1,15 +1,15 @@
-import {
-  createActivityClientConfig,
-  getOrganizationControlPlanePath,
-  getProjectControlPlanePath,
-  getUserControlPlanePath,
-} from './activity-client';
+import { createActivityClientConfig } from './activity-client';
 import {
   createOrgResourceLinkResolver,
   createResourceLinkResolver,
 } from './activity-link-resolvers';
 import { useApp } from '@/providers/app.provider';
 import { useProjectContext } from '@/providers/project.provider';
+import {
+  getOrganizationControlPlanePath,
+  getProjectControlPlanePath,
+  getUserControlPlanePath,
+} from '@/resources/base/utils';
 import {
   ActivityApiClient,
   defaultResourceLinkResolver,

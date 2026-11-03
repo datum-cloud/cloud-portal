@@ -4,27 +4,28 @@ export interface KvLike {
   set(key: string, value: string, mode: 'EX', ttlSeconds: number): Promise<unknown>;
 }
 
-export interface StatusCache<T> {
+/** A JSON value cache with per-entry TTL. Reads and writes never throw. */
+export interface TtlCache<T> {
   get(key: string): Promise<T | null>;
   set(key: string, value: T, ttlSeconds: number): Promise<void>;
 }
 
-const PREFIX = 'website:status:';
-
 /**
- * Per-user cache for the computed session status. Read only after the session
+ * TTL cache for the website routes, in Redis under `prefix` or, when `redis` is
+ * null, in memory. Callers key it per user and read it only after the session
  * cookie has been validated, so a logout needs no invalidation: with no valid
- * cookie the route answers signed out before it looks here.
+ * cookie the route answers before it looks here.
  */
-export function createStatusCache<T>(
+export function createTtlCache<T>(
   redis: KvLike | null,
+  prefix: string,
   now: () => number = Date.now
-): StatusCache<T> {
+): TtlCache<T> {
   if (redis) {
     return {
       async get(key) {
         try {
-          const raw = await redis.get(PREFIX + key);
+          const raw = await redis.get(prefix + key);
           return raw ? (JSON.parse(raw) as T) : null;
         } catch {
           return null;
@@ -32,7 +33,7 @@ export function createStatusCache<T>(
       },
       async set(key, value, ttlSeconds) {
         try {
-          await redis.set(PREFIX + key, JSON.stringify(value), 'EX', ttlSeconds);
+          await redis.set(prefix + key, JSON.stringify(value), 'EX', ttlSeconds);
         } catch {
           // A cache write failure only costs a recompute on the next request.
         }
