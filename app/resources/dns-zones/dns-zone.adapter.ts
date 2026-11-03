@@ -18,6 +18,8 @@ export function toDnsZone(raw: ComMiloapisNetworkingDnsV1Alpha1DnsZone): DnsZone
     createdAt: raw.metadata?.creationTimestamp ?? new Date(),
     domainName: raw.spec?.domainName ?? '',
     dnsZoneClassName: raw.spec?.dnsZoneClassName ?? '',
+    // The generated types predate spec.visibility.
+    isPrivate: (raw.spec as { visibility?: string } | undefined)?.visibility === 'Private',
     status: raw.status ?? {},
     deletionTimestamp: raw.metadata?.deletionTimestamp,
   };
