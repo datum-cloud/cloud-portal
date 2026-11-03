@@ -22,19 +22,19 @@ This document covers the tools and practices for maintaining code quality.
 
 ```bash
 # Linting
-npm run lint              # Lint and auto-fix (local use)
-npm run lint:check        # Lint without fixing (CI)
-npm run depcruise         # Check import layering (CI)
+pnpm lint              # Lint and auto-fix (local use)
+pnpm lint:check        # Lint without fixing (CI)
+pnpm depcruise         # Check import layering (CI)
 
 # Formatting
-npm run format            # Format all files
-npm run format:check      # Check formatting (CI)
+pnpm format            # Format all files
+pnpm format:check      # Check formatting (CI)
 
 # Type Checking
-npm run typecheck         # Run TypeScript compiler
+pnpm typecheck         # Run TypeScript compiler
 
 # All checks
-npm run lint:check && npm run format:check && npm run depcruise && npm run typecheck
+pnpm lint:check && pnpm format:check && pnpm depcruise && pnpm typecheck
 ```
 
 ---
@@ -57,10 +57,10 @@ Import order is handled by Prettier (`@trivago/prettier-plugin-sort-imports`), n
 
 ```bash
 # Lint with auto-fix
-npm run lint
+pnpm lint
 
 # Lint specific files
-npx eslint "app/routes/**/*.tsx" --fix
+pnpm exec eslint "app/routes/**/*.tsx" --fix
 ```
 
 ### Key Rules
@@ -115,13 +115,13 @@ Prettier is configured in `prettier.config.mjs`. The main settings are `printWid
 
 ```bash
 # Format all files
-npm run format
+pnpm format
 
 # Format specific files
-npx prettier --write "app/routes/**/*.tsx"
+pnpm exec prettier --write "app/routes/**/*.tsx"
 
 # Check without writing
-npm run format:check
+pnpm format:check
 ```
 
 ### Editor Integration
@@ -148,7 +148,7 @@ TypeScript is configured in `tsconfig.json` with strict mode enabled.
 ### Running Type Check
 
 ```bash
-npm run typecheck
+pnpm typecheck
 ```
 
 This runs:
@@ -160,10 +160,10 @@ This runs:
 
 Two TypeScript packages are installed side by side:
 
-| devDependency       | Resolves to                          | Used for                                                         |
-| ------------------- | ------------------------------------ | ---------------------------------------------------------------- |
-| `typescript`        | real `typescript@^6.0.3` (classic)   | `typescript-eslint` and editor/language-server integrations      |
-| `typescript-native` | `npm:typescript@^7.0.2` (native, Go) | `npm run typecheck` and the Lefthook pre-commit `typecheck` hook |
+| devDependency       | Resolves to                          | Used for                                                      |
+| ------------------- | ------------------------------------ | ------------------------------------------------------------- |
+| `typescript`        | real `typescript@^6.0.3` (classic)   | `typescript-eslint` and editor/language-server integrations   |
+| `typescript-native` | `npm:typescript@^7.0.2` (native, Go) | `pnpm typecheck` and the Lefthook pre-commit `typecheck` hook |
 
 `typescript` stays on 6.x deliberately: `typescript-eslint` (and VS Code's
 built-in TypeScript language server) need the classic JS compiler API, which
@@ -171,9 +171,9 @@ TypeScript 7 removed. `typescript-native` gives us the ~5x faster native `tsc`
 for the type-check gate without touching that API surface.
 
 **Both packages declare a `tsc` (and `tsserver`) bin**, so
-`node_modules/.bin/tsc` and `npx tsc` are **nondeterministic** — they resolve
+`node_modules/.bin/tsc` and `pnpm exec tsc` are **nondeterministic** — they resolve
 to whichever package happened to install its bin symlink last, not
-necessarily the one you want. Never call `tsc` or `npx tsc` bare. Always use
+necessarily the one you want. Never call `tsc` or `pnpm exec tsc` bare. Always use
 an explicit path:
 
 ```bash
@@ -260,11 +260,11 @@ pre-commit:
   commands:
     eslint:
       glob: '*.{js,jsx,ts,tsx}'
-      run: npx eslint {staged_files} --fix
+      run: pnpm exec eslint {staged_files} --fix
       auto_add: true
     prettier:
       glob: '*.{js,jsx,ts,tsx,json}'
-      run: npx prettier --write {staged_files}
+      run: pnpm exec prettier --write {staged_files}
       auto_add: true
     typecheck:
       glob: '*.{ts,tsx}'
@@ -281,7 +281,7 @@ On `git commit`:
 3. The native TypeScript compiler type-checks the project
 4. If any fail, commit is blocked
 
-The hook does not format `.md` or `.css` files, but `npm run format:check` in CI does. Run `npm run format` before committing changes to those files.
+The hook does not format `.md` or `.css` files, but `pnpm format:check` in CI does. Run `pnpm format` before committing changes to those files.
 
 ### Bypassing Hooks
 
@@ -298,7 +298,7 @@ git commit --no-verify -m "message"
 
 ### Import Order
 
-Prettier sorts imports on format (`@trivago/prettier-plugin-sort-imports`). Do not order them by hand; run `npm run format` or let the pre-commit hook do it.
+Prettier sorts imports on format (`@trivago/prettier-plugin-sort-imports`). Do not order them by hand; run `pnpm format` or let the pre-commit hook do it.
 
 ### Import Aliases
 
@@ -331,10 +331,10 @@ import { env } from '../../utils/env';
 
 Routes may import anything. Tests are exempt from the layering rules.
 
-Violations that existed when the check was added are listed in `.dependency-cruiser-known-violations.json`, and `npm run depcruise` skips them (`--ignore-known`). Each entry names one import edge (and, for a cycle, the whole cycle path), so a new import from a file that is already listed still fails CI. A known cycle is matched by its full path: changing an import inside an existing cycle can report it again, and if the cycle is still expected, regenerate the baseline. After removing old violations, regenerate the baseline so it can't grow back:
+Violations that existed when the check was added are listed in `.dependency-cruiser-known-violations.json`, and `pnpm depcruise` skips them (`--ignore-known`). Each entry names one import edge (and, for a cycle, the whole cycle path), so a new import from a file that is already listed still fails CI. A known cycle is matched by its full path: changing an import inside an existing cycle can report it again, and if the cycle is still expected, regenerate the baseline. After removing old violations, regenerate the baseline so it can't grow back:
 
 ```bash
-npx depcruise app --output-type baseline > .dependency-cruiser-known-violations.json
+pnpm exec depcruise app --output-type baseline > .dependency-cruiser-known-violations.json
 ```
 
 ---
@@ -397,11 +397,11 @@ export function MyComponent({ title, onSubmit }: Props) {
 
 Quality checks run in `.github/workflows/ci.yml`:
 
-| Job             | Command                                                           |
-| --------------- | ----------------------------------------------------------------- |
-| `Lint & Format` | `npm run lint:check && npm run format:check && npm run depcruise` |
-| `Type Check`    | `npm run typecheck`                                               |
-| `Build`         | `npm run build`                                                   |
+| Job             | Command                                                  |
+| --------------- | -------------------------------------------------------- |
+| `Lint & Format` | `pnpm lint:check && pnpm format:check && pnpm depcruise` |
+| `Type Check`    | `pnpm typecheck`                                         |
+| `Build`         | `pnpm build`                                             |
 
 Neither lint, format nor depcruise writes files in CI, so any ESLint error, unformatted file or new layering violation fails the job. ESLint warnings do not fail it.
 
@@ -416,7 +416,7 @@ Neither lint, format nor depcruise writes files in CI, so any ESLint error, unfo
 ls eslint.config.mjs
 
 # Run with debug
-DEBUG=eslint:* npx eslint app/
+DEBUG=eslint:* pnpm exec eslint app/
 ```
 
 ### Prettier/ESLint Conflicts
@@ -424,14 +424,14 @@ DEBUG=eslint:* npx eslint app/
 ESLint runs Prettier through `prettier/prettier` with the same `prettier.config.mjs`, so the two agree. To fix both locally:
 
 ```bash
-npm run lint && npm run format
+pnpm lint && pnpm format
 ```
 
 ### TypeScript Errors After Refactor
 
 ```bash
 # Regenerate route types
-npm run typecheck
+pnpm typecheck
 
 # If still failing, restart TS server
 # VS Code: Cmd+Shift+P → "TypeScript: Restart TS Server"

@@ -8,10 +8,10 @@ This guide covers starting the development server and verifying everything works
 
 ```bash
 # 1. Install dependencies (if not done)
-npm install
+pnpm install
 
 # 2. Start development server
-npm run dev
+pnpm dev
 ```
 
 The app will be available at **http://localhost:3000**
@@ -58,35 +58,35 @@ If `LOG_CURL=true`, you'll also see CURL commands for API calls.
 
 ### Development
 
-| Command           | Description                              |
-| ----------------- | ---------------------------------------- |
-| `npm run dev`     | Start development server with hot reload |
-| `npm run build`   | Build for production                     |
-| `npm run preview` | Preview production build locally         |
-| `npm run start`   | Start production server                  |
+| Command        | Description                              |
+| -------------- | ---------------------------------------- |
+| `pnpm dev`     | Start development server with hot reload |
+| `pnpm build`   | Build for production                     |
+| `pnpm preview` | Preview production build locally         |
+| `pnpm start`   | Start production server                  |
 
 ### Code Quality
 
-| Command                | Description               |
-| ---------------------- | ------------------------- |
-| `npm run lint`         | Run ESLint with auto-fix  |
-| `npm run format`       | Format code with Prettier |
-| `npm run format:check` | Check formatting (CI)     |
-| `npm run typecheck`    | TypeScript type checking  |
+| Command             | Description               |
+| ------------------- | ------------------------- |
+| `pnpm lint`         | Run ESLint with auto-fix  |
+| `pnpm format`       | Format code with Prettier |
+| `pnpm format:check` | Check formatting (CI)     |
+| `pnpm typecheck`    | TypeScript type checking  |
 
 ### Testing
 
-| Command                 | Description                      |
-| ----------------------- | -------------------------------- |
-| `npm run test:e2e`      | Run E2E tests (dev server)       |
-| `npm run test:e2e:prod` | Run E2E tests (production build) |
-| `npm run cypress:open`  | Open Cypress UI                  |
+| Command              | Description                      |
+| -------------------- | -------------------------------- |
+| `pnpm test:e2e`      | Run E2E tests (dev server)       |
+| `pnpm test:e2e:prod` | Run E2E tests (production build) |
+| `pnpm cypress:open`  | Open Cypress UI                  |
 
 ### API Generation
 
-| Command              | Description                            |
-| -------------------- | -------------------------------------- |
-| `npm run openapi-ts` | Generate TypeScript from OpenAPI specs |
+| Command           | Description                            |
+| ----------------- | -------------------------------------- |
+| `pnpm openapi-ts` | Generate TypeScript from OpenAPI specs |
 
 ---
 

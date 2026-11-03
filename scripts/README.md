@@ -11,7 +11,7 @@ Generate typed SDK modules for control-plane APIs.
 ### Usage
 
 ```bash
-npm run openapi
+pnpm openapi
 ```
 
 ### What it does
@@ -25,7 +25,7 @@ npm run openapi
 ### Example Session
 
 ```
-$ npm run openapi
+$ pnpm openapi
 
 OpenAPI Control-Plane Generator
 

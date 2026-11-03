@@ -4,7 +4,7 @@
  *
  * Interactive script to generate control-plane SDK modules from OpenAPI specs.
  *
- * Usage: npm run openapi
+ * Usage: pnpm openapi
  */
 import { createClient, defaultPlugins } from '@hey-api/openapi-ts';
 import { input, checkbox, confirm } from '@inquirer/prompts';
@@ -134,7 +134,7 @@ function extractFolderName(resource: string): string {
  * client runtime — newer generated `sdk.gen.ts` files import it. It is kept
  * bare and uncommented so the file stays byte-comparable with generator output;
  * the explanation lives here instead, because anything written into a `.gen.ts`
- * file is lost on the next `npm run openapi`.
+ * file is lost on the next `pnpm openapi`.
  */
 async function fixImports(filePath: string): Promise<void> {
   let content = await readFile(filePath, 'utf-8');
