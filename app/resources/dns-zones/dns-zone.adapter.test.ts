@@ -40,17 +40,13 @@ describe('toDnsZone', () => {
     expect(toDnsZone(raw as never).displayName).toBe('fallback-zone');
   });
 
-  it('marks private zones and reads the VPC from the network label', () => {
+  it('marks private zones', () => {
     const raw = {
-      metadata: rawMetadata({
-        name: 'managed-1',
-        labels: { 'networking.datumapis.com/network': 'blue' },
-      }),
+      metadata: rawMetadata({ name: 'managed-1' }),
       spec: { domainName: 'datum.internal', dnsZoneClassName: 'private', visibility: 'Private' },
     };
     const zone = toDnsZone(raw as never);
     expect(zone.isPrivate).toBe(true);
-    expect(zone.networkName).toBe('blue');
   });
 
   it('treats a zone without visibility as public', () => {
@@ -60,7 +56,6 @@ describe('toDnsZone', () => {
     };
     const zone = toDnsZone(raw as never);
     expect(zone.isPrivate).toBe(false);
-    expect(zone.networkName).toBeUndefined();
   });
 });
 
@@ -98,7 +93,7 @@ describe('toCreateDnsZonePayload', () => {
   });
 
   it('defaults the description annotation to an empty string', () => {
-    const payload = toCreateDnsZonePayload({ domainName: 'acme.example' } as never);
+    const payload = toCreateDnsZonePayload({ domainName: 'acme.example' });
     expect(payload.metadata.annotations['kubernetes.io/description']).toBe('');
   });
 });

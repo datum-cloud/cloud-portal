@@ -7,9 +7,6 @@ import {
 import type { ComMiloapisNetworkingDnsV1Alpha1DnsZone } from '@/modules/control-plane/dns-networking';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 
-/** Label the Private DNS operators copy onto a managed zone to name its VPC. */
-export const DNS_ZONE_NETWORK_LABEL = 'networking.datumapis.com/network';
-
 export function toDnsZone(raw: ComMiloapisNetworkingDnsV1Alpha1DnsZone): DnsZone {
   const transformed = {
     uid: raw.metadata?.uid ?? '',
@@ -23,7 +20,6 @@ export function toDnsZone(raw: ComMiloapisNetworkingDnsV1Alpha1DnsZone): DnsZone
     dnsZoneClassName: raw.spec?.dnsZoneClassName ?? '',
     // The generated types predate spec.visibility.
     isPrivate: (raw.spec as { visibility?: string } | undefined)?.visibility === 'Private',
-    networkName: raw.metadata?.labels?.[DNS_ZONE_NETWORK_LABEL],
     status: raw.status ?? {},
     deletionTimestamp: raw.metadata?.deletionTimestamp,
   };

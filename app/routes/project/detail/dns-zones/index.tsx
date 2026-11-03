@@ -45,7 +45,7 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text } from '@datum-cloud/datum-ui/typography';
-import { Network, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { type LoaderFunctionArgs, useNavigate, useParams, useSearchParams } from 'react-router';
 
@@ -288,20 +288,11 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
 
           // Private zones answer only inside their VPC, so there is no public DNS host to look up.
           if (row.original.isPrivate) {
-            const { networkName } = row.original;
             return (
-              <Tooltip
-                message={
-                  networkName
-                    ? `Private DNS zone for the ${networkName} VPC. It answers only inside that VPC.`
-                    : 'Private DNS zone. It answers only inside its VPC.'
-                }>
-                <span className="flex items-center gap-1.5" data-e2e="dns-zone-nameservers">
-                  <Icon icon={Network} size={14} className="text-icon-quaternary" aria-hidden />
-                  <Text size="xs" data-e2e="dns-zone-network">
-                    {networkName ? `VPC ${networkName}` : 'Private'}
-                  </Text>
-                </span>
+              <Tooltip message="Private DNS zone. It answers only inside its VPC.">
+                <Text size="xs" data-e2e="dns-zone-nameservers">
+                  Private
+                </Text>
               </Tooltip>
             );
           }
