@@ -172,7 +172,7 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
             ? getDnsZoneErrorGuidance(status.programmedReason, status.message).description
             : undefined,
           hasNameservers,
-          isLoading: !hasNameservers && !hasError,
+          isLoading: !zone.isPrivate && !hasNameservers && !hasError,
           activationReason: getDnsZoneDelegationState(zone, { hasError }).reason,
         },
       };
@@ -285,6 +285,17 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
         cell: ({ row }) => {
           const { hasNameservers, hasError } = row.original._computed;
           const nameservers = row.original?.status?.domainRef?.status?.nameservers;
+
+          // Private zones answer only inside their VPC, so there is no public DNS host to look up.
+          if (row.original.isPrivate) {
+            return (
+              <Tooltip message="Private DNS zone. It answers only inside its VPC.">
+                <Text size="xs" data-e2e="dns-zone-nameservers">
+                  Private
+                </Text>
+              </Tooltip>
+            );
+          }
 
           if (!hasNameservers) {
             if (hasError) {

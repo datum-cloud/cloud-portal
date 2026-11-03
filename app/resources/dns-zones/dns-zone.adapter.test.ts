@@ -39,6 +39,24 @@ describe('toDnsZone', () => {
     };
     expect(toDnsZone(raw as never).displayName).toBe('fallback-zone');
   });
+
+  it('marks private zones', () => {
+    const raw = {
+      metadata: rawMetadata({ name: 'managed-1' }),
+      spec: { domainName: 'datum.internal', dnsZoneClassName: 'private', visibility: 'Private' },
+    };
+    const zone = toDnsZone(raw as never);
+    expect(zone.isPrivate).toBe(true);
+  });
+
+  it('treats a zone without visibility as public', () => {
+    const raw = {
+      metadata: rawMetadata({ name: 'acme' }),
+      spec: { domainName: 'acme.example', dnsZoneClassName: 'datum-external-global-dns' },
+    };
+    const zone = toDnsZone(raw as never);
+    expect(zone.isPrivate).toBe(false);
+  });
 });
 
 describe('toDnsZoneList', () => {
@@ -75,7 +93,7 @@ describe('toCreateDnsZonePayload', () => {
   });
 
   it('defaults the description annotation to an empty string', () => {
-    const payload = toCreateDnsZonePayload({ domainName: 'acme.example' } as never);
+    const payload = toCreateDnsZonePayload({ domainName: 'acme.example' });
     expect(payload.metadata.annotations['kubernetes.io/description']).toBe('');
   });
 });
