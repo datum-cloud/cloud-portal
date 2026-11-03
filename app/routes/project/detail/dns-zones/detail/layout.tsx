@@ -90,13 +90,18 @@ export default route.Page(({ data: dnsZone }) => {
           dnsZoneId: dnsZone?.name ?? '',
         }),
       },
-      {
-        label: 'Nameservers',
-        href: getPathWithParams(paths.project.detail.dnsZones.detail.nameservers, {
-          projectId,
-          dnsZoneId: dnsZone?.name ?? '',
-        }),
-      },
+      // Private zones have no public nameservers to delegate to.
+      ...(dnsZone?.isPrivate
+        ? []
+        : [
+            {
+              label: 'Nameservers',
+              href: getPathWithParams(paths.project.detail.dnsZones.detail.nameservers, {
+                projectId,
+                dnsZoneId: dnsZone?.name ?? '',
+              }),
+            },
+          ]),
       {
         label: 'Activity',
         href: getPathWithParams(paths.project.detail.dnsZones.detail.activity, {

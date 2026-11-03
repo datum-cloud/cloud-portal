@@ -83,6 +83,7 @@ export function toPendingDnsZone(input: CreateDnsZoneInput, pendingName: string)
     createdAt: new Date(),
     domainName: input.domainName,
     dnsZoneClassName: '',
+    isPrivate: false,
     status: {},
   };
 }
