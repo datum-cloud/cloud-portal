@@ -81,7 +81,7 @@ export default function InvitationPage() {
 
   const rejectMutation = useRejectInvitation({
     onSuccess: () => {
-      navigate(paths.account.organizations.root);
+      void navigate(paths.account.organizations.root);
     },
   });
 

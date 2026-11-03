@@ -50,7 +50,7 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
 
   const deleteDomainMutation = useDeleteDomain(projectId, {
     onSuccess: () => {
-      navigate(
+      void navigate(
         getPathWithParams(paths.project.detail.domains.root, {
           projectId,
         })
@@ -101,7 +101,7 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
     if (!effectiveDomain?.domainName) return;
 
     if (dnsZone) {
-      navigate(
+      void navigate(
         getPathWithParams(paths.project.detail.dnsZones.detail.root, {
           projectId,
           dnsZoneId: dnsZone.name ?? '',
@@ -110,7 +110,7 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
       return;
     }
 
-    navigate(
+    void navigate(
       getPathWithParams(
         paths.project.detail.dnsZones.root,
         {

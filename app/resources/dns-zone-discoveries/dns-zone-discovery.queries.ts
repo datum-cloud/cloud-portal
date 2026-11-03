@@ -47,7 +47,7 @@ export function useCreateDnsZoneDiscovery(
     ...options,
     onSuccess: (...args) => {
       const [newDiscovery] = args;
-      queryClient.invalidateQueries({ queryKey: dnsZoneDiscoveryKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: dnsZoneDiscoveryKeys.lists() });
       queryClient.setQueryData(
         dnsZoneDiscoveryKeys.detail(projectId, newDiscovery.name),
         newDiscovery

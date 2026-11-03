@@ -28,7 +28,7 @@ export function showDomainInUseToast({
     description: DOMAIN_IN_USE_BY_DNS_ZONE_MESSAGE,
     action: {
       label: dnsZoneName ? 'View DNS zone' : 'View DNS zones',
-      onClick: () => navigate(href),
+      onClick: () => void navigate(href),
     },
   });
 }

@@ -16,7 +16,7 @@ export const OrganizationDangerCard = ({ organization }: { organization: Organiz
     orgId: organization?.name ?? '',
     orgDisplayName: organization?.displayName || organization?.name,
     onSuccess: () => {
-      navigate(paths.account.organizations.root, {
+      void navigate(paths.account.organizations.root, {
         state: { deletedOrgId: organization.name } satisfies DeletedOrganizationState,
       });
     },

@@ -20,7 +20,7 @@ export const ExportPolicyDangerCard = ({
 
   const deleteExportPolicyMutation = useDeleteExportPolicy(projectId ?? '', {
     onSuccess: () => {
-      navigate(
+      void navigate(
         getPathWithParams(paths.project.detail.metrics.root, {
           projectId,
         })

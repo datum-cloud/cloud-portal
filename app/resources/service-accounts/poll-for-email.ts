@@ -50,6 +50,7 @@ export async function pollForEmail(
     }
 
     function scheduleNext() {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises -- the body catches every error and rejects the outer promise
       timeoutId = setTimeout(async () => {
         timeoutId = null;
         if (settled) return;

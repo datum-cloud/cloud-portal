@@ -499,7 +499,7 @@ export function MetricChart({
     if (!range) return;
 
     rememberZoomOrigin(urlTimeRange);
-    setUrlTimeRange(serializeTimeRange(range));
+    void setUrlTimeRange(serializeTimeRange(range));
   }, [enableTimeZoom, stepMs, finalTimeRange, urlTimeRange, setUrlTimeRange]);
 
   useEffect(() => {
@@ -530,7 +530,7 @@ export function MetricChart({
   const handleChartDoubleClick = useCallback(() => {
     if (!enableTimeZoom) return;
     const origin = consumeZoomOrigin();
-    if (origin) setUrlTimeRange(origin);
+    if (origin) void setUrlTimeRange(origin);
   }, [enableTimeZoom, setUrlTimeRange]);
 
   const handleLegendClick = useCallback(

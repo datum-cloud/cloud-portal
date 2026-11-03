@@ -59,12 +59,12 @@ export function useCreatePaymentMethod(
     onSettled: (...args) => {
       const [, , input] = args;
       if (input?.orgId) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: paymentMethodKeys.list(input.orgId),
         });
         // Blanket-invalidate every `for-orgs` cache so cross-org
         // views catch the new card on next render.
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: paymentMethodKeys.lists(),
         });
       }
@@ -119,8 +119,8 @@ export function useDeletePaymentMethod(
     onSettled: (...args) => {
       const [, , input] = args;
       if (input?.orgId) {
-        queryClient.invalidateQueries({ queryKey: paymentMethodKeys.list(input.orgId) });
-        queryClient.invalidateQueries({ queryKey: paymentMethodKeys.lists() });
+        void queryClient.invalidateQueries({ queryKey: paymentMethodKeys.list(input.orgId) });
+        void queryClient.invalidateQueries({ queryKey: paymentMethodKeys.lists() });
       }
       options?.onSettled?.(...args);
     },

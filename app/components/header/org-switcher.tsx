@@ -27,7 +27,7 @@ export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: Organization 
       }
       onSelect={(org: Organization) => {
         setOrganization(org);
-        navigate(getPathWithParams(paths.org.detail.projects.root, { orgId: org.name }));
+        void navigate(getPathWithParams(paths.org.detail.projects.root, { orgId: org.name }));
       }}
     />
   );

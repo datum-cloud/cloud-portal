@@ -148,7 +148,7 @@ export const UserDropdown = ({
             data-e2e="user-menu-logout"
             className="data-[variant=destructive]:*:[svg]:!text-destructive cursor-pointer rounded-lg px-3 py-2 font-normal"
             onClick={() => {
-              navigate(paths.auth.logOut, { replace: true, preventScrollReset: true });
+              void navigate(paths.auth.logOut, { replace: true, preventScrollReset: true });
             }}>
             <div className="flex items-center gap-2">
               <Icon icon={LogOut} size={14} />

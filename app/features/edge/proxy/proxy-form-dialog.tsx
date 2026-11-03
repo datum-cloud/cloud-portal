@@ -109,7 +109,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
         onCreated(createdProxy);
         return;
       }
-      navigate(
+      void navigate(
         getPathWithParams(paths.project.detail.proxy.detail.root, {
           projectId,
           proxyId: createdProxy.name,

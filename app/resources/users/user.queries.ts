@@ -86,7 +86,7 @@ export function useDeleteUser(options?: UseMutationOptions<User, Error, string>)
       const [, userId] = args;
       // Cancel in-flight queries + invalidate all (no Watch for this resource)
       await queryClient.cancelQueries({ queryKey: userKeys.detail(userId) });
-      queryClient.invalidateQueries({ queryKey: userKeys.all });
+      void queryClient.invalidateQueries({ queryKey: userKeys.all });
 
       options?.onSuccess?.(...args);
     },
@@ -148,7 +148,7 @@ export function useRevokeUserActiveSession(
       createUserService().revokeUserActiveSession(userId, sessionId),
     onSettled: () => {
       // Force refetch active queries (works even with staleTime)
-      queryClient.refetchQueries({
+      void queryClient.refetchQueries({
         queryKey: userKeys.activeSessions(userId),
         type: 'active',
       });

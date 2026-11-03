@@ -82,7 +82,7 @@ export default route.Page(({ data: loaderAccount }) => {
       toast.info('Service account', {
         description: 'No longer exists. Returning to the list.',
       });
-      navigate(getPathWithParams(paths.project.detail.serviceAccounts.root, { projectId }));
+      void navigate(getPathWithParams(paths.project.detail.serviceAccounts.root, { projectId }));
       return;
     }
     prevLiveRef.current = liveAccount;

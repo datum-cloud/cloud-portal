@@ -131,8 +131,8 @@ function DomainsInner({
   // Cancel in-flight queries on unmount to prevent orphaned requests
   useEffect(() => {
     return () => {
-      queryClient.cancelQueries({ queryKey: domainKeys.list(projectId ?? '') });
-      queryClient.cancelQueries({ queryKey: dnsZoneKeys.list(projectId ?? '') });
+      void queryClient.cancelQueries({ queryKey: domainKeys.list(projectId ?? '') });
+      void queryClient.cancelQueries({ queryKey: dnsZoneKeys.list(projectId ?? '') });
     };
   }, [queryClient, projectId]);
 
@@ -296,14 +296,14 @@ function DomainsInner({
   const handleManageDnsZone = useCallback(
     async (domain: FormattedDomain) => {
       if (domain.dnsZone) {
-        navigate(
+        void navigate(
           getPathWithParams(paths.project.detail.dnsZones.detail.root, {
             projectId,
             dnsZoneId: domain.dnsZone.name ?? '',
           })
         );
       } else {
-        navigate(
+        void navigate(
           getPathWithParams(
             paths.project.detail.dnsZones.root,
             {
@@ -322,7 +322,7 @@ function DomainsInner({
 
   const handleNavigateToDomain = useCallback(
     (row: FormattedDomain) => {
-      navigate(
+      void navigate(
         getPathWithParams(paths.project.detail.domains.detail.overview, {
           projectId,
           domainId: row.name,
@@ -564,7 +564,7 @@ function DomainsInner({
                                 projectId={projectId ?? ''}
                                 onNavigate={(href) => {
                                   closeSummary();
-                                  navigate(href);
+                                  void navigate(href);
                                 }}
                               />
                             ),
@@ -580,14 +580,14 @@ function DomainsInner({
                 theme: 'outline',
                 size: 'xs',
                 onClick: () =>
-                  navigate(
+                  void navigate(
                     getPathWithParams(paths.project.detail.domains.root, { projectId: projectId! })
                   ),
               },
             ];
           },
           onComplete: () => {
-            queryClient.invalidateQueries({ queryKey: domainKeys.list(projectId ?? '') });
+            void queryClient.invalidateQueries({ queryKey: domainKeys.list(projectId ?? '') });
           },
         });
 

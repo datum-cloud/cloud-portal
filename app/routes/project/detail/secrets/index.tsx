@@ -201,7 +201,7 @@ function SecretsInner({ initialData }: { initialData: Secret[] }) {
         title="Secrets"
         search="Search"
         onRowClick={(row) => {
-          navigate(
+          void navigate(
             getPathWithParams(paths.project.detail.secrets.detail.overview, {
               projectId,
               secretId: row.name,

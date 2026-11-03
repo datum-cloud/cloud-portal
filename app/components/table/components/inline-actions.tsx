@@ -45,7 +45,7 @@ export function InlineActions<TData extends RowData>({
           event.preventDefault();
           event.stopPropagation();
           if (isActionDisabled) return;
-          action.onClick(row);
+          void action.onClick(row);
         };
 
         const button = (

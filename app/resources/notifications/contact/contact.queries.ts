@@ -60,7 +60,7 @@ export function useCreateNotificationContact(
       const [created] = args;
       const ns = created.namespace ?? DEFAULT_NOTIFICATION_NAMESPACE;
       queryClient.setQueryData(notificationContactKeys.detail(scopeKey, ns, created.name), created);
-      queryClient.invalidateQueries({ queryKey: notificationContactKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: notificationContactKeys.lists() });
       options?.onSuccess?.(...args);
     },
   });
@@ -83,7 +83,7 @@ export function useUpdateNotificationContact(
       const [updated] = args;
       const ns = updated.namespace ?? namespace;
       queryClient.setQueryData(notificationContactKeys.detail(scopeKey, ns, name), updated);
-      queryClient.invalidateQueries({ queryKey: notificationContactKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: notificationContactKeys.lists() });
       options?.onSuccess?.(...args);
     },
   });
@@ -118,7 +118,7 @@ export function useDeleteNotificationContact(
       await queryClient.cancelQueries({
         queryKey: notificationContactKeys.detail(scopeKey, namespace, name),
       });
-      queryClient.invalidateQueries({ queryKey: notificationContactKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: notificationContactKeys.lists() });
       options?.onSuccess?.(...args);
     },
   });

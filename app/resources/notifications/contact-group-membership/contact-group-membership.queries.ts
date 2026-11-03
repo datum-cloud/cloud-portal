@@ -88,7 +88,9 @@ export function useCreateNotificationContactGroupMembership(
         if (idx === -1) return [...items, created];
         return items.map((m) => (m.name === created.name ? created : m));
       });
-      queryClient.invalidateQueries({ queryKey: notificationContactGroupMembershipKeys.lists() });
+      void queryClient.invalidateQueries({
+        queryKey: notificationContactGroupMembershipKeys.lists(),
+      });
       options?.onSuccess?.(...args);
     },
   });
@@ -124,7 +126,9 @@ export function useDeleteNotificationContactGroupMembership(
       await queryClient.cancelQueries({
         queryKey: notificationContactGroupMembershipKeys.detail(scopeKey, namespace, name),
       });
-      queryClient.invalidateQueries({ queryKey: notificationContactGroupMembershipKeys.lists() });
+      void queryClient.invalidateQueries({
+        queryKey: notificationContactGroupMembershipKeys.lists(),
+      });
       options?.onSuccess?.(...args);
     },
   });

@@ -41,7 +41,7 @@ export function useCreateBillingArrangementApplication(
     onSettled: (...args) => {
       const [, , input] = args;
       if (input?.orgId) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: billingArrangementApplicationKeys.list(input.orgId),
         });
       }
@@ -72,7 +72,7 @@ export function useWithdrawBillingArrangementApplication(
     onSettled: (...args) => {
       const [, , input] = args;
       if (input?.orgId) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: billingArrangementApplicationKeys.list(input.orgId),
         });
       }

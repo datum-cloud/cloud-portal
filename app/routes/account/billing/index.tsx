@@ -483,7 +483,7 @@ export default function AccountBillingAccountsPage() {
       toast.success('Billing account created', {
         description: `${getBillingAccountDisplayName(account)} is ready to set up.`,
       });
-      navigate(
+      void navigate(
         getPathWithParams(paths.account.billing.detail.root, {
           billingAccountId: account.metadata?.name ?? '',
         })

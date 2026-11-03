@@ -54,7 +54,7 @@ function OrgSwitcherSheet({
       onOpenChange(false);
       if (org.name !== currentOrg?.name) {
         setOrganization(org);
-        navigate(getPathWithParams(paths.org.detail.projects.root, { orgId: org.name }));
+        void navigate(getPathWithParams(paths.org.detail.projects.root, { orgId: org.name }));
       }
     },
     [currentOrg?.name, setOrganization, navigate, onOpenChange]
@@ -161,7 +161,7 @@ function ProjectSwitcherSheet({
     (project: Project) => {
       onOpenChange(false);
       if (project.uid !== currentProject?.uid) {
-        navigate(getPathWithParams(paths.project.detail.home, { projectId: project.name }));
+        void navigate(getPathWithParams(paths.project.detail.home, { projectId: project.name }));
       }
     },
     [currentProject?.uid, navigate, onOpenChange]

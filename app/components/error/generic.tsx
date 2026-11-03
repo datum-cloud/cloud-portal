@@ -117,7 +117,7 @@ export const GenericError = ({ message, status }: { message: string; status?: nu
             theme="outline"
             size="small"
             onClick={() => {
-              navigate(0);
+              void navigate(0);
             }}>
             <Icon icon={RefreshCcwIcon} className="size-4" />
             {isExpired ? 'Reload page' : 'Refresh Page'}

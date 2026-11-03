@@ -1,5 +1,5 @@
-import { fixupPluginRules } from '@eslint/compat';
 import prettierConfig from './prettier.config.mjs';
+import { fixupPluginRules } from '@eslint/compat';
 import eslintPluginJsxA11y from 'eslint-plugin-jsx-a11y';
 import eslintPluginPrettier from 'eslint-plugin-prettier';
 import eslintPluginReact from 'eslint-plugin-react';
@@ -10,7 +10,10 @@ import tseslint from 'typescript-eslint';
 export default [
   // Global ignores (must be separate config object)
   {
-    ignores: ['app/modules/gqlts/generated/**', 'app/modules/control-plane/**/client.gen.ts'],
+    // Generated code: gqlts writes app/modules/graphql/generated and
+    // @hey-api/openapi-ts writes the control-plane *.gen.ts files, so a hand
+    // fix in either is lost on the next regeneration.
+    ignores: ['app/modules/graphql/generated/**', 'app/modules/control-plane/**/*.gen.ts'],
   },
   {
     files: ['**/*.ts', '**/*.tsx'],
@@ -42,7 +45,10 @@ export default [
       'unused-imports': unusedImports,
     },
     rules: {
-      ...tseslint.configs.recommendedTypeChecked[0].rules,
+      // recommendedTypeChecked is an array of config objects and only some of
+      // them carry rules. Merge every entry's rules rather than picking by
+      // index: spreading [0] alone once left all of them off without a sign.
+      ...Object.assign({}, ...tseslint.configs.recommendedTypeChecked.map((c) => c.rules ?? {})),
       ...eslintPluginReact.configs.recommended.rules,
       ...eslintPluginReactHooks.configs.recommended.rules,
       ...eslintPluginPrettier.configs.recommended.rules,
@@ -79,7 +85,46 @@ export default [
         },
       ],
 
-      'no-unused-vars': 'off', // or "@typescript-eslint/no-unused-vars": "off",
+      // Promise safety: unawaited and misused promises are bugs, so these fail
+      // the build. JSX attributes are exempt because React ignores a
+      // handler's return value (typescript-eslint's documented React setting).
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': [
+        'error',
+        { checksVoidReturn: { attributes: false } },
+      ],
+
+      // The rest of recommendedTypeChecked is baselined at warn and burned
+      // down over time. Counts are the hits when the rule was turned on.
+      '@typescript-eslint/no-unsafe-member-access': 'warn', // 788
+      '@typescript-eslint/no-unsafe-assignment': 'warn', // 448
+      '@typescript-eslint/no-explicit-any': 'warn', // 405
+      '@typescript-eslint/require-await': 'warn', // 374
+      '@typescript-eslint/no-unnecessary-type-assertion': 'warn', // 235
+      '@typescript-eslint/no-unsafe-return': 'warn', // 195
+      '@typescript-eslint/no-unsafe-argument': 'warn', // 181
+      '@typescript-eslint/no-unsafe-call': 'warn', // 93
+      '@typescript-eslint/await-thenable': 'warn', // 46
+      '@typescript-eslint/no-redundant-type-constituents': 'warn', // 32
+      '@typescript-eslint/restrict-template-expressions': 'warn', // 21
+      '@typescript-eslint/only-throw-error': 'warn', // 17
+      '@typescript-eslint/no-base-to-string': 'warn', // 16
+      '@typescript-eslint/no-duplicate-type-constituents': 'warn', // 11
+      '@typescript-eslint/unbound-method': 'warn', // 11
+      '@typescript-eslint/no-unsafe-enum-comparison': 'warn', // 7
+      '@typescript-eslint/no-empty-object-type': 'warn', // 7
+      '@typescript-eslint/prefer-promise-reject-errors': 'warn', // 3
+      '@typescript-eslint/no-implied-eval': 'warn', // 1
+      '@typescript-eslint/ban-ts-comment': 'warn', // 1
+      '@typescript-eslint/no-require-imports': 'warn', // 1
+
+      // Use the logger module (app/modules/logger) instead of console.
+      'no-console': 'warn',
+
+      // unused-imports/no-unused-vars below covers this and can autofix
+      // imports, so the base and typescript-eslint versions stay off.
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
       'unused-imports/no-unused-imports': 'error',
       'unused-imports/no-unused-vars': [
         'warn',
@@ -95,6 +140,43 @@ export default [
       react: {
         version: 'detect',
       },
+    },
+  },
+  {
+    // The logger is the one place allowed to write to the console.
+    files: ['app/modules/logger/**'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
+  {
+    // An async mockImplementation() on a mock typed `ReturnType<typeof vi.fn>`
+    // reads as a void callback (1 hit after the vitest port); warn, don't edit tests.
+    // no-floating-promises had no test hits under vitest and stays an error.
+    files: ['**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      '@typescript-eslint/no-misused-promises': [
+        'warn',
+        { checksVoidReturn: { attributes: false } },
+      ],
+    },
+  },
+  {
+    // Auth, RBAC and server code are being reworked separately; their promise
+    // hits stay visible as warnings until that work lands.
+    files: [
+      'app/routes/auth/**',
+      'app/utils/auth/**',
+      'app/modules/auth/**',
+      'app/modules/rbac/**',
+      'app/server/**',
+    ],
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/no-misused-promises': [
+        'warn',
+        { checksVoidReturn: { attributes: false } },
+      ],
     },
   },
   {

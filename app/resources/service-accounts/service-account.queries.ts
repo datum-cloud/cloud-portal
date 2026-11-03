@@ -202,15 +202,15 @@ export function useCreateServiceAccountKey(
     // Exception to watch-or-invalidate: the account watch carries no keys, so
     // only a refetch updates the key summary on the row and detail.
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: serviceAccountKeys.keyList(projectId, serviceAccountName),
       });
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: serviceAccountKeys.detail(projectId, serviceAccountName),
       });
       // The account's credential state is derived from its keys, so the
       // listing's status badge and key count are stale until it refetches.
-      queryClient.invalidateQueries({ queryKey: serviceAccountKeys.list(projectId) });
+      void queryClient.invalidateQueries({ queryKey: serviceAccountKeys.list(projectId) });
       options?.onSuccess?.(...args);
     },
   });
@@ -233,15 +233,15 @@ export function useRevokeServiceAccountKey(
     ...options,
     // Invalidates watched queries on purpose; see useCreateServiceAccountKey.
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: serviceAccountKeys.keyList(projectId, serviceAccountName),
       });
       // Revoking the last key leaves the account with no credential at all,
       // which both the detail badge and the listing need to reflect.
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: serviceAccountKeys.detail(projectId, serviceAccountName),
       });
-      queryClient.invalidateQueries({ queryKey: serviceAccountKeys.list(projectId) });
+      void queryClient.invalidateQueries({ queryKey: serviceAccountKeys.list(projectId) });
       options?.onSuccess?.(...args);
     },
   });

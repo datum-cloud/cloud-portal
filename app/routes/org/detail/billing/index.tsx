@@ -244,7 +244,7 @@ export default function OrgBillingSwitcherPage() {
       toast.success('Billing account created', {
         description: `${getBillingAccountDisplayName(account)} is ready to set up.`,
       });
-      navigate(
+      void navigate(
         getPathWithParams(paths.account.billing.detail.root, { billingAccountId: accountName })
       );
     },
@@ -329,7 +329,7 @@ export default function OrgBillingSwitcherPage() {
       });
     },
     onSettled: (_data, _error, input) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: billingAccountBindingKeys.list(input.orgId),
       });
     },

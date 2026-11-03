@@ -123,7 +123,7 @@ export const ExportPolicyStepperForm = ({
       ...(isEdit && { resourceVersion: defaultValue?.resourceVersion }),
     };
 
-    submit(payload, {
+    void submit(payload, {
       method: 'POST',
       encType: 'application/json',
       replace: true,
@@ -200,7 +200,7 @@ export const ExportPolicyStepperForm = ({
                               theme="borderless"
                               onClick={() => {
                                 if (isFirst) {
-                                  navigate(-1);
+                                  void navigate(-1);
                                 } else {
                                   prev();
                                 }

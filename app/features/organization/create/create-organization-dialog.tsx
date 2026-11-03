@@ -99,7 +99,7 @@ export const CreateOrganizationDialog = ({
               showDisplayNameField
               paymentTerms={
                 env.public.paymentTermsEnabled
-                  ? { entry: 'create', onApply: handleApplyForPaymentTerms }
+                  ? { entry: 'create', onApply: (orgId) => void handleApplyForPaymentTerms(orgId) }
                   : undefined
               }
               submitLabel="Create organization"

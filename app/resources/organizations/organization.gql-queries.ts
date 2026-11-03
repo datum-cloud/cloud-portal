@@ -72,7 +72,7 @@ export function useCreateOrganizationGql(
     onSuccess: (...args) => {
       const [newOrg] = args;
       queryClient.setQueryData(organizationKeys.detail(newOrg.name), newOrg);
-      queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
       options?.onSuccess?.(...args);
     },
   });
@@ -96,7 +96,7 @@ export function useUpdateOrganizationGql(
     onSuccess: (...args) => {
       const [updatedOrg] = args;
       queryClient.setQueryData(organizationKeys.detail(name), updatedOrg);
-      queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
       options?.onSuccess?.(...args);
     },
   });
@@ -116,7 +116,7 @@ export function useDeleteOrganizationGql(options?: UseMutationOptions<void, Erro
     onSuccess: async (...args) => {
       const [, name] = args;
       await queryClient.cancelQueries({ queryKey: organizationKeys.detail(name) });
-      queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
       options?.onSuccess?.(...args);
     },
   });

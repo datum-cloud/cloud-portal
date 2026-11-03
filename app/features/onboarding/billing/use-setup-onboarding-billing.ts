@@ -179,7 +179,7 @@ export function useSetupOnboardingBilling(
     // cannot replace this one — the arrangement the organization mutations in
     // organization.queries.ts use.
     onSettled: (...args) => {
-      queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
       options?.onSettled?.(...args);
     },
   });

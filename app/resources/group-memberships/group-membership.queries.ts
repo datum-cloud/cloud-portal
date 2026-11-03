@@ -36,7 +36,7 @@ export function useCreateGroupMembership(
       createGroupMembershipService().create(orgId, input),
     ...options,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: groupMembershipKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: groupMembershipKeys.lists() });
       options?.onSuccess?.(...args);
     },
   });
@@ -52,7 +52,7 @@ export function useDeleteGroupMembership(
       createGroupMembershipService().delete(orgId, membershipName),
     ...options,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: groupMembershipKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: groupMembershipKeys.lists() });
       options?.onSuccess?.(...args);
     },
   });

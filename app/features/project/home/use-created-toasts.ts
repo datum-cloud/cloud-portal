@@ -19,7 +19,7 @@ export function useCreatedToasts(projectId: string) {
         action: {
           label: 'Open',
           onClick: () =>
-            navigate(
+            void navigate(
               getPathWithParams(paths.project.detail.proxy.detail.root, {
                 projectId,
                 proxyId: proxy.name,
@@ -37,7 +37,7 @@ export function useCreatedToasts(projectId: string) {
         action: {
           label: 'Open',
           onClick: () =>
-            navigate(
+            void navigate(
               getPathWithParams(paths.project.detail.domains.detail.overview, {
                 projectId,
                 domainId: domain.name,

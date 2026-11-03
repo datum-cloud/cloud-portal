@@ -153,13 +153,13 @@ export function PaymentTermsApplicationForm({
             description: `Change it to ${apEmail} in billing settings so invoices reach accounts payable.`,
             action: {
               label: 'Billing settings',
-              onClick: () => navigate(billingSettingsPath(billingAccountName)),
+              onClick: () => void navigate(billingSettingsPath(billingAccountName)),
             },
           });
         }
       }
       // The loader now finds the pending application and shows its status.
-      navigate(paymentTermsPath({ orgId, billingAccountName, entry }), { replace: true });
+      void navigate(paymentTermsPath({ orgId, billingAccountName, entry }), { replace: true });
     } catch (error) {
       setSubmitError(
         error instanceof Error && error.message

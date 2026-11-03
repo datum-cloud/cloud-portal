@@ -46,7 +46,7 @@ interface EnhancedMetricsContextType {
   getUrlState: (key: string) => any;
   setUrlState: (key: string, value: any) => void;
   hasUrlState: (key: string) => boolean;
-  updateUrlStateEntry: (key: string, urlValue: any, setUrlValue: (value: any) => void) => void;
+  updateUrlStateEntry: (key: string, urlValue: any, setUrlValue: (value: any) => unknown) => void;
 
   // Enhanced query builder
   buildQueryContext: () => QueryBuilderContext;
@@ -125,7 +125,7 @@ export function MetricsProvider({
 
   // Update URL state entry with actual hooks (called by components)
   const updateUrlStateEntry = useCallback(
-    (key: string, urlValue: any, setUrlValue: (value: any) => void) => {
+    (key: string, urlValue: any, setUrlValue: (value: any) => unknown) => {
       const entry = urlStateRegistry.current.get(key);
       if (entry) {
         const previousValue = entry.urlValue;

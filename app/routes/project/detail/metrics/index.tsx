@@ -167,7 +167,7 @@ function ExportPoliciesInner({ initialData }: { initialData: ExportPolicy[] }) {
         {
           label: 'Settings',
           onClick: (row) => {
-            navigate(
+            void navigate(
               getPathWithParams(paths.project.detail.metrics.detail.settings, {
                 projectId,
                 exportPolicyId: row.name,
@@ -194,7 +194,7 @@ function ExportPoliciesInner({ initialData }: { initialData: ExportPolicy[] }) {
       description="Send telemetry data from your Datum infrastructure to external monitoring platforms like Grafana Cloud."
       search="Search"
       onRowClick={(row) => {
-        navigate(
+        void navigate(
           getPathWithParams(paths.project.detail.metrics.detail.overview, {
             projectId,
             exportPolicyId: row.name,
@@ -231,7 +231,7 @@ function ExportPoliciesInner({ initialData }: { initialData: ExportPolicy[] }) {
             label: 'Add export policy',
             icon: <Icon icon={PlusIcon} className="size-3" />,
             onClick: () =>
-              navigate(getPathWithParams(paths.project.detail.metrics.new, { projectId })),
+              void navigate(getPathWithParams(paths.project.detail.metrics.new, { projectId })),
             disabled: !canCreate,
             tooltip: !canCreate
               ? "You don't have permission to create an export policy"

@@ -56,7 +56,7 @@ export default function ServiceAccountKeysPage() {
   // Clear the key response from location state so credentials don't reappear on back-navigation.
   useEffect(() => {
     if (initialKeyResponse) {
-      navigate(location.pathname, { replace: true, state: {} });
+      void navigate(location.pathname, { replace: true, state: {} });
     }
   }, []);
 

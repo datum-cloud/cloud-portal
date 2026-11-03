@@ -107,7 +107,7 @@ export const DnsZoneDiscoveryPreview = ({
   });
 
   const navigateToZoneDetails = () => {
-    navigate(
+    void navigate(
       getPathWithParams(paths.project.detail.dnsZones.detail.root, {
         projectId,
         dnsZoneId,

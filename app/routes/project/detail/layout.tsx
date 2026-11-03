@@ -237,7 +237,7 @@ function ProjectDetailLayoutContent({
       const redirectPath = appOrg?.name
         ? getPathWithParams(paths.org.detail.projects.root, { orgId: appOrg.name })
         : paths.account.organizations.root;
-      navigate(redirectPath);
+      void navigate(redirectPath);
     }
   }, [projectError, projectErrorDetail, projectId, appOrg?.name, navigate]);
 
@@ -291,7 +291,7 @@ function ProjectDetailLayoutContent({
     const oid = org?.name ?? appOrg?.name;
     if (project?.name && oid && lastSessionProjectRef.current !== project.name) {
       lastSessionProjectRef.current = project.name;
-      sessionFetcher.submit({ projectId: project.name, orgId: oid }, { method: 'POST' });
+      void sessionFetcher.submit({ projectId: project.name, orgId: oid }, { method: 'POST' });
     }
   }, [bare, project?.name, org?.name, appOrg?.name, sessionFetcher]);
 

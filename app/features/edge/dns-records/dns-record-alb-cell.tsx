@@ -51,11 +51,11 @@ export function DnsRecordAlbCell({
 
   const handleProtect = () => {
     setIsProtecting(true);
-    onProtect(record).finally(() => setIsProtecting(false));
+    void onProtect(record).finally(() => setIsProtecting(false));
   };
 
   const handleRemove = () => {
-    onRemove(record, {
+    void onRemove(record, {
       onMutationStart: () => setIsRemoving(true),
     }).finally(() => setIsRemoving(false));
   };

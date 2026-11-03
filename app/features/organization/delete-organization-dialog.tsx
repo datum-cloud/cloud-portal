@@ -33,7 +33,7 @@ function DeleteOrganizationDialogContent({
     orgDisplayName,
     onSuccess: () => {
       onClose();
-      navigate(paths.account.organizations.root, {
+      void navigate(paths.account.organizations.root, {
         state: { deletedOrgId: orgId } satisfies DeletedOrganizationState,
       });
     },

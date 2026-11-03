@@ -286,7 +286,7 @@ function ServiceAccountsInner({ initialData }: { initialData: ServiceAccount[] }
               label: 'Add service account',
               icon: <Icon icon={PlusIcon} className="size-3" />,
               onClick: () =>
-                navigate(
+                void navigate(
                   getPathWithParams(paths.project.detail.serviceAccounts.new, { projectId })
                 ),
               ...deriveGuardedAction({

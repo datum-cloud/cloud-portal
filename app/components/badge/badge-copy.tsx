@@ -41,7 +41,7 @@ export const BadgeCopy = ({
   const copyToClipboard = () => {
     if (!value) return;
 
-    copy(value).then(() => {
+    void copy(value).then(() => {
       toast.success('Copied to clipboard');
       setCopied(true);
       setTimeout(() => {

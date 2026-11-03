@@ -32,7 +32,7 @@ export default function DnsZoneSettingsPage() {
 
   const deleteMutation = useDeleteDnsZone(projectId, {
     onSuccess: () => {
-      navigate(
+      void navigate(
         getPathWithParams(paths.project.detail.dnsZones.root, {
           projectId,
         })

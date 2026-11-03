@@ -93,10 +93,12 @@ export function useCreateNotificationContactGroupMembershipRemoval(
         return items.map((r) => (r.name === created.name ? created : r));
       });
       // Invalidate affected lists so UI refreshes membership state.
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: notificationContactGroupMembershipRemovalKeys.lists(),
       });
-      queryClient.invalidateQueries({ queryKey: notificationContactGroupMembershipKeys.lists() });
+      void queryClient.invalidateQueries({
+        queryKey: notificationContactGroupMembershipKeys.lists(),
+      });
       options?.onSuccess?.(...args);
     },
   });
@@ -149,10 +151,12 @@ export function useDeleteNotificationContactGroupMembershipRemoval(
         return old.filter((r) => r.name !== name);
       });
       // Invalidate affected lists so UI refreshes membership state.
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: notificationContactGroupMembershipRemovalKeys.lists(),
       });
-      queryClient.invalidateQueries({ queryKey: notificationContactGroupMembershipKeys.lists() });
+      void queryClient.invalidateQueries({
+        queryKey: notificationContactGroupMembershipKeys.lists(),
+      });
       options?.onSuccess?.(...args);
     },
   });

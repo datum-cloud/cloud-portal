@@ -50,7 +50,7 @@ export const { getHints } = hintsUtils;
  */
 export function ClientHintCheck({ nonce }: { nonce: string }) {
   const { revalidate } = useRevalidator();
-  React.useEffect(() => subscribeToSchemeChange(() => revalidate()), [revalidate]);
+  React.useEffect(() => subscribeToSchemeChange(() => void revalidate()), [revalidate]);
 
   // Ensure nonce is always a string to match server rendering
   const nonceValue = nonce || '';

@@ -36,7 +36,7 @@ export function useCreateNote(
     mutationFn: (content: string) => createNoteService().create(projectId, subjectRef, content),
     ...options,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: subjectQueryKey(projectId, subjectRef) });
+      void queryClient.invalidateQueries({ queryKey: subjectQueryKey(projectId, subjectRef) });
       options?.onSuccess?.(...args);
     },
   });
@@ -54,7 +54,7 @@ export function useUpdateNote(
       createNoteService().update(projectId, noteName, content),
     ...options,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: subjectQueryKey(projectId, subjectRef) });
+      void queryClient.invalidateQueries({ queryKey: subjectQueryKey(projectId, subjectRef) });
       options?.onSuccess?.(...args);
     },
   });
@@ -71,7 +71,7 @@ export function useDeleteNote(
     mutationFn: (noteName: string) => createNoteService().delete(projectId, noteName),
     ...options,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: subjectQueryKey(projectId, subjectRef) });
+      void queryClient.invalidateQueries({ queryKey: subjectQueryKey(projectId, subjectRef) });
       options?.onSuccess?.(...args);
     },
   });

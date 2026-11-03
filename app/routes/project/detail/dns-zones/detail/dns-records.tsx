@@ -252,7 +252,7 @@ export default function DnsRecordsPage() {
 
   const handleOpenEditMobile = (record: IFlattenedDnsRecord) => {
     if (isRowLocked(record)) return;
-    dnsRecordModalFormRef.current?.show('edit', record);
+    void dnsRecordModalFormRef.current?.show('edit', record);
   };
 
   const handleInlineClose = () => {
@@ -274,7 +274,7 @@ export default function DnsRecordsPage() {
 
   const createProxyMutation = useCreateHttpProxy(projectId, {
     onSuccess: () => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: dnsRecordKeys.list(projectId, dnsZoneId),
       });
       trackAction(AnalyticsAction.AddProxy);
@@ -308,11 +308,11 @@ export default function DnsRecordsPage() {
         currentProxy,
       }) as Promise<HttpProxy>,
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
+      void queryClient.invalidateQueries({
         queryKey: httpProxyKeys.detail(projectId, variables.name),
       });
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: dnsRecordKeys.list(projectId, dnsZoneId),
       });
       if (variables.removalTitle) {

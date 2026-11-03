@@ -36,7 +36,7 @@ export function InvitationNotificationItem({ notification }: ResourceNotificatio
 
   const acceptMutation = useAcceptInvitation({
     onSuccess: () => {
-      navigate(
+      void navigate(
         getPathWithParams(paths.org.detail.root, {
           orgId: invitation.organizationName,
         })
@@ -75,7 +75,7 @@ export function InvitationNotificationItem({ notification }: ResourceNotificatio
 
   // Handle navigation to invitation accept page
   const handleNavigate = () => {
-    navigate(getPathWithParams(paths.invitationAccept, { invitationId: invitation.name }));
+    void navigate(getPathWithParams(paths.invitationAccept, { invitationId: invitation.name }));
   };
 
   const isLoading = acceptMutation.isPending || rejectMutation.isPending;

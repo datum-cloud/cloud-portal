@@ -17,7 +17,7 @@ function CopyField({ label, value }: CopyFieldProps) {
   const [copied, setCopied] = useState(false);
 
   function handleCopy() {
-    copyToClipboard(value).then(() => {
+    void copyToClipboard(value).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
@@ -116,11 +116,13 @@ export function KeyRevealPanel({
   const credentialsFilename = `${serviceAccountName}-datum-credentials.json`;
 
   function handleCopy(tabId: TabId, content: string) {
-    copyToClipboard(content, { withToast: true, toastMessage: 'Copied to clipboard' }).then(() => {
-      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-      setCopiedTabId(tabId);
-      copyTimeoutRef.current = setTimeout(() => setCopiedTabId(null), 2000);
-    });
+    void copyToClipboard(content, { withToast: true, toastMessage: 'Copied to clipboard' }).then(
+      () => {
+        if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+        setCopiedTabId(tabId);
+        copyTimeoutRef.current = setTimeout(() => setCopiedTabId(null), 2000);
+      }
+    );
   }
 
   const datumctlSnippet = `# 1. Install datumctl (if you haven't already):

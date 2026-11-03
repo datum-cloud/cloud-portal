@@ -106,8 +106,8 @@ export function createInvitationOptions(
     ...withResourceHandlers(invitationMutations(orgId).create(toPendingInvitation(orgId)), {
       ...options,
       onSettled: (...args) => {
-        queryClient.refetchQueries({ queryKey: invitationKeys.userLists(), type: 'active' });
-        queryClient.refetchQueries({ queryKey: memberKeys.list(orgId), type: 'active' });
+        void queryClient.refetchQueries({ queryKey: invitationKeys.userLists(), type: 'active' });
+        void queryClient.refetchQueries({ queryKey: memberKeys.list(orgId), type: 'active' });
         return options?.onSettled?.(...args);
       },
     }),
@@ -132,7 +132,7 @@ export function useCancelInvitation(
       {
         ...options,
         onSettled: (...args) => {
-          queryClient.refetchQueries({ queryKey: invitationKeys.userLists(), type: 'active' });
+          void queryClient.refetchQueries({ queryKey: invitationKeys.userLists(), type: 'active' });
           return options?.onSettled?.(...args);
         },
       }
@@ -190,7 +190,7 @@ export function useResendInvitation(
     ...withResourceHandlers(resendInvitationHandlers(queryClient, orgId), {
       ...options,
       onSettled: (...args) => {
-        queryClient.refetchQueries({ queryKey: invitationKeys.userLists(), type: 'active' });
+        void queryClient.refetchQueries({ queryKey: invitationKeys.userLists(), type: 'active' });
         return options?.onSettled?.(...args);
       },
     }),
@@ -224,7 +224,7 @@ export function resolveInvitationOptions(
       const [, error, { orgId }] = args;
       if (error) {
         void invitationCacheEffects.orgListChanged(queryClient, orgId);
-        queryClient.refetchQueries({
+        void queryClient.refetchQueries({
           queryKey: invitationKeys.userLists(),
           type: 'active',
         });

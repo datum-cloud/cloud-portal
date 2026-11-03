@@ -1,0 +1,2248 @@
+[
+  {
+    "type": "dependency",
+    "from": "app/layouts/private.layout.tsx",
+    "to": "app/server/context.ts",
+    "unresolvedTo": "@/server/context",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "client-not-to-server"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/modules/sentry/tracing.ts",
+    "to": "app/server/types.ts",
+    "unresolvedTo": "@/server/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "client-not-to-server"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/utils/middlewares/auth.middleware.ts",
+    "to": "app/server/context.ts",
+    "unresolvedTo": "@/server/context",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "client-not-to-server"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/modules/billing/usage-groups.ts",
+    "to": "app/features/quotas/service-catalog.ts",
+    "unresolvedTo": "@/features/quotas/service-catalog",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "modules-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/modules/billing/usage.server.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "modules-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/modules/quota/components/QuotaExhaustedAlert.tsx",
+    "to": "app/features/quotas/build-quota-increase-request.ts",
+    "unresolvedTo": "@/features/quotas/build-quota-increase-request",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "modules-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/modules/quota/quota-toast.tsx",
+    "to": "app/features/account/email-verification/email-verification-error.ts",
+    "unresolvedTo": "@/features/account/email-verification/email-verification-error",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "modules-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/modules/quota/quota-toast.tsx",
+    "to": "app/features/project/read-only/project-read-only-error.ts",
+    "unresolvedTo": "@/features/project/read-only/project-read-only-error",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "modules-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/modules/quota/quota-toast.tsx",
+    "to": "app/features/project/suspension/classify-suspension-error.ts",
+    "unresolvedTo": "@/features/project/suspension/classify-suspension-error",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "modules-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/modules/quota/quota-toast.tsx",
+    "to": "app/features/project/suspension/suspension-toast.ts",
+    "unresolvedTo": "@/features/project/suspension/suspension-toast",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "modules-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/modules/quota/quota-toast.tsx",
+    "to": "app/features/quotas/build-quota-increase-request.ts",
+    "unresolvedTo": "@/features/quotas/build-quota-increase-request",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "modules-not-to-features"
+    }
+  },
+  {
+    "type": "cycle",
+    "from": "app/features/edge/proxy/overview/active-pops-globe.tsx",
+    "to": "app/features/edge/proxy/overview/active-pops-map.tsx",
+    "unresolvedTo": "./active-pops-map",
+    "dependencyTypes": ["local", "type-only", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/features/edge/proxy/overview/active-pops-map.tsx",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "app/features/edge/proxy/overview/active-pops-globe.tsx",
+        "dependencyTypes": ["local", "dynamic-import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/features/edge/proxy/overview/active-pops-globe.tsx",
+    "to": "app/features/edge/proxy/overview/active-pops-tooltip.tsx",
+    "unresolvedTo": "./active-pops-tooltip",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/features/edge/proxy/overview/active-pops-tooltip.tsx",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/features/edge/proxy/overview/active-pops-map.tsx",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "app/features/edge/proxy/overview/active-pops-globe.tsx",
+        "dependencyTypes": ["local", "dynamic-import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/features/project/read-only/read-only-toast.ts",
+    "to": "app/features/project/suspension/suspension-toast.ts",
+    "unresolvedTo": "@/features/project/suspension/suspension-toast",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/features/project/suspension/suspension-toast.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/features/project/suspension/build-suspension-appeal-request.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/resources/projects/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/projects/project-access.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/resources/policy-bindings/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/policy-bindings/policy-binding.queries.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/features/project/read-only/use-guarded-mutation.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/features/project/read-only/read-only-toast.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/features/project/read-only/use-guarded-mutation.ts",
+    "to": "app/features/project/read-only/use-project-mode.ts",
+    "unresolvedTo": "./use-project-mode",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/features/project/read-only/use-project-mode.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/features/project/suspension/suspension-copy.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/projects/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/projects/project-access.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/resources/policy-bindings/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/policy-bindings/policy-binding.queries.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/features/project/read-only/use-guarded-mutation.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/features/project/read-only/use-guarded-mutation.ts",
+    "to": "app/providers/project.provider.tsx",
+    "unresolvedTo": "@/providers/project.provider",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/providers/project.provider.tsx",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/projects/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/projects/project-access.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/resources/policy-bindings/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/policy-bindings/policy-binding.queries.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/features/project/read-only/use-guarded-mutation.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/features/project/read-only/use-project-mode.ts",
+    "to": "app/providers/project.provider.tsx",
+    "unresolvedTo": "@/providers/project.provider",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/providers/project.provider.tsx",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/projects/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/projects/project-access.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/resources/policy-bindings/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/policy-bindings/policy-binding.queries.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/features/project/read-only/use-guarded-mutation.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/features/project/read-only/use-project-mode.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/modules/auth/auth.server.ts",
+    "to": "app/modules/auth/strategies/zitadel.server.ts",
+    "unresolvedTo": "./strategies/zitadel.server",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/modules/auth/strategies/zitadel.server.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/utils/auth/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/auth/auth.utils.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/utils/cookies/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/cookies/session.server.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/modules/auth/auth.server.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/modules/auth/strategies/zitadel.server.ts",
+    "to": "app/utils/auth/index.ts",
+    "unresolvedTo": "@/utils/auth",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/utils/auth/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/auth/auth.service.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/modules/auth/strategies/zitadel.server.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/modules/feature-flags/index.ts",
+    "to": "app/modules/feature-flags/use-feature-flag.ts",
+    "unresolvedTo": "./use-feature-flag",
+    "dependencyTypes": ["local", "export"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/modules/feature-flags/use-feature-flag.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/providers/app.provider.tsx",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/modules/feature-flags/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/modules/logger/index.ts",
+    "to": "app/modules/logger/logger.ts",
+    "unresolvedTo": "./logger",
+    "dependencyTypes": ["local", "export"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/modules/logger/logger.ts",
+        "dependencyTypes": ["local", "require"]
+      },
+      {
+        "name": "app/modules/sentry/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/modules/sentry/tracing.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/server/types.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "app/modules/logger/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/modules/logger/index.ts",
+    "to": "app/modules/sentry/index.ts",
+    "unresolvedTo": "@/modules/sentry",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "export"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/modules/sentry/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "export"
+        ]
+      },
+      {
+        "name": "app/modules/sentry/tracing.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/server/types.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "app/modules/logger/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/modules/metrics/components/filters/index.ts",
+    "to": "app/modules/metrics/components/filters/regions-filter.tsx",
+    "unresolvedTo": "./regions-filter",
+    "dependencyTypes": ["local", "export"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/modules/metrics/components/filters/regions-filter.tsx",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/modules/metrics/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/modules/metrics/components/filters/index.ts",
+        "dependencyTypes": ["local", "export"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/resources/dns-records/dns-record.adapter.ts",
+    "to": "app/utils/helpers/dns/flatten.helper.ts",
+    "unresolvedTo": "@/utils/helpers/dns/flatten.helper",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/utils/helpers/dns/flatten.helper.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.adapter.ts",
+        "dependencyTypes": ["local", "export"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/resources/dns-records/dns-record.adapter.ts",
+    "to": "app/utils/helpers/dns/record-comparison.helper.ts",
+    "unresolvedTo": "@/utils/helpers/dns/record-comparison.helper",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/utils/helpers/dns/record-comparison.helper.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/helpers/dns/flatten.helper.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/resources/dns-records/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.adapter.ts",
+        "dependencyTypes": ["local", "export"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/resources/dns-records/dns-record.manager.ts",
+    "to": "app/resources/dns-records/dns-record.queries.ts",
+    "unresolvedTo": "./dns-record.queries",
+    "dependencyTypes": ["local", "type-only", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/resources/dns-records/dns-record.queries.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.manager.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/resources/dns-records/dns-record.manager.ts",
+    "to": "app/resources/dns-records/dns-record.service.ts",
+    "unresolvedTo": "./dns-record.service",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/resources/dns-records/dns-record.service.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.adapter.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/utils/helpers/dns/flatten.helper.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.manager.ts",
+        "dependencyTypes": ["local", "export"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/resources/dns-records/dns-record.manager.ts",
+    "to": "app/utils/helpers/dns-record.helper.ts",
+    "unresolvedTo": "@/utils/helpers/dns-record.helper",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/utils/helpers/dns-record.helper.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/helpers/dns/index.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/utils/helpers/dns/bind-export.helper.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/resources/dns-records/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.manager.ts",
+        "dependencyTypes": ["local", "export"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/resources/dns-records/dns-record.queries.ts",
+    "to": "app/resources/dns-records/dns-record.adapter.ts",
+    "unresolvedTo": "./dns-record.adapter",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/resources/dns-records/dns-record.adapter.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/utils/helpers/dns/flatten.helper.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.queries.ts",
+        "dependencyTypes": ["local", "export"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/resources/dns-records/dns-record.queries.ts",
+    "to": "app/resources/dns-records/dns-record.service.ts",
+    "unresolvedTo": "./dns-record.service",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/resources/dns-records/dns-record.service.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.adapter.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/utils/helpers/dns/flatten.helper.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.queries.ts",
+        "dependencyTypes": ["local", "export"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/resources/dns-records/dns-record.service.ts",
+    "to": "app/resources/dns-records/dns-record.adapter.ts",
+    "unresolvedTo": "./dns-record.adapter",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/resources/dns-records/dns-record.adapter.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/utils/helpers/dns/flatten.helper.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.service.ts",
+        "dependencyTypes": ["local", "export"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/resources/dns-records/dns-record.watch.ts",
+    "to": "app/resources/dns-records/dns-record.adapter.ts",
+    "unresolvedTo": "./dns-record.adapter",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/resources/dns-records/dns-record.adapter.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/utils/helpers/dns/flatten.helper.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.watch.ts",
+        "dependencyTypes": ["local", "export"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/resources/dns-records/dns-record.watch.ts",
+    "to": "app/resources/dns-records/dns-record.service.ts",
+    "unresolvedTo": "./dns-record.service",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/resources/dns-records/dns-record.service.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.adapter.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/utils/helpers/dns/flatten.helper.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.watch.ts",
+        "dependencyTypes": ["local", "export"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/resources/dns-records/index.ts",
+    "to": "app/resources/dns-records/dns-record.manager.ts",
+    "unresolvedTo": "./dns-record.manager",
+    "dependencyTypes": ["local", "export"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/resources/dns-records/dns-record.manager.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.queries.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.adapter.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/utils/helpers/dns/flatten.helper.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/resources/projects/index.ts",
+    "to": "app/resources/projects/project.queries.ts",
+    "unresolvedTo": "./project.queries",
+    "dependencyTypes": ["local", "export"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/resources/projects/project.queries.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/features/project/read-only/use-guarded-mutation.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/features/project/read-only/read-only-toast.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/features/project/suspension/suspension-toast.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/features/project/suspension/build-suspension-appeal-request.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/resources/projects/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/utils/auth/auth.utils.ts",
+    "to": "app/utils/cookies/index.ts",
+    "unresolvedTo": "@/utils/cookies",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/utils/cookies/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/cookies/refresh-token.server.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/utils/auth/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/auth/auth.utils.ts",
+        "dependencyTypes": ["local", "export"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/utils/auth/index.ts",
+    "to": "app/utils/auth/session-manager.ts",
+    "unresolvedTo": "./session-manager",
+    "dependencyTypes": ["local", "export"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/utils/auth/session-manager.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/utils/auth/auth.service.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/modules/auth/strategies/zitadel.server.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/auth/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/utils/auth/reauth.server.ts",
+    "to": "app/modules/auth/auth.server.ts",
+    "unresolvedTo": "@/modules/auth/auth.server",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/modules/auth/auth.server.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/modules/auth/strategies/zitadel.server.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/utils/auth/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/auth/auth.utils.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/utils/cookies/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/cookies/session.server.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/utils/auth/reauth.server.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/utils/auth/reauth.server.ts",
+    "to": "app/utils/auth/auth.service.ts",
+    "unresolvedTo": "./auth.service",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/utils/auth/auth.service.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/modules/auth/strategies/zitadel.server.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/auth/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/auth/auth.utils.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/utils/cookies/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/cookies/session.server.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/utils/auth/reauth.server.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/utils/auth/reauth.server.ts",
+    "to": "app/utils/auth/auth.utils.ts",
+    "unresolvedTo": "./auth.utils",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/utils/auth/auth.utils.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/utils/cookies/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/cookies/session.server.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/utils/auth/reauth.server.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/utils/helpers/dns/bind-import.helper.ts",
+    "to": "app/utils/helpers/dns/record-comparison.helper.ts",
+    "unresolvedTo": "./record-comparison.helper",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/utils/helpers/dns/record-comparison.helper.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/utils/helpers/dns/flatten.helper.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/resources/dns-records/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.manager.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/utils/helpers/dns-record.helper.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/helpers/dns/index.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/utils/helpers/dns/bind-import.helper.ts",
+        "dependencyTypes": ["local", "export"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/utils/helpers/dns/form-transform.helper.ts",
+    "to": "app/utils/helpers/dns/record-comparison.helper.ts",
+    "unresolvedTo": "./record-comparison.helper",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/utils/helpers/dns/record-comparison.helper.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/utils/helpers/dns/flatten.helper.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/resources/dns-records/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.manager.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/utils/helpers/dns-record.helper.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/helpers/dns/index.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/utils/helpers/dns/form-transform.helper.ts",
+        "dependencyTypes": ["local", "export"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/utils/helpers/dns/index.ts",
+    "to": "app/utils/helpers/dns/dns-setup.helper.ts",
+    "unresolvedTo": "./dns-setup.helper",
+    "dependencyTypes": ["local", "export"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/utils/helpers/dns/dns-setup.helper.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/resources/dns-records/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.manager.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/utils/helpers/dns-record.helper.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/helpers/dns/index.ts",
+        "dependencyTypes": ["local", "export"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/utils/helpers/dns/index.ts",
+    "to": "app/utils/helpers/dns/flatten.helper.ts",
+    "unresolvedTo": "./flatten.helper",
+    "dependencyTypes": ["local", "export"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/utils/helpers/dns/flatten.helper.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/resources/dns-records/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.manager.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/utils/helpers/dns-record.helper.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/helpers/dns/index.ts",
+        "dependencyTypes": ["local", "export"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "app/utils/helpers/dns/index.ts",
+    "to": "app/utils/helpers/dns/record-comparison.helper.ts",
+    "unresolvedTo": "./record-comparison.helper",
+    "dependencyTypes": ["local", "export"],
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "app/utils/helpers/dns/record-comparison.helper.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/utils/helpers/dns/flatten.helper.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "app/resources/dns-records/index.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/resources/dns-records/dns-record.manager.ts",
+        "dependencyTypes": ["local", "export"]
+      },
+      {
+        "name": "app/utils/helpers/dns-record.helper.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "app/utils/helpers/dns/index.ts",
+        "dependencyTypes": ["local", "export"]
+      }
+    ]
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/billing-account-bindings/billing-account-binding.queries.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/billing-account-bindings/billing-account-binding.service.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/billing-account-bindings/billing-account-binding.watch.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/billing-accounts/billing-account.cache-effects.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/billing-accounts/billing-account.queries.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/billing-accounts/billing-account.service.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/billing-accounts/billing-account.watch.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/billing-arrangement-applications/billing-arrangement-application.queries.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/billing-arrangement-applications/billing-arrangement-application.service.ts",
+    "to": "app/features/billing/payment-terms.ts",
+    "unresolvedTo": "@/features/billing/payment-terms",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/billing-arrangement-applications/billing-arrangement-application.service.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/connectors/connector.queries.ts",
+    "to": "app/features/project/read-only/use-guarded-mutation.ts",
+    "unresolvedTo": "@/features/project/read-only/use-guarded-mutation",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/dns-records/dns-record.queries.ts",
+    "to": "app/features/project/read-only/use-guarded-mutation.ts",
+    "unresolvedTo": "@/features/project/read-only/use-guarded-mutation",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/dns-zone-discoveries/dns-zone-discovery.queries.ts",
+    "to": "app/features/project/read-only/use-guarded-mutation.ts",
+    "unresolvedTo": "@/features/project/read-only/use-guarded-mutation",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/dns-zones/dns-zone.queries.ts",
+    "to": "app/features/project/read-only/use-guarded-mutation.ts",
+    "unresolvedTo": "@/features/project/read-only/use-guarded-mutation",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/domains/domain.queries.ts",
+    "to": "app/features/project/read-only/use-guarded-mutation.ts",
+    "unresolvedTo": "@/features/project/read-only/use-guarded-mutation",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/export-policies/export-policy.queries.ts",
+    "to": "app/features/project/read-only/use-guarded-mutation.ts",
+    "unresolvedTo": "@/features/project/read-only/use-guarded-mutation",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/http-proxies/http-proxy.queries.ts",
+    "to": "app/features/project/read-only/use-guarded-mutation.ts",
+    "unresolvedTo": "@/features/project/read-only/use-guarded-mutation",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/invoices/invoice.queries.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/invoices/invoice.service.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/invoices/invoice.watch.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/notes/note.queries.ts",
+    "to": "app/features/project/read-only/use-guarded-mutation.ts",
+    "unresolvedTo": "@/features/project/read-only/use-guarded-mutation",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/organizations/organization.queries.ts",
+    "to": "app/features/onboarding/schemas/org-contact-info-schema.ts",
+    "unresolvedTo": "@/features/onboarding/schemas/org-contact-info-schema",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/organizations/organization.service.ts",
+    "to": "app/features/onboarding/schemas/org-contact-info-schema.ts",
+    "unresolvedTo": "@/features/onboarding/schemas/org-contact-info-schema",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/payment-methods/payment-method.queries.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/payment-methods/payment-method.service.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/payment-methods/payment-method.watch.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/policy-bindings/policy-binding.adapter.ts",
+    "to": "app/features/policy-binding/form/constants.ts",
+    "unresolvedTo": "@/features/policy-binding/form/constants",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/policy-bindings/policy-binding.queries.ts",
+    "to": "app/features/project/read-only/use-guarded-mutation.ts",
+    "unresolvedTo": "@/features/project/read-only/use-guarded-mutation",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/projects/project.queries.ts",
+    "to": "app/features/project/read-only/use-guarded-mutation.ts",
+    "unresolvedTo": "@/features/project/read-only/use-guarded-mutation",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/secrets/secret.queries.ts",
+    "to": "app/features/project/read-only/use-guarded-mutation.ts",
+    "unresolvedTo": "@/features/project/read-only/use-guarded-mutation",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/service-accounts/service-account.queries.ts",
+    "to": "app/features/project/read-only/use-guarded-mutation.ts",
+    "unresolvedTo": "@/features/project/read-only/use-guarded-mutation",
+    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/stripe-payment-methods/stripe-payment-method.service.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/stripe-payment-methods/stripe-payment-method.watch.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/stripe-provider-configs/stripe-provider-config.queries.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "app/resources/stripe-provider-configs/stripe-provider-config.service.ts",
+    "to": "app/features/billing/types.ts",
+    "unresolvedTo": "@/features/billing/types",
+    "dependencyTypes": [
+      "aliased",
+      "aliased-tsconfig",
+      "aliased-tsconfig-paths",
+      "local",
+      "type-only",
+      "import"
+    ],
+    "rule": {
+      "severity": "error",
+      "name": "resources-not-to-features"
+    }
+  }
+]

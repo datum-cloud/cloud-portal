@@ -42,7 +42,7 @@ export function useRevokeUserActiveSessionGql(
   return useMutation({
     mutationFn: (sessionId: string) => createUserGqlService().revokeSession(userId, sessionId),
     onSettled: () => {
-      queryClient.refetchQueries({
+      void queryClient.refetchQueries({
         queryKey: userKeys.activeSessions(userId),
         type: 'active',
       });

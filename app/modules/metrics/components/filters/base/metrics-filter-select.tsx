@@ -124,7 +124,7 @@ export function MetricsFilterSelect({
 
   const handleSingleChange = useCallback(
     (value: string) => {
-      setUrlValue(value ?? '');
+      void setUrlValue(value ?? '');
     },
     [setUrlValue]
   );
