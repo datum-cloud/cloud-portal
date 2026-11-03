@@ -39,6 +39,29 @@ describe('toDnsZone', () => {
     };
     expect(toDnsZone(raw as never).displayName).toBe('fallback-zone');
   });
+
+  it('marks private zones and reads the VPC from the network label', () => {
+    const raw = {
+      metadata: rawMetadata({
+        name: 'managed-1',
+        labels: { 'networking.datumapis.com/network': 'blue' },
+      }),
+      spec: { domainName: 'datum.internal', dnsZoneClassName: 'private', visibility: 'Private' },
+    };
+    const zone = toDnsZone(raw as never);
+    expect(zone.isPrivate).toBe(true);
+    expect(zone.networkName).toBe('blue');
+  });
+
+  it('treats a zone without visibility as public', () => {
+    const raw = {
+      metadata: rawMetadata({ name: 'acme' }),
+      spec: { domainName: 'acme.example', dnsZoneClassName: 'datum-external-global-dns' },
+    };
+    const zone = toDnsZone(raw as never);
+    expect(zone.isPrivate).toBe(false);
+    expect(zone.networkName).toBeUndefined();
+  });
 });
 
 describe('toDnsZoneList', () => {

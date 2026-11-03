@@ -45,7 +45,7 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text } from '@datum-cloud/datum-ui/typography';
-import { PlusIcon } from 'lucide-react';
+import { Network, PlusIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { type LoaderFunctionArgs, useNavigate, useParams, useSearchParams } from 'react-router';
 
@@ -172,7 +172,7 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
             ? getDnsZoneErrorGuidance(status.programmedReason, status.message).description
             : undefined,
           hasNameservers,
-          isLoading: !hasNameservers && !hasError,
+          isLoading: !zone.isPrivate && !hasNameservers && !hasError,
           activationReason: getDnsZoneDelegationState(zone, { hasError }).reason,
         },
       };
@@ -285,6 +285,26 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
         cell: ({ row }) => {
           const { hasNameservers, hasError } = row.original._computed;
           const nameservers = row.original?.status?.domainRef?.status?.nameservers;
+
+          // Private zones answer only inside their VPC, so there is no public DNS host to look up.
+          if (row.original.isPrivate) {
+            const { networkName } = row.original;
+            return (
+              <Tooltip
+                message={
+                  networkName
+                    ? `Private DNS zone for the ${networkName} VPC. It answers only inside that VPC.`
+                    : 'Private DNS zone. It answers only inside its VPC.'
+                }>
+                <span className="flex items-center gap-1.5" data-e2e="dns-zone-nameservers">
+                  <Icon icon={Network} size={14} className="text-icon-quaternary" aria-hidden />
+                  <Text size="xs" data-e2e="dns-zone-network">
+                    {networkName ? `VPC ${networkName}` : 'Private'}
+                  </Text>
+                </span>
+              </Tooltip>
+            );
+          }
 
           if (!hasNameservers) {
             if (hasError) {

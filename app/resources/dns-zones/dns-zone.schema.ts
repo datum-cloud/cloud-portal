@@ -8,6 +8,10 @@ export type DnsZoneStatus = z.infer<typeof dnsZoneStatusSchema>;
 export const dnsZoneSchema = resourceMetadataSchema.extend({
   domainName: z.string(),
   dnsZoneClassName: z.string(),
+  /** Private zones answer only inside a VPC and never have public nameservers. */
+  isPrivate: z.boolean(),
+  /** The VPC (Network) a Private DNS zone serves, from the zone's network label. */
+  networkName: z.string().optional(),
   status: z.any(),
   deletionTimestamp: z.coerce.date().optional(),
 });
