@@ -30,9 +30,11 @@ ARG VERSION=dev
 # Set environment variables
 ENV VERSION=${VERSION}
 
-# Install dependencies
-COPY --link package.json package-lock.json ./
-RUN npm ci --include=dev --ignore-scripts --no-audit --no-fund
+# Install dependencies. Node 26 ships no corepack, so install the pnpm that
+# package.json's packageManager pins; it stays in this stage only.
+COPY --link package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN npm install -g "$(node -p 'require("./package.json").packageManager')" --no-audit --no-fund && \
+    pnpm install --frozen-lockfile --prod=false --ignore-scripts
 
 # Copy application code
 COPY --link . .
@@ -40,8 +42,8 @@ COPY --link . .
 # Build application. The Sentry auth token (for source map upload) arrives as a
 # BuildKit secret, so it never lands in image layers, history or provenance.
 RUN --mount=type=secret,id=sentry_auth_token,env=SENTRY_AUTH_TOKEN \
-    npm run build && \
-    npm prune --omit=dev --ignore-scripts --no-audit --no-fund && \
+    pnpm build && \
+    pnpm prune --prod --ignore-scripts && \
     touch .env
 
 # ==========================================
