@@ -2,6 +2,7 @@ import { AuthService } from './auth.service';
 import { destroyAllAuthCookies } from './auth.utils';
 import { authenticator } from '@/modules/auth/auth.server';
 import { logger } from '@/modules/logger';
+import { toNativeRequest } from '@/server/native-request';
 import { paths } from '@/utils/config/paths.config';
 import {
   clearReauthAttempt,
@@ -60,7 +61,7 @@ export async function startReauth(request: Request, returnTo: string): Promise<R
   url.search = '';
 
   try {
-    await authenticator.authenticate('zitadel', new Request(url.toString(), request));
+    await authenticator.authenticate('zitadel', toNativeRequest(request, url.toString()));
   } catch (error) {
     if (error instanceof Response) {
       headers.forEach((value, key) => {
