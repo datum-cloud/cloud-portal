@@ -46,7 +46,7 @@ export function feedbackSchema(allowedOrigins: string[]) {
 
 /**
  * `counter` backs the per-user rate limit: Redis in production, an in-memory
- * Map in tests and when Redis is unavailable (mirrors status-cache.ts).
+ * Map in tests and when Redis is unavailable (mirrors ttl-cache.ts).
  */
 export function createFeedbackRoutes(
   sink: FeedbackSink,
@@ -64,7 +64,7 @@ export function createFeedbackRoutes(
       try {
         n = await counter.incr(key);
       } catch {
-        // Fail open, same convention as status-cache.ts: a counter failure
+        // Fail open, same convention as ttl-cache.ts: a counter failure
         // costs an unenforced budget for this request, not a blocked user.
         return false;
       }

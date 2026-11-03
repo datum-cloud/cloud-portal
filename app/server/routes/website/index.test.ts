@@ -1,5 +1,5 @@
 import { createWebsiteRoutes } from './index';
-import { createStatusCache } from './status-cache';
+import { createTtlCache } from './ttl-cache';
 import type { Variables } from '@/server/types';
 import { Hono } from 'hono';
 import { describe, expect, test } from 'vitest';
@@ -16,7 +16,7 @@ function appWithProjectCookie(readProject: () => string | null) {
     '/api/website',
     createWebsiteRoutes({
       origins: [ORIGIN],
-      cache: createStatusCache(null),
+      cache: createTtlCache(null, 'website:status:'),
       rateLimiter: null,
       feedbackCounter: null,
       readPreferredOrg: async () => 'org-1',

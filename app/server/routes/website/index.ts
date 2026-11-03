@@ -3,13 +3,19 @@ import { createLogFeedbackSink } from './feedback/log-feedback-sink';
 import { createFeedbackRoutes, type CounterLike } from './feedback/routes';
 import { buildProfile } from './profile.builder';
 import {
+  createLiveLister,
+  type ResourceList,
+  type ResourceLister,
+} from './project-resources/lister';
+import { createProjectResourceRoutes } from './project-resources/routes';
+import {
   buildSessionStatus,
   pickOrganization,
   type SessionStatus,
   type SessionStatusDeps,
 } from './session-status.builder';
 import { settle } from './settle';
-import { createStatusCache, type StatusCache } from './status-cache';
+import { createTtlCache, type TtlCache } from './ttl-cache';
 import { logger } from '@/modules/logger';
 import { redisClient } from '@/modules/redis';
 import { createOrganizationService } from '@/resources/organizations';
@@ -28,10 +34,11 @@ import { Hono, type MiddlewareHandler } from 'hono';
 
 const STATUS_TTL_SECONDS = 60;
 const MILO_TIMEOUT_MS = 2000;
+const RESOURCE_TIMEOUT_MS = 3000;
 
 export interface WebsiteRoutesOptions {
   origins?: string[];
-  cache?: StatusCache<SessionStatus>;
+  cache?: TtlCache<SessionStatus>;
   /** Pass null to disable rate limiting (tests). */
   rateLimiter?: MiddlewareHandler | null;
   /**
@@ -55,6 +62,12 @@ export interface WebsiteRoutesOptions {
   feedbackSink?: FeedbackSink;
   /** Per-user rate-limit counter for /feedback. Pass null to use in-memory counting (tests). */
   feedbackCounter?: CounterLike | null;
+  /** Lists project resource names for /projects/:projectId/:type. Defaults to the live Milo lister. */
+  resourceLister?: ResourceLister;
+  /** Cache for resource lists; defaults to Redis under `website:resources:` (in-memory without Redis). */
+  resourceCache?: TtlCache<ResourceList>;
+  /** Deadline for the resource list call; defaults to RESOURCE_TIMEOUT_MS. */
+  resourceTimeoutMs?: number;
 }
 
 function liveDeps(): Omit<SessionStatusDeps, 'preferredOrg' | 'preferredProject'> {
@@ -113,7 +126,7 @@ function liveProfileDeps() {
 export function createWebsiteRoutes(options: WebsiteRoutesOptions = {}) {
   const origins = options.origins ?? env.server.websiteOrigins;
   const allowedOrigins = new Set(origins);
-  const cache = options.cache ?? createStatusCache<SessionStatus>(redisClient);
+  const cache = options.cache ?? createTtlCache<SessionStatus>(redisClient, 'website:status:');
   const deps = options.deps ?? liveDeps;
   const readPreferredOrg = options.readPreferredOrg ?? livePreferredOrg;
   const readPreferredProject = options.readPreferredProject ?? livePreferredProject;
@@ -123,6 +136,9 @@ export function createWebsiteRoutes(options: WebsiteRoutesOptions = {}) {
     createLogFeedbackSink((message, fields) => logger.info(message, fields));
   const feedbackCounter =
     options.feedbackCounter === undefined ? redisClient : options.feedbackCounter;
+  const resourceLister = options.resourceLister ?? createLiveLister(env.public.apiUrl);
+  const resourceCache =
+    options.resourceCache ?? createTtlCache<ResourceList>(redisClient, 'website:resources:');
   const rateLimiter =
     options.rateLimiter === undefined
       ? trafficClassLimiter({
@@ -192,6 +208,15 @@ export function createWebsiteRoutes(options: WebsiteRoutesOptions = {}) {
   });
 
   website.route('/feedback', createFeedbackRoutes(feedbackSink, origins, feedbackCounter));
+
+  website.route(
+    '/projects',
+    createProjectResourceRoutes({
+      lister: resourceLister,
+      cache: resourceCache,
+      timeoutMs: options.resourceTimeoutMs ?? RESOURCE_TIMEOUT_MS,
+    })
+  );
 
   // `.notFound()` registers a handler private to this sub-app, which
   // `.route()` never copies into the parent router — only real routes are

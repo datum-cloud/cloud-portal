@@ -6,12 +6,10 @@ import {
 } from '@/modules/billing/usage.server';
 import { resolveEntitledServiceIds } from '@/modules/entitlements/entitled-services.server';
 import { createProjectService } from '@/resources/projects';
+import { isResourceName } from '@/utils/helpers/validation.helper';
 import { Hono } from 'hono';
 
 const usage = new Hono<{ Variables: Variables }>();
-
-/** Organization and project names are DNS-1123 labels. */
-const RESOURCE_NAME = /^[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?$/;
 
 /**
  * GET /api/usage?orgId=&project=&cycle=&scope=
@@ -24,7 +22,7 @@ usage.get('/', async (c) => {
   // Both names end up in the control-plane URL path, so anything that is
   // not a plain resource name (e.g. `x/../..`) is rejected outright.
   const orgId = c.req.query('orgId');
-  if (!orgId || !RESOURCE_NAME.test(orgId)) {
+  if (!orgId || !isResourceName(orgId)) {
     return c.json({ message: 'orgId must be an organization name' }, 400);
   }
 
@@ -36,7 +34,7 @@ usage.get('/', async (c) => {
   let selectedProject: string;
   let projectNames: string[] = [];
   if (isProjectScope) {
-    if (!projectParam || projectParam === 'all' || !RESOURCE_NAME.test(projectParam)) {
+    if (!projectParam || projectParam === 'all' || !isResourceName(projectParam)) {
       return c.json({ message: 'project must be a project name for project scope' }, 400);
     }
     selectedProject = projectParam;
