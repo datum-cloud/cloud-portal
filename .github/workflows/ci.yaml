@@ -10,4 +10,4 @@ permissions:
 
 jobs:
   ci:
-    uses: datum-cloud/actions/.github/workflows/ci-basic.yaml@v1.26.0
+    uses: datum-cloud/actions/.github/workflows/ci-basic.yaml@95a63f871b9cd1f2b4c0224f4a23291beeeb5ef3 # v1.26.0

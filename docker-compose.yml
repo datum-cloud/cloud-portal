@@ -35,14 +35,14 @@ services:
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
   jaeger:
-    image: jaegertracing/all-in-one:latest
+    image: jaegertracing/all-in-one:latest@sha256:ab6f1a1f0fb49ea08bcd19f6b84f6081d0d44b364b6de148e1798eb5816bacac
     ports:
       - '16686:16686' # UI
       - '14250:14250' # gRPC
     environment:
       - COLLECTOR_OTLP_ENABLED=true
   otel-collector:
-    image: otel/opentelemetry-collector-contrib
+    image: otel/opentelemetry-collector-contrib@sha256:340c9ca6a36617084c6661bdc4f0fe92b7cda5a805d61673ec8db375fddc522b
     command: ['--config=/etc/otel-collector-config.yml']
     volumes:
       - ./dev/docker/otel-collector-config.yml:/etc/otel-collector-config.yml
