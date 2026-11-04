@@ -1,15 +1,13 @@
 import { selectJoinableInvitations } from './invitations/joinable-invitations';
-import { oncePerRequest } from '@/modules/axios/request-context';
 import { logger } from '@/modules/logger';
 import { createInvitationService, type Invitation } from '@/resources/invitations';
-import { createOrganizationService } from '@/resources/organizations';
+import { hasOrganizationsForRequest } from '@/resources/organizations/organization-request-cache.server';
 import { paths } from '@/utils/config/paths.config';
 import {
   type UserAccessResult,
   type getUserWithAccessRetry,
   loadUserOncePerRequest,
 } from '@/utils/fraud/user-access';
-import { requestCacheKeys } from '@/utils/request-cache-keys';
 
 /**
  * The onboarding layout and the step loaders run concurrently, so they all
@@ -40,14 +38,11 @@ export function onboardingAccessRedirect(
 }
 
 /**
- * True when the user belongs to at least one organization. Uses the same key
- * and call as authMiddleware, so both share one promise per request.
+ * True when the user belongs to at least one organization. Reads the same
+ * per-request list as authMiddleware, so both share one call.
  */
-export async function hasAnyOrganizations(): Promise<boolean> {
-  const organizations = await oncePerRequest(requestCacheKeys.anyOrganizations, () =>
-    createOrganizationService().list({ limit: 1 })
-  );
-  return organizations.items.length > 0;
+export function hasAnyOrganizations(): Promise<boolean> {
+  return hasOrganizationsForRequest();
 }
 
 /**

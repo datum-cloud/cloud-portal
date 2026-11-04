@@ -291,7 +291,13 @@ function ProjectDetailLayoutContent({
     const oid = org?.name ?? appOrg?.name;
     if (project?.name && oid && lastSessionProjectRef.current !== project.name) {
       lastSessionProjectRef.current = project.name;
-      void sessionFetcher.submit({ projectId: project.name, orgId: oid }, { method: 'POST' });
+      // Only sets the org/project cookies, so no loader needs to re-run. Without
+      // this, the submission revalidates the root and private layout loaders,
+      // repeating the user and membership reads the page just made.
+      void sessionFetcher.submit(
+        { projectId: project.name, orgId: oid },
+        { method: 'POST', defaultShouldRevalidate: false }
+      );
     }
   }, [bare, project?.name, org?.name, appOrg?.name, sessionFetcher]);
 

@@ -5,7 +5,7 @@ import {
 } from './fraud-redirect';
 import { MiddlewareContext, NextFunction } from './middleware';
 import { getRequestContext, oncePerRequest } from '@/modules/axios/request-context';
-import { createOrganizationService } from '@/resources/organizations';
+import { organizationsFromMemberships } from '@/resources/organizations/organization-request-cache.server';
 import { sessionContext } from '@/server/context';
 import { paths } from '@/utils/config/paths.config';
 import { getSession, isAuthenticated } from '@/utils/cookies';
@@ -111,8 +111,7 @@ async function redirectToOnboardingIfNoOrgs(
   deps: AuthMiddlewareDeps = {}
 ): Promise<Response | null> {
   const loadUser = deps.loadUser ?? getUserWithAccessRetry;
-  const listOrganizations =
-    deps.listOrganizations ?? (() => createOrganizationService().list({ limit: 1 }));
+  const listOrganizations = deps.listOrganizations ?? organizationsFromMemberships;
   const pathname = new URL(ctx.request.url).pathname;
   if (shouldSkipOnboardingRedirect(pathname)) {
     return null;
@@ -142,8 +141,10 @@ async function redirectToOnboardingIfNoOrgs(
   }
 
   try {
+    // The full list, not a `limit: 1` probe: the private layout lists every
+    // org on this request anyway, and sharing the key makes this one call.
     const organizations = await oncePerRequest(
-      requestCacheKeys.anyOrganizations,
+      requestCacheKeys.allOrganizations,
       listOrganizations
     );
     const hasOrganizations = organizations.items.length > 0;

@@ -36,7 +36,7 @@ import {
   useDeleteBillingAccount,
 } from '@/resources/billing-accounts';
 import { useOrganizations } from '@/resources/organizations';
-import { createOrganizationService } from '@/resources/organizations/organization.service';
+import { listOrganizationsForRequest } from '@/resources/organizations/organization-request-cache.server';
 import { createPaymentMethodService, usePaymentMethodsForOrgs } from '@/resources/payment-methods';
 import { createProjectService } from '@/resources/projects/project.service';
 import { buildOrganizationNamespace, orgIdFromNamespace } from '@/utils/common';
@@ -82,7 +82,7 @@ export const handle = {
  * point regardless of which org the account ends up in.
  */
 export const loader = async () => {
-  const organizations = await createOrganizationService().list();
+  const organizations = await listOrganizationsForRequest();
   // Only the orgs the user owns: an org's billing is for its owners.
   const orgIds = await requireOwnedBillingOrgs(organizations.items.map((o) => o.name));
 
