@@ -10,6 +10,11 @@ export const dnsZoneSchema = resourceMetadataSchema.extend({
   dnsZoneClassName: z.string(),
   /** Private zones answer only inside a VPC and never have public nameservers. */
   isPrivate: z.boolean(),
+  /**
+   * Resolver context that owns this zone. Set only on a VPC's default private
+   * zone, which the platform creates and deletes with the VPC.
+   */
+  managedByContext: z.string().optional(),
   status: z.any(),
   deletionTimestamp: z.coerce.date().optional(),
 });

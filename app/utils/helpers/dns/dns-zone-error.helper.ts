@@ -113,8 +113,18 @@ const GENERIC_GUIDANCE_FALLBACK =
  * {@link transformControlPlaneStatus}.
  */
 export function isDnsZoneErrored(status: IExtendedControlPlaneStatus): boolean {
-  return status.isProgrammed === false && !!status.programmedReason;
+  return (
+    status.isProgrammed === false &&
+    !!status.programmedReason &&
+    !DNS_ZONE_PENDING_REASONS.has(status.programmedReason)
+  );
 }
+
+/**
+ * `Programmed=False` reasons that mean "not yet", not "failed". Private zones
+ * report PendingReplicaApplication until a serving replica applies the change.
+ */
+export const DNS_ZONE_PENDING_REASONS: ReadonlySet<string> = new Set(['PendingReplicaApplication']);
 
 /**
  * Compute whether a DNS zone is in an errored state.

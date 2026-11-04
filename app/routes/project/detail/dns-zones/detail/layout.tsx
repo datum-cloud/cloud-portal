@@ -1,6 +1,7 @@
 import { type SubNavigationTab } from '@/components/sub-navigation';
 import { DnsZoneDelegationNotice } from '@/features/edge/dns-zone/components/dns-zone-delegation-notice';
 import { DnsZoneErrorBanner } from '@/features/edge/dns-zone/components/dns-zone-error-banner';
+import { PrivateZoneStatusNotice } from '@/features/edge/dns-zone/components/private-zone-status-notice';
 import { SubLayout } from '@/layouts';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
@@ -90,9 +91,18 @@ export default route.Page(({ data: dnsZone }) => {
           dnsZoneId: dnsZone?.name ?? '',
         }),
       },
-      // Private zones have no public nameservers to delegate to.
+      // Private zones have no public nameservers to delegate to; they answer
+      // only in the VPCs they're linked to.
       ...(dnsZone?.isPrivate
-        ? []
+        ? [
+            {
+              label: 'VPCs',
+              href: getPathWithParams(paths.project.detail.dnsZones.detail.vpcs, {
+                projectId,
+                dnsZoneId: dnsZone?.name ?? '',
+              }),
+            },
+          ]
         : [
             {
               label: 'Nameservers',
@@ -126,6 +136,7 @@ export default route.Page(({ data: dnsZone }) => {
       {!isNameserversTab && (
         <DnsZoneDelegationNotice zone={dnsZone} projectId={projectId} className="mb-6" />
       )}
+      <PrivateZoneStatusNotice zone={dnsZone} projectId={projectId} className="mb-6" />
       <Outlet />
     </SubLayout>
   );

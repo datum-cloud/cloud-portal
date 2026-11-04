@@ -29,6 +29,7 @@ import {
   useDnsZonesWatch,
 } from '@/resources/dns-zones';
 import { useRefreshDomainRegistration } from '@/resources/domains';
+import { type PrivateZoneState, usePrivateDnsLinkIndex } from '@/resources/private-dns';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
@@ -83,8 +84,23 @@ interface DnsZoneWithComputed extends DnsZone {
     isLoading: boolean;
     /** Why a healthy zone is not live yet: domain verification or nameserver delegation (issue #1461). */
     activationReason: DnsZoneActivationReason | null;
+    /** Private zones only, once their VPC links have loaded. */
+    privateState: PrivateZoneState | null;
   };
 }
+
+/** Badges for private zones that don't answer yet; ready and failed zones need none. */
+const PRIVATE_ZONE_NOTICES: Partial<Record<PrivateZoneState, { label: string; tooltip: string }>> =
+  {
+    unlinked: {
+      label: 'No VPCs',
+      tooltip: 'No VPC is linked to this zone, so nothing can resolve its records yet.',
+    },
+    preparing: {
+      label: 'Preparing',
+      tooltip: 'The latest changes are on their way to the DNS servers for the linked VPCs.',
+    },
+  };
 
 export default route.Page(({ data: initialZones }) => (
   <DnsZonesInner initialZones={initialZones} />
@@ -154,6 +170,10 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
     }
   }, [searchParams, setSearchParams, canCreate]);
 
+  const hasPrivateZones = zonesData.some((zone) => zone.isPrivate);
+  const privateLinks = usePrivateDnsLinkIndex(projectId, hasPrivateZones);
+  const privateLinksKnown = !privateLinks.isLoading && privateLinks.access === 'ok';
+
   // Pre-compute status for all zones (called once per zones change)
   const zonesWithStatus = useMemo<DnsZoneWithComputed[]>(() => {
     return zonesData.map((zone) => {
@@ -174,10 +194,12 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
           hasNameservers,
           isLoading: !zone.isPrivate && !hasNameservers && !hasError,
           activationReason: getDnsZoneDelegationState(zone, { hasError }).reason,
+          privateState:
+            zone.isPrivate && privateLinksKnown ? privateLinks.forZone(zone).state : null,
         },
       };
     });
-  }, [zonesData]);
+  }, [zonesData, privateLinks, privateLinksKnown]);
 
   const deleteMutation = useDeleteDnsZone(projectId, {
     onError: (error) => {
@@ -239,7 +261,9 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
         header: 'Zone Name',
         accessorKey: 'domainName',
         cell: ({ row }) => {
-          const { status, errorDescription, activationReason } = row.original._computed;
+          const { status, hasError, errorDescription, activationReason, privateState } =
+            row.original._computed;
+          const privateNotice = privateState ? PRIVATE_ZONE_NOTICES[privateState] : null;
 
           return (
             <div className="flex items-center gap-2" data-e2e="dns-zone-card">
@@ -250,11 +274,22 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
               </RowSyncName>
               <BadgeProgrammingError
                 className="rounded-lg px-2 py-0.5"
-                isProgrammed={status.isProgrammed}
+                isProgrammed={!hasError}
                 programmedReason={status.programmedReason}
                 statusMessage={errorDescription ?? status.message}
                 errorReasons={null}
               />
+              {privateNotice && (
+                <span data-e2e={`dns-zone-private-${privateState}`}>
+                  <BadgeStatus
+                    status={ControlPlaneStatus.Pending}
+                    label={privateNotice.label}
+                    showTooltip
+                    tooltipText={privateNotice.tooltip}
+                    className="rounded-lg px-2 py-0.5"
+                  />
+                </span>
+              )}
               {activationReason && (
                 <span data-e2e={`dns-zone-pending-${activationReason}`}>
                   <BadgeStatus

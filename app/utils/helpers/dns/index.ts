@@ -102,6 +102,7 @@ export {
 // DNS zone error state + remediation guidance
 export {
   isDnsZoneErrored,
+  DNS_ZONE_PENDING_REASONS,
   getDnsZoneErrorState,
   getDnsZoneErrorGuidance,
   type IDnsZoneErrorState,

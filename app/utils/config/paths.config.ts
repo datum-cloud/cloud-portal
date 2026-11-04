@@ -137,6 +137,7 @@ export const paths = {
           discovery: '/project/[projectId]/dns-zones/[dnsZoneId]/discovery',
           dnsRecords: '/project/[projectId]/dns-zones/[dnsZoneId]/dns-records',
           nameservers: '/project/[projectId]/dns-zones/[dnsZoneId]/nameservers',
+          vpcs: '/project/[projectId]/dns-zones/[dnsZoneId]/vpcs',
           activity: '/project/[projectId]/dns-zones/[dnsZoneId]/activity',
           settings: '/project/[projectId]/dns-zones/[dnsZoneId]/settings',
         },

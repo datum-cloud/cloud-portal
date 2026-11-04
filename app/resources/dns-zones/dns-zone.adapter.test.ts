@@ -49,6 +49,25 @@ describe('toDnsZone', () => {
     expect(zone.isPrivate).toBe(true);
   });
 
+  it('records the resolver context that owns a default private zone', () => {
+    const owner = {
+      apiVersion: 'dns.networking.miloapis.com/v1alpha1',
+      kind: 'DNSResolverContext',
+      name: 'ctx-web',
+      uid: 'ctx-uid',
+      controller: true,
+    };
+    const raw = (ownerReferences: unknown[]) => ({
+      metadata: { ...rawMetadata({ name: 'managed-1' }), ownerReferences },
+      spec: { domainName: 'datum.internal', dnsZoneClassName: 'private', visibility: 'Private' },
+    });
+    expect(toDnsZone(raw([owner]) as never).managedByContext).toBe('ctx-web');
+    expect(toDnsZone(raw([{ ...owner, controller: false }]) as never).managedByContext).toBe(
+      undefined
+    );
+    expect(toDnsZone(raw([]) as never).managedByContext).toBeUndefined();
+  });
+
   it('treats a zone without visibility as public', () => {
     const raw = {
       metadata: rawMetadata({ name: 'acme' }),

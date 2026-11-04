@@ -188,6 +188,7 @@ export default [
               index('routes/project/detail/dns-zones/detail/index.tsx'),
               route('dns-records', 'routes/project/detail/dns-zones/detail/dns-records.tsx'),
               route('nameservers', 'routes/project/detail/dns-zones/detail/nameservers.tsx'),
+              route('vpcs', 'routes/project/detail/dns-zones/detail/vpcs.tsx'),
               route('activity', 'routes/project/detail/dns-zones/detail/activity.tsx'),
               route('settings', 'routes/project/detail/dns-zones/detail/settings.tsx'),
             ]

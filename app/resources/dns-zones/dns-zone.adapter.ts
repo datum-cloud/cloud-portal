@@ -20,6 +20,12 @@ export function toDnsZone(raw: ComMiloapisNetworkingDnsV1Alpha1DnsZone): DnsZone
     dnsZoneClassName: raw.spec?.dnsZoneClassName ?? '',
     // The generated types predate spec.visibility.
     isPrivate: (raw.spec as { visibility?: string } | undefined)?.visibility === 'Private',
+    managedByContext: raw.metadata?.ownerReferences?.find(
+      (ref) =>
+        ref.controller &&
+        ref.kind === 'DNSResolverContext' &&
+        ref.apiVersion?.startsWith('dns.networking.miloapis.com/')
+    )?.name,
     status: raw.status ?? {},
     deletionTimestamp: raw.metadata?.deletionTimestamp,
   };
