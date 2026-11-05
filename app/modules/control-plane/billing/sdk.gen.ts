@@ -37,6 +37,9 @@ import type {
   CreateBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
   CreateBillingMiloapisComV1Alpha1NamespacedInvoiceData,
   CreateBillingMiloapisComV1Alpha1NamespacedInvoiceErrors,
+  CreateBillingMiloapisComV1Alpha1NamespacedInvoiceRequestData,
+  CreateBillingMiloapisComV1Alpha1NamespacedInvoiceRequestErrors,
+  CreateBillingMiloapisComV1Alpha1NamespacedInvoiceRequestResponses,
   CreateBillingMiloapisComV1Alpha1NamespacedInvoiceResponses,
   CreateBillingMiloapisComV1Alpha1NamespacedPaymentMethodData,
   CreateBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors,
@@ -79,6 +82,9 @@ import type {
   DeleteBillingMiloapisComV1Alpha1CollectionNamespacedCreditGrantResponses,
   DeleteBillingMiloapisComV1Alpha1CollectionNamespacedInvoiceData,
   DeleteBillingMiloapisComV1Alpha1CollectionNamespacedInvoiceErrors,
+  DeleteBillingMiloapisComV1Alpha1CollectionNamespacedInvoiceRequestData,
+  DeleteBillingMiloapisComV1Alpha1CollectionNamespacedInvoiceRequestErrors,
+  DeleteBillingMiloapisComV1Alpha1CollectionNamespacedInvoiceRequestResponses,
   DeleteBillingMiloapisComV1Alpha1CollectionNamespacedInvoiceResponses,
   DeleteBillingMiloapisComV1Alpha1CollectionNamespacedPaymentMethodData,
   DeleteBillingMiloapisComV1Alpha1CollectionNamespacedPaymentMethodErrors,
@@ -121,6 +127,9 @@ import type {
   DeleteBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
   DeleteBillingMiloapisComV1Alpha1NamespacedInvoiceData,
   DeleteBillingMiloapisComV1Alpha1NamespacedInvoiceErrors,
+  DeleteBillingMiloapisComV1Alpha1NamespacedInvoiceRequestData,
+  DeleteBillingMiloapisComV1Alpha1NamespacedInvoiceRequestErrors,
+  DeleteBillingMiloapisComV1Alpha1NamespacedInvoiceRequestResponses,
   DeleteBillingMiloapisComV1Alpha1NamespacedInvoiceResponses,
   DeleteBillingMiloapisComV1Alpha1NamespacedPaymentMethodData,
   DeleteBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors,
@@ -158,6 +167,9 @@ import type {
   ListBillingMiloapisComV1Alpha1InvoiceForAllNamespacesData,
   ListBillingMiloapisComV1Alpha1InvoiceForAllNamespacesErrors,
   ListBillingMiloapisComV1Alpha1InvoiceForAllNamespacesResponses,
+  ListBillingMiloapisComV1Alpha1InvoiceRequestForAllNamespacesData,
+  ListBillingMiloapisComV1Alpha1InvoiceRequestForAllNamespacesErrors,
+  ListBillingMiloapisComV1Alpha1InvoiceRequestForAllNamespacesResponses,
   ListBillingMiloapisComV1Alpha1MeterDefinitionData,
   ListBillingMiloapisComV1Alpha1MeterDefinitionErrors,
   ListBillingMiloapisComV1Alpha1MeterDefinitionResponses,
@@ -187,6 +199,9 @@ import type {
   ListBillingMiloapisComV1Alpha1NamespacedCreditGrantResponses,
   ListBillingMiloapisComV1Alpha1NamespacedInvoiceData,
   ListBillingMiloapisComV1Alpha1NamespacedInvoiceErrors,
+  ListBillingMiloapisComV1Alpha1NamespacedInvoiceRequestData,
+  ListBillingMiloapisComV1Alpha1NamespacedInvoiceRequestErrors,
+  ListBillingMiloapisComV1Alpha1NamespacedInvoiceRequestResponses,
   ListBillingMiloapisComV1Alpha1NamespacedInvoiceResponses,
   ListBillingMiloapisComV1Alpha1NamespacedPaymentMethodData,
   ListBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors,
@@ -259,6 +274,12 @@ import type {
   PatchBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusResponses,
   PatchBillingMiloapisComV1Alpha1NamespacedInvoiceData,
   PatchBillingMiloapisComV1Alpha1NamespacedInvoiceErrors,
+  PatchBillingMiloapisComV1Alpha1NamespacedInvoiceRequestData,
+  PatchBillingMiloapisComV1Alpha1NamespacedInvoiceRequestErrors,
+  PatchBillingMiloapisComV1Alpha1NamespacedInvoiceRequestResponses,
+  PatchBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusData,
+  PatchBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusErrors,
+  PatchBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusResponses,
   PatchBillingMiloapisComV1Alpha1NamespacedInvoiceResponses,
   PatchBillingMiloapisComV1Alpha1NamespacedInvoiceStatusData,
   PatchBillingMiloapisComV1Alpha1NamespacedInvoiceStatusErrors,
@@ -340,6 +361,12 @@ import type {
   ReadBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusResponses,
   ReadBillingMiloapisComV1Alpha1NamespacedInvoiceData,
   ReadBillingMiloapisComV1Alpha1NamespacedInvoiceErrors,
+  ReadBillingMiloapisComV1Alpha1NamespacedInvoiceRequestData,
+  ReadBillingMiloapisComV1Alpha1NamespacedInvoiceRequestErrors,
+  ReadBillingMiloapisComV1Alpha1NamespacedInvoiceRequestResponses,
+  ReadBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusData,
+  ReadBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusErrors,
+  ReadBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusResponses,
   ReadBillingMiloapisComV1Alpha1NamespacedInvoiceResponses,
   ReadBillingMiloapisComV1Alpha1NamespacedInvoiceStatusData,
   ReadBillingMiloapisComV1Alpha1NamespacedInvoiceStatusErrors,
@@ -421,6 +448,12 @@ import type {
   ReplaceBillingMiloapisComV1Alpha1NamespacedCreditGrantStatusResponses,
   ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceData,
   ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceErrors,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceRequestData,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceRequestErrors,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceRequestResponses,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusData,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusErrors,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusResponses,
   ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceResponses,
   ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceStatusData,
   ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceStatusErrors,
@@ -609,6 +642,24 @@ export const listBillingMiloapisComV1Alpha1CreditGrantForAllNamespaces = <
     ListBillingMiloapisComV1Alpha1CreditGrantForAllNamespacesErrors,
     ThrowOnError
   >({ url: '/apis/billing.miloapis.com/v1alpha1/creditgrants', ...options });
+
+/**
+ * list objects of kind InvoiceRequest
+ */
+export const listBillingMiloapisComV1Alpha1InvoiceRequestForAllNamespaces = <
+  ThrowOnError extends boolean = false,
+>(
+  options?: Options<ListBillingMiloapisComV1Alpha1InvoiceRequestForAllNamespacesData, ThrowOnError>
+): RequestResult<
+  ListBillingMiloapisComV1Alpha1InvoiceRequestForAllNamespacesResponses,
+  ListBillingMiloapisComV1Alpha1InvoiceRequestForAllNamespacesErrors,
+  ThrowOnError
+> =>
+  (options?.client ?? client).get<
+    ListBillingMiloapisComV1Alpha1InvoiceRequestForAllNamespacesResponses,
+    ListBillingMiloapisComV1Alpha1InvoiceRequestForAllNamespacesErrors,
+    ThrowOnError
+  >({ url: '/apis/billing.miloapis.com/v1alpha1/invoicerequests', ...options });
 
 /**
  * list objects of kind Invoice
@@ -2733,6 +2784,246 @@ export const replaceBillingMiloapisComV1Alpha1NamespacedCreditGrantStatus = <
     ThrowOnError
   >({
     url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/creditgrants/{name}/status',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * delete collection of InvoiceRequest
+ */
+export const deleteBillingMiloapisComV1Alpha1CollectionNamespacedInvoiceRequest = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<
+    DeleteBillingMiloapisComV1Alpha1CollectionNamespacedInvoiceRequestData,
+    ThrowOnError
+  >
+): RequestResult<
+  DeleteBillingMiloapisComV1Alpha1CollectionNamespacedInvoiceRequestResponses,
+  DeleteBillingMiloapisComV1Alpha1CollectionNamespacedInvoiceRequestErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).delete<
+    DeleteBillingMiloapisComV1Alpha1CollectionNamespacedInvoiceRequestResponses,
+    DeleteBillingMiloapisComV1Alpha1CollectionNamespacedInvoiceRequestErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/invoicerequests',
+    ...options,
+  });
+
+/**
+ * list objects of kind InvoiceRequest
+ */
+export const listBillingMiloapisComV1Alpha1NamespacedInvoiceRequest = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ListBillingMiloapisComV1Alpha1NamespacedInvoiceRequestData, ThrowOnError>
+): RequestResult<
+  ListBillingMiloapisComV1Alpha1NamespacedInvoiceRequestResponses,
+  ListBillingMiloapisComV1Alpha1NamespacedInvoiceRequestErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).get<
+    ListBillingMiloapisComV1Alpha1NamespacedInvoiceRequestResponses,
+    ListBillingMiloapisComV1Alpha1NamespacedInvoiceRequestErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/invoicerequests',
+    ...options,
+  });
+
+/**
+ * create an InvoiceRequest
+ */
+export const createBillingMiloapisComV1Alpha1NamespacedInvoiceRequest = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<CreateBillingMiloapisComV1Alpha1NamespacedInvoiceRequestData, ThrowOnError>
+): RequestResult<
+  CreateBillingMiloapisComV1Alpha1NamespacedInvoiceRequestResponses,
+  CreateBillingMiloapisComV1Alpha1NamespacedInvoiceRequestErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).post<
+    CreateBillingMiloapisComV1Alpha1NamespacedInvoiceRequestResponses,
+    CreateBillingMiloapisComV1Alpha1NamespacedInvoiceRequestErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/invoicerequests',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * delete an InvoiceRequest
+ */
+export const deleteBillingMiloapisComV1Alpha1NamespacedInvoiceRequest = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<DeleteBillingMiloapisComV1Alpha1NamespacedInvoiceRequestData, ThrowOnError>
+): RequestResult<
+  DeleteBillingMiloapisComV1Alpha1NamespacedInvoiceRequestResponses,
+  DeleteBillingMiloapisComV1Alpha1NamespacedInvoiceRequestErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).delete<
+    DeleteBillingMiloapisComV1Alpha1NamespacedInvoiceRequestResponses,
+    DeleteBillingMiloapisComV1Alpha1NamespacedInvoiceRequestErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/invoicerequests/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * read the specified InvoiceRequest
+ */
+export const readBillingMiloapisComV1Alpha1NamespacedInvoiceRequest = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReadBillingMiloapisComV1Alpha1NamespacedInvoiceRequestData, ThrowOnError>
+): RequestResult<
+  ReadBillingMiloapisComV1Alpha1NamespacedInvoiceRequestResponses,
+  ReadBillingMiloapisComV1Alpha1NamespacedInvoiceRequestErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).get<
+    ReadBillingMiloapisComV1Alpha1NamespacedInvoiceRequestResponses,
+    ReadBillingMiloapisComV1Alpha1NamespacedInvoiceRequestErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/invoicerequests/{name}',
+    ...options,
+  });
+
+/**
+ * partially update the specified InvoiceRequest
+ */
+export const patchBillingMiloapisComV1Alpha1NamespacedInvoiceRequest = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PatchBillingMiloapisComV1Alpha1NamespacedInvoiceRequestData, ThrowOnError>
+): RequestResult<
+  PatchBillingMiloapisComV1Alpha1NamespacedInvoiceRequestResponses,
+  PatchBillingMiloapisComV1Alpha1NamespacedInvoiceRequestErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).patch<
+    PatchBillingMiloapisComV1Alpha1NamespacedInvoiceRequestResponses,
+    PatchBillingMiloapisComV1Alpha1NamespacedInvoiceRequestErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/invoicerequests/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json-patch+json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * replace the specified InvoiceRequest
+ */
+export const replaceBillingMiloapisComV1Alpha1NamespacedInvoiceRequest = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceRequestData, ThrowOnError>
+): RequestResult<
+  ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceRequestResponses,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceRequestErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).put<
+    ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceRequestResponses,
+    ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceRequestErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/invoicerequests/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * read status of the specified InvoiceRequest
+ */
+export const readBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReadBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusData, ThrowOnError>
+): RequestResult<
+  ReadBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusResponses,
+  ReadBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).get<
+    ReadBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusResponses,
+    ReadBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/invoicerequests/{name}/status',
+    ...options,
+  });
+
+/**
+ * partially update status of the specified InvoiceRequest
+ */
+export const patchBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PatchBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusData, ThrowOnError>
+): RequestResult<
+  PatchBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusResponses,
+  PatchBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).patch<
+    PatchBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusResponses,
+    PatchBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/invoicerequests/{name}/status',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json-patch+json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * replace status of the specified InvoiceRequest
+ */
+export const replaceBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<
+    ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusData,
+    ThrowOnError
+  >
+): RequestResult<
+  ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusResponses,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).put<
+    ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusResponses,
+    ReplaceBillingMiloapisComV1Alpha1NamespacedInvoiceRequestStatusErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/invoicerequests/{name}/status',
     ...options,
     headers: {
       'Content-Type': 'application/json',

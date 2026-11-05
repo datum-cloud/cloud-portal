@@ -12,6 +12,7 @@ import {
   type CreateBillingAccountValues,
   type OrgOption,
 } from '@/features/billing/dialogs/create-billing-account-dialog';
+import { paymentTermsSummary } from '@/features/billing/payment-terms';
 import {
   getBillingAccountDisplayName,
   isBillingAccountReady,
@@ -51,7 +52,7 @@ import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { useQueries } from '@tanstack/react-query';
-import { Building, PlusIcon, Trash2Icon } from 'lucide-react';
+import { Building, PlusIcon, ReceiptTextIcon, Trash2Icon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { type MetaFunction, useLoaderData, useNavigate, useSearchParams } from 'react-router';
 
@@ -584,7 +585,12 @@ export default function AccountBillingAccountsPage() {
             );
           }
           return (
-            <ChipsOverflow items={row.original.projectLabels} maxVisible={2} theme="outline" />
+            <ChipsOverflow
+              items={row.original.projectLabels}
+              maxVisible={2}
+              theme="outline"
+              chipClassName="max-w-48"
+            />
           );
         },
       },
@@ -592,6 +598,16 @@ export default function AccountBillingAccountsPage() {
         header: 'Default payment method',
         id: 'defaultPaymentMethod',
         cell: ({ row }) => {
+          // Payment terms win over a card: an account on them pays by
+          // invoice, so its card isn't charged.
+          if (paymentTermsSummary(row.original.account)) {
+            return (
+              <div className="flex items-center gap-2">
+                <Icon icon={ReceiptTextIcon} className="text-icon-primary size-3.5" />
+                <Text textColor="default">Invoice</Text>
+              </div>
+            );
+          }
           const ref = row.original.account.spec?.defaultPaymentMethodRef?.name;
           if (!ref) {
             return (
