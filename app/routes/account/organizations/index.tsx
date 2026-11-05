@@ -8,15 +8,17 @@ import {
 } from '@/features/onboarding/schemas/org-contact-info-schema';
 import { CreateOrganizationDialog } from '@/features/organization/create/create-organization-dialog';
 import type { DeletedOrganizationState } from '@/features/organization/use-delete-organization-confirmation';
-import { getRequestContext, oncePerRequest } from '@/modules/axios/request-context';
+import { getRequestContext } from '@/modules/axios/request-context';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import {
   useOrganizationMemberAvatars,
   useOrganizationsGql,
   type Organization,
 } from '@/resources/organizations';
-import { createOrganizationService } from '@/resources/organizations';
-import { listOrganizationsForRequest } from '@/resources/organizations/organization-request-cache.server';
+import {
+  hasOrganizationsForRequest,
+  listOrganizationsForRequest,
+} from '@/resources/organizations/organization-request-cache.server';
 import { createStripeProviderConfigService } from '@/resources/stripe-provider-configs';
 import { loaderFailureRedirect, requireSessionSub } from '@/utils/auth/require-session.server';
 import { paths } from '@/utils/config/paths.config';
@@ -29,7 +31,6 @@ import {
 } from '@/utils/fraud/user-access';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { onboardingEntryPath } from '@/utils/middlewares/fraud-redirect';
-import { requestCacheKeys } from '@/utils/request-cache-keys';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -68,10 +69,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
         ? ({ user: reqCtx.cachedUser } as UserAccessResult)
         : loadUserOncePerRequest(sub, request.headers.get('Cookie')),
       // `??` rather than `||`: a cached `false` is a real answer, not a miss.
-      reqCtx?.hasOrganizations ??
-        oncePerRequest(requestCacheKeys.anyOrganizations, () =>
-          createOrganizationService().list({ limit: 1 })
-        ).then((orgs) => orgs.items.length > 0),
+      reqCtx?.hasOrganizations ?? hasOrganizationsForRequest(),
     ]);
 
     if ('error' in access) {

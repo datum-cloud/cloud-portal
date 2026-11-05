@@ -42,6 +42,39 @@ export const organizationKeys = {
 
 const SERVICE_NAME = 'OrganizationService';
 
+/** A page of the caller's memberships, as the API returned it. */
+export interface MembershipPage {
+  items: ComMiloapisResourcemanagerV1Alpha1OrganizationMembership[];
+  continue: string | null;
+}
+
+/**
+ * Memberships to the organizations they point at, without Deleting ones:
+ * personal organizations first, then by display name. Pure, so a list
+ * already fetched for another purpose can be reused.
+ */
+export function toOrganizationList(page: MembershipPage): OrganizationList {
+  // Note: org.status is already mapped to 'Active', 'Pending', etc. by the adapter
+  const items = page.items
+    .map(toOrganizationFromMembership)
+    .filter((org) => org.status !== 'Deleting')
+    .sort((a, b) => {
+      // Personal organizations first
+      if (a.type === 'Personal' && b.type !== 'Personal') return -1;
+      if (b.type === 'Personal' && a.type !== 'Personal') return 1;
+      // Then alphabetically by displayName
+      const aName = a.displayName ?? a.name ?? '';
+      const bName = b.displayName ?? b.name ?? '';
+      return aName.localeCompare(bName);
+    });
+
+  return {
+    items,
+    nextCursor: page.continue,
+    hasMore: !!page.continue,
+  };
+}
+
 export function createOrganizationService() {
   return {
     async list(params?: PaginationParams, _options?: ServiceOptions): Promise<OrganizationList> {
@@ -63,6 +96,10 @@ export function createOrganizationService() {
     },
 
     async fetchList(params?: PaginationParams): Promise<OrganizationList> {
+      return toOrganizationList(await this.fetchMembershipPage(params));
+    },
+
+    async fetchMembershipPage(params?: PaginationParams): Promise<MembershipPage> {
       const response =
         await listResourcemanagerMiloapisComV1Alpha1OrganizationMembershipForAllNamespaces({
           baseURL: getUserScopedBase(),
@@ -72,31 +109,9 @@ export function createOrganizationService() {
           },
         });
 
-      const data = response.data;
-
-      if (!data?.items) {
-        return { items: [], nextCursor: null, hasMore: false };
-      }
-
-      // Transform memberships to organizations, filter by status, and sort
-      // Note: org.status is already mapped to 'Active', 'Pending', etc. by the adapter
-      const items = data.items
-        .map(toOrganizationFromMembership)
-        .filter((org) => org.status !== 'Deleting')
-        .sort((a, b) => {
-          // Personal organizations first
-          if (a.type === 'Personal' && b.type !== 'Personal') return -1;
-          if (b.type === 'Personal' && a.type !== 'Personal') return 1;
-          // Then alphabetically by displayName
-          const aName = a.displayName ?? a.name ?? '';
-          const bName = b.displayName ?? b.name ?? '';
-          return aName.localeCompare(bName);
-        });
-
       return {
-        items,
-        nextCursor: data.metadata?.continue ?? null,
-        hasMore: !!data.metadata?.continue,
+        items: response.data?.items ?? [],
+        continue: response.data?.metadata?.continue ?? null,
       };
     },
 
@@ -286,13 +301,7 @@ export function createOrganizationService() {
     },
 
     async fetchMemberships(): Promise<ComMiloapisResourcemanagerV1Alpha1OrganizationMembership[]> {
-      const response =
-        await listResourcemanagerMiloapisComV1Alpha1OrganizationMembershipForAllNamespaces({
-          baseURL: getUserScopedBase(),
-          query: { limit: 1000 },
-        });
-
-      return response.data?.items ?? [];
+      return (await this.fetchMembershipPage()).items;
     },
 
     async fetchMembershipForOrganization(
