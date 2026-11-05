@@ -7,6 +7,7 @@ import {
   BILLING_ACCOUNT_DISPLAY_NAME_ANNOTATION,
   BillingAddressFieldsCard,
   BillingAddressForm,
+  ContractCard,
   DiscountsCard,
   DisplayNameFormCard,
   InvoiceEmailCard,
@@ -17,6 +18,7 @@ import {
   getBillingAccountDisplayName,
   isStaleInvoice,
   accountDiscounts,
+  contractSummary,
   summarizeDiscounts,
   toPastInvoiceRow,
   type BillingAccount,
@@ -771,7 +773,8 @@ function AccountBillingAccountDetailPageInner() {
     [invoiceEmailMutation, orgId, accountName, contactInfo]
   );
 
-  const paymentTerms = paymentTermsSummary(account);
+  const paymentTerms = paymentTermsSummary(account, renderedAt);
+  const contract = contractSummary(account, renderedAt);
   // Only org owners apply, and only while PAYMENT_TERMS_ENABLED is on.
   // Otherwise the payment methods section only reports terms or an
   // application that already exist.
@@ -807,6 +810,14 @@ function AccountBillingAccountDetailPageInner() {
           description="Every project funded by this billing account, grouped by the organization that owns it. The binding is set from each project's own billing settings — open a row to change or remove it.">
           <AssignmentsCard assignments={assignments} />
         </Section>
+
+        {contract ? (
+          <Section
+            title="Contract"
+            description="The contract this account is billed under, set up with our team. To change it, contact support.">
+            <ContractCard contract={contract} />
+          </Section>
+        ) : null}
 
         <Section
           title="Payment methods"
