@@ -64,6 +64,22 @@ export function workloadNameFromNetworkService(
   );
 }
 
+/**
+ * The NetworkService a new load balancer should send to for `workload`, and
+ * its port when there is only one to pick. Undefined when the workload has no
+ * service yet, since only a service can be a load balancer's backend.
+ */
+export function serviceForWorkload(
+  services: ComDatumapisNetworkingV1AlphaNetworkService[],
+  workload: string
+): { name: string; port?: string } | undefined {
+  const service = services.find((svc) => workloadNameFromNetworkService(svc) === workload);
+  const name = service?.metadata?.name;
+  if (!name) return undefined;
+  const ports = service.spec?.ports ?? [];
+  return { name, port: ports.length === 1 ? ports[0].name : undefined };
+}
+
 export function isComputeBackend(proxy: HttpProxy | undefined): boolean {
   return Boolean(proxy?.workloadName || proxy?.networkService?.name);
 }
