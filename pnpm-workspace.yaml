@@ -33,6 +33,8 @@ overrides:
   graphql: 17.0.2
   qs: ^6.17.1
   tinypool: ^2.1.2
+  brace-expansion@2: ^2.1.7
+  '@graphql-tools/utils': ^12.0.2
   # react-router-hono-server's peer floor; npm never enforced it.
   ws@^8: ^8.21.3
   '@hey-api/json-schema-ref-parser>js-yaml': ^4.3.2

@@ -17,6 +17,11 @@ export interface ChipsOverflowProps {
   renderChip?: (item: ChipsOverflowItem, index: number) => React.ReactNode;
   overflowLabel?: (hiddenCount: number) => string;
   className?: string;
+  /**
+   * Classes for each default chip. Give it a max width (e.g. `max-w-48`) to
+   * cut long text chips short with an ellipsis; the full text shows on hover.
+   */
+  chipClassName?: string;
   wrap?: boolean;
   disabled?: boolean;
   onChipClick?: (item: ChipsOverflowItem, index: number) => void;
@@ -37,6 +42,7 @@ export function ChipsOverflow({
   renderChip,
   overflowLabel = (n) => `${n}+`,
   className,
+  chipClassName,
   wrap = false,
   disabled = false,
   onChipClick,
@@ -54,16 +60,18 @@ export function ChipsOverflow({
 
   const renderDefaultChip = (item: ChipsOverflowItem, index: number) => {
     const isClickable = Boolean(onChipClick) && !disabled;
-    const content = typeof item === 'string' ? item : item;
+    const content = typeof item === 'string' ? <span className="truncate">{item}</span> : item;
     return (
       <Badge
         key={index}
         type={type}
         theme={theme}
+        title={typeof item === 'string' ? item : undefined}
         className={cn(
           'rounded-xl font-normal',
           sizeClassNames[size],
-          isClickable ? 'cursor-pointer' : 'cursor-default'
+          isClickable ? 'cursor-pointer' : 'cursor-default',
+          chipClassName
         )}
         onClick={(event) => {
           event.stopPropagation();
