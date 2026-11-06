@@ -22,6 +22,8 @@ overrides:
   graphql: 17.0.2
   qs: ^6.17.1
   tinypool: ^2.1.2
+  brace-expansion@2: ^2.1.7
+  '@graphql-tools/utils': ^12.0.2
   ws@^8: ^8.21.3
   '@hey-api/json-schema-ref-parser>js-yaml': ^4.3.2
   '@datum-cloud/activity-ui>monaco-editor': ^0.56.0
@@ -40,10 +42,10 @@ importers:
         version: 1.21.1(zod@4.6.6)
       '@datum-cloud/activity-ui':
         specifier: ^0.7.1
-        version: 0.7.1(@datum-cloud/datum-ui@3.6.0(b2400c276217603e25468f7448342d99))(@monaco-editor/react@4.7.0(monaco-editor@0.56.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@radix-ui/react-tooltip@1.2.16(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(monaco-editor@0.56.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        version: 0.7.1(@datum-cloud/datum-ui@3.8.0(b2400c276217603e25468f7448342d99))(@monaco-editor/react@4.7.0(monaco-editor@0.56.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@radix-ui/react-tooltip@1.2.16(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(monaco-editor@0.56.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@datum-cloud/datum-ui':
-        specifier: ^3.6.0
-        version: 3.6.0(b2400c276217603e25468f7448342d99)
+        specifier: ^3.8.0
+        version: 3.8.0(b2400c276217603e25468f7448342d99)
       '@datum-cloud/portal-plugin-sdk':
         specifier: ^1.0.0
         version: 1.0.0(react@19.3.0)
@@ -265,7 +267,7 @@ importers:
         version: 4.0.0(tailwindcss@4.3.3)
       tailwind-variants:
         specifier: ^3.3.1
-        version: 3.3.1(tailwind-merge@3.6.0)(tailwindcss@4.3.3)
+        version: 3.3.1(tailwind-merge@3.7.0)(tailwindcss@4.3.3)
       tegaki:
         specifier: ^0.22.1
         version: 0.22.1(react@19.3.0)
@@ -619,8 +621,8 @@ packages:
     peerDependencies:
       ai: '>=7 <8'
 
-  '@datum-cloud/datum-ui@3.6.0':
-    resolution: {integrity: sha512-SWA6m7k1UXsu8JZEjFGo0K32zfaoNFozYtLlrx7emNSP1TRBIOLkFVtRSewIhWKVPPMIdgI2o5zE2EuF+F0MOg==}
+  '@datum-cloud/datum-ui@3.8.0':
+    resolution: {integrity: sha512-T0IJxfBllKP7/TWO1Pbi7XCKKUYa0icaK176Okoyy1k4gR6ibOVl9QZSDrqR7LiHKGOVar7htzbetDID6K9vsQ==}
     peerDependencies:
       '@conform-to/react': '>=1.19.4 <2'
       '@conform-to/zod': '>=1.19.4 <2'
@@ -662,7 +664,7 @@ packages:
       recharts: '>=3 <4'
       sonner: '>=2.0.7 <3'
       streamdown: '>=2 <3'
-      zod: '>=4 <5'
+      zod: '>=4.6.6 <5'
     peerDependenciesMeta:
       '@conform-to/react':
         optional: true
@@ -713,8 +715,6 @@ packages:
       leaflet.markercluster:
         optional: true
       monaco-editor:
-        optional: true
-      motion:
         optional: true
       nprogress:
         optional: true
@@ -1024,12 +1024,6 @@ packages:
 
   '@graphql-tools/schema@10.1.1':
     resolution: {integrity: sha512-24jJghRxEW+SG1lbJ45Zg9HEZ8ZKS923ihbFjOicspFLpryxJkWp6gZJ7D8tCVaSAhli4x1+1wDPAfhT8mLqxg==}
-    engines: {node: '>=16.0.0'}
-    peerDependencies:
-      graphql: 17.0.2
-
-  '@graphql-tools/utils@11.2.2':
-    resolution: {integrity: sha512-Do2A/t6ayqOma8m7PvpYMsCBswL+NB35BQSng4GWSBqafL2/BnfAZy/NSENPwV721Rm2fG0BHETFC0+FJJZmLw==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
       graphql: 17.0.2
@@ -3552,10 +3546,6 @@ packages:
   '@vue/shared@3.5.42':
     resolution: {integrity: sha512-2rPxex1jQf4jvl9MOHl6YaXCPcrNqz/FstMOEh3QWY+/OME9nQTvl9WYeCwhW7AFjaR0SnngZGlp/wkR6rkI6g==}
 
-  '@whatwg-node/promise-helpers@1.3.2':
-    resolution: {integrity: sha512-Nst5JdK47VIl9UcGwtv2Rcgyn5lWtZ0/mhRQ4G8NN2isxpq2TO30iqHzmwoJycjWuyUfg3GFXqP/gFHXeV57IA==}
-    engines: {node: '>=16.0.0'}
-
   '@whatwg-node/promise-helpers@2.0.1':
     resolution: {integrity: sha512-ziVgm01A9irPLVBaUFei64qp771BrDXldbv5pY6kgFgNtA+7zq8ux6nj/6w8bELGH/+Ttnc76ox04HIjU8nqvg==}
     engines: {node: '>=22.15.0'}
@@ -3827,8 +3817,8 @@ packages:
   brace-expansion@1.1.21:
     resolution: {integrity: sha512-9zeA+KLZNNzglF2TPKRQEDyx6Yby7daAkuy8MiPzpXPsYDWi/DRM8jmwUDxokQjYqBpv5DgPiwD4h4ZZSy1Ujw==}
 
-  brace-expansion@2.1.4:
-    resolution: {integrity: sha512-hGfVzPxthbf3+2yjg/RBs60cB0FhqBS/zvdV/4wn4/BmN0bNMMHPc4V/BbFieqf1TKAGGAHnY4eSjajCl0f2Xg==}
+  brace-expansion@2.1.7:
+    resolution: {integrity: sha512-uZbew1NqdmPDTMJ8ah1y+b+9QEJrfkXFk3RcTQw3X0jW/xRUvFKsg1CfQdSYGdTbXZWExtU3J3ccxtnfw1Fi0g==}
 
   brace-expansion@5.0.12:
     resolution: {integrity: sha512-YovQ3rzhaLMIrDjNDMkNS01tea93qhEhG5xy8f6+R0l+dw3Ki+5sCoIoI942iuLZTHWogWktgwVDhU09iNEimQ==}
@@ -7230,8 +7220,8 @@ packages:
     os: [darwin, linux, win32, freebsd, openbsd, netbsd, sunos, android]
     hasBin: true
 
-  tailwind-merge@3.6.0:
-    resolution: {integrity: sha512-uxL7qAVQriqRQPAyK3pj66VqskWqoZ37PW94jwOTwNfq/z9oyu1V+eqrZqtR2+fCiXdYOZe/Modt8GtvqNzu+w==}
+  tailwind-merge@3.7.0:
+    resolution: {integrity: sha512-XPPUyAc+cvspz3lHTcR/QgPfW2A0lv/xQNIjX3HGhLR+Nq2lHaLq5MtTesHn8GUr3W3DguT2KT5x3NVgRtYwmA==}
 
   tailwind-scrollbar-hide@4.0.0:
     resolution: {integrity: sha512-gobtvVcThB2Dxhy0EeYSS1RKQJ5baDFkamkhwBvzvevwX6L4XQfpZ3me9s25Ss1ecFVT5jPYJ50n+7xTBJG9WQ==}
@@ -8100,9 +8090,9 @@ snapshots:
 
   '@date-fns/tz@1.5.0': {}
 
-  '@datum-cloud/activity-ui@0.7.1(@datum-cloud/datum-ui@3.6.0(b2400c276217603e25468f7448342d99))(@monaco-editor/react@4.7.0(monaco-editor@0.56.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@radix-ui/react-tooltip@1.2.16(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(monaco-editor@0.56.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+  '@datum-cloud/activity-ui@0.7.1(@datum-cloud/datum-ui@3.8.0(b2400c276217603e25468f7448342d99))(@monaco-editor/react@4.7.0(monaco-editor@0.56.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@radix-ui/react-tooltip@1.2.16(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(monaco-editor@0.56.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
-      '@datum-cloud/datum-ui': 3.6.0(b2400c276217603e25468f7448342d99)
+      '@datum-cloud/datum-ui': 3.8.0(b2400c276217603e25468f7448342d99)
       '@monaco-editor/react': 4.7.0(monaco-editor@0.56.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@radix-ui/react-tooltip': 1.2.16(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       class-variance-authority: 0.7.1
@@ -8112,13 +8102,13 @@ snapshots:
       monaco-editor: 0.56.0
       react: 19.3.0
       react-dom: 19.3.0(react@19.3.0)
-      tailwind-merge: 3.6.0
+      tailwind-merge: 3.7.0
 
   '@datum-cloud/datum-ui-assistant-core@0.1.0(ai@7.0.97(zod@4.6.6))':
     dependencies:
       ai: 7.0.97(zod@4.6.6)
 
-  '@datum-cloud/datum-ui@3.6.0(b2400c276217603e25468f7448342d99)':
+  '@datum-cloud/datum-ui@3.8.0(b2400c276217603e25468f7448342d99)':
     dependencies:
       '@datum-cloud/datum-ui-assistant-core': 0.1.0(ai@7.0.97(zod@4.6.6))
       '@radix-ui/react-avatar': 1.2.6(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -8142,9 +8132,10 @@ snapshots:
       cmdk: 1.1.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       isomorphic-dompurify: 3.23.0
       lucide-react: 1.45.0(react@19.3.0)
+      motion: 13.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react: 19.3.0
       react-dom: 19.3.0(react@19.3.0)
-      tailwind-merge: 3.6.0
+      tailwind-merge: 3.7.0
       tw-animate-css: 1.4.0
     optionalDependencies:
       '@conform-to/react': 1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -8165,7 +8156,6 @@ snapshots:
       date-fns-tz: 3.2.0(date-fns@4.4.0)
       js-yaml: 5.4.1
       monaco-editor: 0.56.0
-      motion: 13.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       nprogress: 0.2.0
       nuqs: 2.10.1(react-router@8.3.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
       react-day-picker: 10.0.1(@types/react@19.3.0)(react@19.3.0)
@@ -8386,7 +8376,7 @@ snapshots:
   '@graphql-tools/graphql-file-loader@8.1.14(graphql@17.0.2)':
     dependencies:
       '@graphql-tools/import': 7.2.0(graphql@17.0.2)
-      '@graphql-tools/utils': 11.2.2(graphql@17.0.2)
+      '@graphql-tools/utils': 12.1.0(graphql@17.0.2)
       globby: 11.1.0
       graphql: 17.0.2
       tslib: 2.8.1
@@ -8402,7 +8392,7 @@ snapshots:
   '@graphql-tools/load@8.1.10(graphql@17.0.2)':
     dependencies:
       '@graphql-tools/schema': 10.1.1(graphql@17.0.2)
-      '@graphql-tools/utils': 11.2.2(graphql@17.0.2)
+      '@graphql-tools/utils': 12.1.0(graphql@17.0.2)
       graphql: 17.0.2
       p-limit: 3.1.0
       tslib: 2.8.1
@@ -8417,14 +8407,6 @@ snapshots:
     dependencies:
       '@graphql-tools/merge': 9.2.4(graphql@17.0.2)
       '@graphql-tools/utils': 12.1.0(graphql@17.0.2)
-      graphql: 17.0.2
-      tslib: 2.8.1
-
-  '@graphql-tools/utils@11.2.2(graphql@17.0.2)':
-    dependencies:
-      '@graphql-typed-document-node/core': 3.2.0(graphql@17.0.2)
-      '@whatwg-node/promise-helpers': 1.3.2
-      cross-inspect: 1.0.1
       graphql: 17.0.2
       tslib: 2.8.1
 
@@ -11067,10 +11049,6 @@ snapshots:
 
   '@vue/shared@3.5.42': {}
 
-  '@whatwg-node/promise-helpers@1.3.2':
-    dependencies:
-      tslib: 2.8.1
-
   '@whatwg-node/promise-helpers@2.0.1':
     dependencies:
       tslib: 2.8.1
@@ -11339,7 +11317,7 @@ snapshots:
       balanced-match: 1.0.2
       concat-map: 0.0.1
 
-  brace-expansion@2.1.4:
+  brace-expansion@2.1.7:
     dependencies:
       balanced-match: 1.0.2
 
@@ -13987,7 +13965,7 @@ snapshots:
 
   minimatch@9.0.9:
     dependencies:
-      brace-expansion: 2.1.4
+      brace-expansion: 2.1.7
 
   minimist@1.2.8: {}
 
@@ -15111,7 +15089,7 @@ snapshots:
       remark-parse: 11.0.0(supports-color@8.1.1)
       remark-rehype: 11.1.2
       remend: 1.3.1
-      tailwind-merge: 3.6.0
+      tailwind-merge: 3.7.0
       unified: 11.0.5
       unist-util-visit: 5.1.0
       unist-util-visit-parents: 6.0.2
@@ -15267,15 +15245,15 @@ snapshots:
 
   systeminformation@5.33.19: {}
 
-  tailwind-merge@3.6.0: {}
+  tailwind-merge@3.7.0: {}
 
   tailwind-scrollbar-hide@4.0.0(tailwindcss@4.3.3):
     dependencies:
       tailwindcss: 4.3.3
 
-  tailwind-variants@3.3.1(tailwind-merge@3.6.0)(tailwindcss@4.3.3):
+  tailwind-variants@3.3.1(tailwind-merge@3.7.0)(tailwindcss@4.3.3):
     optionalDependencies:
-      tailwind-merge: 3.6.0
+      tailwind-merge: 3.7.0
       tailwindcss: 4.3.3
 
   tailwindcss@4.3.3: {}

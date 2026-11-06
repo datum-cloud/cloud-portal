@@ -21,7 +21,8 @@ import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 export interface HttpProxyFormDialogRef {
-  show: () => void;
+  /** `workload` opens it on Datum compute with that workload chosen, when it has a service. */
+  show: (options?: { workload?: string }) => void;
   hide: () => void;
 }
 
@@ -43,6 +44,8 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
     const [isIPOrigin, setIsIPOrigin] = useState(false);
     const [protocol, setProtocol] = useState('https');
     const [originType, setOriginType] = useState<OriginType>('endpoint');
+    // The workload a link asked for (the compute plugin's "Add to a load balancer").
+    const [preferredWorkload, setPreferredWorkload] = useState<string>();
     // Only projects entitled to compute have the plugin, and workloads to pick.
     const computeAvailable = !!useComputePluginSlug(projectId);
     const toWorkload = computeAvailable && originType === 'networkService';
@@ -62,14 +65,17 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
     });
 
     const defaultValues: Partial<HttpProxySchema> = {
-      originType: 'endpoint',
+      originType: preferredWorkload && computeAvailable ? 'networkService' : 'endpoint',
+      ...(preferredWorkload ? { chosenName: preferredWorkload } : {}),
       protocol: 'https',
       trafficProtectionMode: 'Enforce',
       paranoiaLevelBlocking: 1,
       enableHttpRedirect: true,
     };
 
-    const show = useCallback(() => {
+    const show = useCallback((options?: { workload?: string }) => {
+      setPreferredWorkload(options?.workload);
+      setOriginType(options?.workload ? 'networkService' : 'endpoint');
       setOpen(true);
     }, []);
 
@@ -87,7 +93,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
           : { endpoint: `${protocol}://${data.endpointHost}`, tlsHostname: data.tlsHostname };
 
       const resourceName = data.chosenName
-        ? generateId(data.chosenName as string, {
+        ? generateId(data.chosenName, {
             randomText: nameRandomSuffix,
             randomLength: 6,
           })
@@ -175,7 +181,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
             ) : null}
 
             {toWorkload ? (
-              <WorkloadServiceFields projectId={projectId} />
+              <WorkloadServiceFields projectId={projectId} preferredWorkload={preferredWorkload} />
             ) : (
               <Form.Field
                 tooltip="Origin is the hostname or IP address where your service is running"

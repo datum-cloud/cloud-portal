@@ -9,6 +9,7 @@
  */
 import { invoiceEmail } from './invoice-email';
 import type { BillingAccount, BillingArrangementApplication } from './types';
+import { cycleTerms } from '@/modules/billing/billing-cycle';
 
 export type ApplicationSpec = NonNullable<BillingArrangementApplication['spec']>;
 export type ApplicationPhase = NonNullable<
@@ -146,7 +147,7 @@ export function latestApplication(
     })[0];
 }
 
-function ordinal(day: number): string {
+export function ordinal(day: number): string {
   const tens = day % 100;
   if (tens >= 11 && tens <= 13) return `${day}th`;
   switch (day % 10) {
@@ -161,9 +162,12 @@ function ordinal(day: number): string {
   }
 }
 
-/** "Monthly, on the 1st". */
-export function billingCycleLabel(account: BillingAccount | undefined): string {
-  const terms = account?.spec?.paymentTerms;
+/**
+ * "Monthly, on the 1st". Follows the contract's billing day once it has
+ * started, as the usage cycles do.
+ */
+export function billingCycleLabel(account: BillingAccount | undefined, now = Date.now()): string {
+  const terms = cycleTerms(account, new Date(now));
   const frequency = terms?.invoiceFrequency ?? 'Monthly';
   const day = terms?.invoiceDayOfMonth ?? 1;
   return `${frequency}, on the ${ordinal(day)}`;
@@ -192,7 +196,8 @@ export interface PaymentTermsSummary {
  * `status.paymentArrangement`, or undefined when there are none.
  */
 export function paymentTermsSummary(
-  account: BillingAccount | undefined
+  account: BillingAccount | undefined,
+  now = Date.now()
 ): PaymentTermsSummary | undefined {
   const arrangement = account?.status?.paymentArrangement;
   const invoice = arrangement?.invoice;
@@ -203,7 +208,7 @@ export function paymentTermsSummary(
     netDays: invoice.netDays ?? 30,
     invoiceEmail: invoiceEmail(account.spec?.contactInfo),
     purchaseOrderNumber: invoice.purchaseOrderNumber || undefined,
-    billingCycle: billingCycleLabel(account),
+    billingCycle: billingCycleLabel(account, now),
     startsAt: arrangement.startsAt,
     endsAt: arrangement.endsAt,
   };

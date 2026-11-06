@@ -92,7 +92,11 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const { canCreate, canDelete } = useResourcePermissions({
+  const {
+    canCreate,
+    canDelete,
+    isLoading: permissionsLoading,
+  } = useResourcePermissions({
     resource: 'httpproxies',
     group: 'networking.datumapis.com',
     scope: 'project',
@@ -156,16 +160,19 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
 
   const proxyFormRef = useRef<HttpProxyFormDialogRef>(null);
 
+  // `?action=create` (and `&workload=<name>` from the compute plugin) opens the
+  // create dialog. Wait for the permission check, which reads false until it
+  // answers, so the link isn't consumed before the dialog can open.
   useEffect(() => {
-    if (searchParams.get('action') === 'create') {
-      if (canCreate) {
-        proxyFormRef.current?.show();
-      }
-      const nextParams = new URLSearchParams(searchParams);
-      nextParams.delete('action');
-      setSearchParams(nextParams, { replace: true });
+    if (searchParams.get('action') !== 'create' || permissionsLoading) return;
+    if (canCreate) {
+      proxyFormRef.current?.show({ workload: searchParams.get('workload') ?? undefined });
     }
-  }, [searchParams, setSearchParams, canCreate]);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('action');
+    nextParams.delete('workload');
+    setSearchParams(nextParams, { replace: true });
+  }, [searchParams, setSearchParams, canCreate, permissionsLoading]);
 
   const { confirmDelete } = useDeleteProxy(projectId, {
     onError: (error) => {
