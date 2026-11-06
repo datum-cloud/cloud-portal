@@ -40,10 +40,10 @@ The Datum Cloud Portal is a web application for managing cloud infrastructure re
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Start development server
-npm run dev
+pnpm dev
 ```
 
 ---

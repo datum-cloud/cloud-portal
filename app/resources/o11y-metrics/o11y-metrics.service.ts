@@ -75,9 +75,8 @@ function assertSuccess<T extends { status: PrometheusResponse['status']; error?:
  * `query` and `query_range` must be form-encoded POSTs. Responses are returned
  * as the raw Prometheus envelope so the existing formatters apply unchanged.
  *
- * `client` is injectable so tests do not `mock.module` the shared control-plane
- * client (that mock is process-global in bun and would strip `getConfig` from
- * every other suite).
+ * `client` is injectable so tests pass a spy instead of mocking the shared
+ * control-plane client, whose `getConfig` the scoped-base helpers rely on.
  */
 export function createO11yMetricsService(deps: { client?: O11yMetricsClient } = {}) {
   const api = deps.client ?? client;

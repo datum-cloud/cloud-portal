@@ -5,6 +5,7 @@
  * Core auth logic (refresh, validation) is handled by AuthService.
  */
 import { authenticator } from '@/modules/auth/auth.server';
+import { toNativeRequest } from '@/server/native-request';
 import { AUTH_COOKIE_KEYS, AuthService, sessionStorage } from '@/utils/auth';
 import type { IAccessTokenSession } from '@/utils/auth';
 import { returnToForRequest } from '@/utils/auth/reauth';
@@ -116,7 +117,7 @@ export async function isAuthenticated(
     try {
       const authResponse = await authenticator.authenticate(
         'zitadel',
-        new Request(url.toString(), request)
+        toNativeRequest(request, url.toString())
       );
       return authResponse;
     } catch (error) {

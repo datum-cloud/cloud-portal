@@ -4,9 +4,8 @@ import { resolveFraudPollResult } from '@/utils/middlewares/fraud-redirect';
 import { Hono } from 'hono';
 
 /**
- * The user loader is injectable so the route can be tested without
- * mock.module, which is process-global in bun and leaks across suites — the
- * same seam emailVerifiedGuardMiddleware uses.
+ * The user loader is injectable so the route can be tested without mocking
+ * the user-access module, the same seam emailVerifiedGuardMiddleware uses.
  */
 type FraudStatusDeps = { loadUser?: typeof getUserWithAccessRetry };
 

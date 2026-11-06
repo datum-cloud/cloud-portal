@@ -1,5 +1,6 @@
 import { authenticator } from '@/modules/auth/auth.server';
 import { rateLimiter } from '@/server/middleware/rate-limit';
+import { toNativeRequest } from '@/server/native-request';
 import type { Variables } from '@/server/types';
 import {
   clearRedirectIntent,
@@ -69,7 +70,7 @@ export function createWebsiteLoginRoute(options: WebsiteLoginRouteOptions = {}) 
     url.search = '';
 
     try {
-      await authenticator.authenticate('zitadel', new Request(url.toString(), c.req.raw));
+      await authenticator.authenticate('zitadel', toNativeRequest(c.req.raw, url.toString()));
     } catch (error) {
       if (error instanceof Response) {
         appendSetCookies(intentHeaders, error.headers);

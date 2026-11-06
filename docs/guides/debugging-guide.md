@@ -117,10 +117,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 ```bash
 # Development server logs
-npm run dev
+pnpm dev
 
 # Filter for specific patterns
-npm run dev 2>&1 | grep '\[Loader\]'
+pnpm dev 2>&1 | grep '\[Loader\]'
 ```
 
 ---
@@ -132,7 +132,7 @@ npm run dev 2>&1 | grep '\[Loader\]'
 Start the observability stack:
 
 ```bash
-npm run dev:otel
+pnpm dev:otel
 ```
 
 Access Jaeger UI: http://localhost:16686
@@ -315,7 +315,7 @@ useEffect(() => {
 
 ```bash
 # Analyze bundle size
-npm run build --analyze
+pnpm build --analyze
 ```
 
 ---

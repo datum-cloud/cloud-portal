@@ -40,9 +40,8 @@ type O11yLogClient = Pick<typeof client, 'get'>;
  * Project tenancy is the control-plane base URL; queryapi never takes a
  * client-supplied project id.
  *
- * `client` is injectable so tests do not `mock.module` the shared control-plane
- * client (that mock is process-global in bun and would strip `getConfig` from
- * every other suite).
+ * `client` is injectable so tests pass a spy instead of mocking the shared
+ * control-plane client, whose `getConfig` the scoped-base helpers rely on.
  */
 export function createO11yLogService(deps: { client?: O11yLogClient } = {}) {
   const api = deps.client ?? client;

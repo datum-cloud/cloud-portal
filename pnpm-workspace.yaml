@@ -1,0 +1,43 @@
+# pnpm settings for this repo. It is a single package, not a workspace: there
+# is no `packages:` list, and examples/sample-plugin keeps its own npm install.
+
+# Our own packages are published and consumed across repos on the same day, so
+# the one-day release delay must not hold them back.
+minimumReleaseAgeExclude:
+  - '@datum-cloud/*'
+
+# Only scripts a local install needs: lefthook installs the git hooks, cypress
+# fetches its binary, esbuild and @sentry/cli check their platform binaries.
+# CI and the image install with --ignore-scripts and fetch Cypress themselves.
+allowBuilds:
+  '@sentry/cli': true
+  cypress: true
+  esbuild: true
+  fsevents: false
+  lefthook: true
+  protobufjs: false
+
+# Versions that overrides must agree with. package.json takes them with
+# `catalog:` so each is written once.
+catalog:
+  '@hono/node-server': ^2.1.5
+  eslint: ^10.8.1
+  monaco-editor: ^0.56.0
+
+overrides:
+  axios: ^1.19.0
+  form-data: ^4.0.4
+  dompurify: ^3.4.17
+  '@hono/node-server': 'catalog:'
+  picomatch: ^4.0.0
+  graphql: 17.0.2
+  qs: ^6.17.1
+  tinypool: ^2.1.2
+  brace-expansion@2: ^2.1.7
+  '@graphql-tools/utils': ^12.0.2
+  # react-router-hono-server's peer floor; npm never enforced it.
+  ws@^8: ^8.21.3
+  '@hey-api/json-schema-ref-parser>js-yaml': ^4.3.2
+  '@datum-cloud/activity-ui>monaco-editor': 'catalog:'
+  eslint-plugin-jsx-a11y>eslint: 'catalog:'
+  eslint-plugin-react>eslint: 'catalog:'
