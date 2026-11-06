@@ -1,6 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import DiscordIcon from '@/components/icon/discord';
 import { GitHubLineIcon } from '@/components/icon/github-line';
+import { AgentSetupPill } from '@/features/project/home/agent-setup-pill';
 import { ProjectHomeBody } from '@/features/project/home/project-home-body';
 import { ProjectHomePluginCards } from '@/modules/plugins/client/plugin-cards';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
@@ -110,13 +111,16 @@ export default function ProjectHomePage() {
             {greeting} Search your project, or pick up where you left off.
           </Text>
         </div>
-        <BadgeCopy
-          value={projectName}
-          text={projectName}
-          badgeTheme="solid"
-          badgeType="muted"
-          className="bg-table-accent shrink-0 self-start"
-        />
+        <div className="flex shrink-0 flex-wrap items-center gap-2 self-start">
+          <AgentSetupPill organizationId={project.organizationId} projectId={projectName} />
+          <BadgeCopy
+            value={projectName}
+            text={projectName}
+            badgeTheme="solid"
+            badgeType="muted"
+            className="bg-table-accent shrink-0"
+          />
+        </div>
       </div>
 
       {/* Search (the header search is hidden on this page), health once there is
