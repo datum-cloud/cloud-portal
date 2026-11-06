@@ -3,8 +3,8 @@ export default {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 49, 50, 51, 52,
   ],
   types: {
-    DateTime: {},
     JSON: {},
+    DateTime: {},
     BigInt: {},
     query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_conditions_items_message:
       {},
@@ -47,6 +47,7 @@ export default {
           resourceVersion: [20],
           resourceVersionMatch: [20],
           sendInitialEvents: [19],
+          shardSelector: [20],
           timeoutSeconds: [21],
           watch: [19],
         },
@@ -72,14 +73,14 @@ export default {
     Int: {},
     ID: {},
     io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMeta: {
-      annotations: [1],
-      creationTimestamp: [0],
+      annotations: [0],
+      creationTimestamp: [1],
       deletionGracePeriodSeconds: [2],
-      deletionTimestamp: [0],
+      deletionTimestamp: [1],
       finalizers: [20],
       generateName: [20],
       generation: [2],
-      labels: [1],
+      labels: [0],
       managedFields: [24],
       name: [20],
       namespace: [20],
@@ -92,11 +93,11 @@ export default {
     io_k8s_apimachinery_pkg_apis_meta_v1_ManagedFieldsEntry: {
       apiVersion: [20],
       fieldsType: [20],
-      fieldsV1: [1],
+      fieldsV1: [0],
       manager: [20],
       operation: [20],
       subresource: [20],
-      time: [0],
+      time: [1],
       __typename: [20],
     },
     io_k8s_apimachinery_pkg_apis_meta_v1_OwnerReference: {
@@ -148,7 +149,7 @@ export default {
           fieldManager: [20],
           fieldValidation: [20],
           force: [19],
-          input: [1],
+          input: [0],
         },
       ],
       deleteSession: [
@@ -233,7 +234,7 @@ export default {
       },
     query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_appliedRoles_items:
       {
-        appliedAt: [0],
+        appliedAt: [1],
         message: [20],
         name: [20],
         namespace: [20],
@@ -249,7 +250,7 @@ export default {
       },
     query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_conditions_items:
       {
-        lastTransitionTime: [0],
+        lastTransitionTime: [1],
         message: [3],
         observedGeneration: [2],
         reason: [4],
@@ -307,7 +308,7 @@ export default {
       __typename: [20],
     },
     query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_items: {
-      lastTransitionTime: [0],
+      lastTransitionTime: [1],
       message: [15],
       observedGeneration: [2],
       reason: [16],
@@ -323,14 +324,14 @@ export default {
     query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_items_status:
       {},
     io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMeta_Input: {
-      annotations: [1],
-      creationTimestamp: [0],
+      annotations: [0],
+      creationTimestamp: [1],
       deletionGracePeriodSeconds: [2],
-      deletionTimestamp: [0],
+      deletionTimestamp: [1],
       finalizers: [20],
       generateName: [20],
       generation: [2],
-      labels: [1],
+      labels: [0],
       managedFields: [54],
       name: [20],
       namespace: [20],
@@ -343,11 +344,11 @@ export default {
     io_k8s_apimachinery_pkg_apis_meta_v1_ManagedFieldsEntry_Input: {
       apiVersion: [20],
       fieldsType: [20],
-      fieldsV1: [1],
+      fieldsV1: [0],
       manager: [20],
       operation: [20],
       subresource: [20],
-      time: [0],
+      time: [1],
       __typename: [20],
     },
     io_k8s_apimachinery_pkg_apis_meta_v1_OwnerReference_Input: {
@@ -412,7 +413,7 @@ export default {
     },
     query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_items_Input:
       {
-        lastTransitionTime: [0],
+        lastTransitionTime: [1],
         message: [15],
         observedGeneration: [2],
         reason: [16],
