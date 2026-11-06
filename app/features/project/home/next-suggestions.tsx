@@ -1,3 +1,4 @@
+import { CopyAgentSetupPromptButton } from './agent-setup-pill';
 import { CommandBlock } from './command-block';
 import {
   deployCommand,
@@ -8,6 +9,7 @@ import {
 } from './home-mode';
 import { ConnectCommands, NeedsNetwork } from './path-choice';
 import type { SetupStep } from './setup-progress.helpers';
+import { useProjectContext } from '@/providers/project.provider';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Input } from '@datum-cloud/datum-ui/input';
@@ -16,6 +18,7 @@ import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import {
   ArrowRight,
+  Bot,
   Brain,
   Globe,
   Network,
@@ -109,6 +112,7 @@ export function NextSuggestions({
                 />
               </li>
             ))}
+            <AgentSetupRow projectId={projectId} />
           </ul>
         </div>
 
@@ -169,6 +173,25 @@ export function NextSuggestions({
         )}
       </div>
     </section>
+  );
+}
+
+/** Hand the project to a coding agent: copy the agent setup prompt. */
+function AgentSetupRow({ projectId }: { projectId: string }) {
+  const { project } = useProjectContext();
+  return (
+    <li className="flex items-center gap-3 border-t py-2.5">
+      <Icon icon={Bot} size={15} className="text-icon-quaternary shrink-0" />
+      <span className="flex min-w-0 flex-1 flex-col">
+        <Text size="sm" weight="medium">
+          Set up your coding agent
+        </Text>
+        <Text size="xs" textColor="muted">
+          Give Claude Code, Codex, Cursor or Copilot datumctl and the Datum MCP server.
+        </Text>
+      </span>
+      <CopyAgentSetupPromptButton organizationId={project?.organizationId} projectId={projectId} />
+    </li>
   );
 }
 
