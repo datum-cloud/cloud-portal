@@ -10,6 +10,7 @@ export {
   useBillingAccounts,
   useBillingAccountsForOrgs,
   useBillingAccount,
+  useBillingAccountDetailQueries,
   useCreateBillingAccount,
   useUpdateBillingAccount,
   useDeleteBillingAccount,

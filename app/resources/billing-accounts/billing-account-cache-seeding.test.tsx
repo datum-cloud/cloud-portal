@@ -1,4 +1,7 @@
-import { useBillingAccount, useBillingAccountsForOrgs } from './billing-account.queries';
+import {
+  useBillingAccountDetailQueries,
+  useBillingAccountsForOrgs,
+} from './billing-account.queries';
 import { billingAccountKeys } from './billing-account.service';
 import type { BillingAccount } from '@/features/billing/types';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
@@ -13,15 +16,11 @@ const account = (orgId: string, name: string): BillingAccount => ({
 });
 
 /**
- * Mirrors the seeding the detail page does: only the single-account detail
+ * Renders the exact detail-page query hook: only the single-account detail
  * key is seeded, never the cross-org list.
  */
 function DetailPageCacheSeed({ orgId, account }: { orgId: string; account: BillingAccount }) {
-  useBillingAccount(orgId, account.metadata?.name, {
-    initialData: account,
-    initialDataUpdatedAt: Date.now(),
-    staleTime: QUERY_STALE_TIME,
-  });
+  useBillingAccountDetailQueries(orgId, account.metadata?.name, account);
   return null;
 }
 

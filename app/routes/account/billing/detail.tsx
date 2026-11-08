@@ -50,9 +50,8 @@ import {
 } from '@/resources/billing-account-bindings';
 import {
   createBillingAccountService,
-  useBillingAccount,
+  useBillingAccountDetailQueries,
   useBillingAccountWatch,
-  useBillingAccounts,
   useDeleteBillingAccount,
   useUpdateBillingAccount,
 } from '@/resources/billing-accounts';
@@ -369,22 +368,15 @@ function AccountBillingAccountDetailPageInner() {
   // against future loader changes.
   const orgIds = useMemo(() => initialOrgIds, [initialOrgIds]);
 
-  // Drive the page off live React Query caches seeded by the loader.
-  // The detail page seeds only the single-account detail cache. Seeding
-  // the cross-org list here would write a one-row list into the key the
-  // `/account/billing` listing reads, so opening a detail page and then
-  // the list inside the stale window would hide every other account.
-  const accountQuery = useBillingAccount(orgId, accountName, {
-    initialData: initialAccount,
-    initialDataUpdatedAt: Date.now(),
-    staleTime: QUERY_STALE_TIME,
-  });
-  // The "last account in this org" floor needs the whole org, not just
-  // the account being viewed. This per-org list is a different key from
-  // the cross-org listing, so it can't poison that cache.
-  const orgAccountsQuery = useBillingAccounts(orgId, {
-    staleTime: QUERY_STALE_TIME,
-  });
+  // Drive the page off live React Query caches seeded by the loader. The
+  // detail-page hook seeds only the single-account detail cache and reads
+  // the per-org list separately for the last-account floor; seeding the
+  // cross-org list here would hide every other account on the listing.
+  const { accountQuery, orgAccountsQuery } = useBillingAccountDetailQueries(
+    orgId,
+    accountName,
+    initialAccount
+  );
   const bindingsQuery = useBillingAccountBindingsForOrgs(orgIds, {
     initialData: initialAllBindings,
     initialDataUpdatedAt: Date.now(),
