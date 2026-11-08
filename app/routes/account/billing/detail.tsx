@@ -50,8 +50,9 @@ import {
 } from '@/resources/billing-account-bindings';
 import {
   createBillingAccountService,
+  useBillingAccount,
   useBillingAccountWatch,
-  useBillingAccountsForOrgs,
+  useBillingAccounts,
   useDeleteBillingAccount,
   useUpdateBillingAccount,
 } from '@/resources/billing-accounts';
@@ -369,13 +370,19 @@ function AccountBillingAccountDetailPageInner() {
   const orgIds = useMemo(() => initialOrgIds, [initialOrgIds]);
 
   // Drive the page off live React Query caches seeded by the loader.
-  // The cross-org cache is fanned out per-org because the IAM proxy
-  // doesn't allow cluster-scoped billing reads; the namespaced reads
-  // route through the org control-plane directly and the watch hub
-  // multiplexes those subscriptions.
-  const accountsQuery = useBillingAccountsForOrgs(orgIds, {
-    initialData: [initialAccount],
+  // The detail page seeds only the single-account detail cache. Seeding
+  // the cross-org list here would write a one-row list into the key the
+  // `/account/billing` listing reads, so opening a detail page and then
+  // the list inside the stale window would hide every other account.
+  const accountQuery = useBillingAccount(orgId, accountName, {
+    initialData: initialAccount,
     initialDataUpdatedAt: Date.now(),
+    staleTime: QUERY_STALE_TIME,
+  });
+  // The "last account in this org" floor needs the whole org, not just
+  // the account being viewed. This per-org list is a different key from
+  // the cross-org listing, so it can't poison that cache.
+  const orgAccountsQuery = useBillingAccounts(orgId, {
     staleTime: QUERY_STALE_TIME,
   });
   const bindingsQuery = useBillingAccountBindingsForOrgs(orgIds, {
@@ -404,8 +411,7 @@ function AccountBillingAccountDetailPageInner() {
   usePaymentMethodsWatch(orgId);
   useInvoicesWatch(orgId);
 
-  const account =
-    accountsQuery.data?.find((a) => a.metadata?.name === accountName) ?? initialAccount;
+  const account = accountQuery.data ?? initialAccount;
   const paymentMethods = useMemo(
     () =>
       (paymentMethodsQuery.data ?? initialPaymentMethods).filter(
@@ -559,9 +565,9 @@ function AccountBillingAccountDetailPageInner() {
   // list page shares the same single-account rule.
   const ownOrgAccountCount = useMemo(() => {
     if (!orgId) return 0;
-    const list = accountsQuery.data ?? [];
+    const list = orgAccountsQuery.data ?? [];
     return list.filter((a) => orgIdFromNamespace(a.metadata?.namespace) === orgId).length;
-  }, [accountsQuery.data, orgId]);
+  }, [orgAccountsQuery.data, orgId]);
   const isLastAccountInOrg = ownOrgAccountCount <= 1;
 
   const { confirm } = useConfirmationDialog();
