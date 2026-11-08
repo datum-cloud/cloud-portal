@@ -4,7 +4,7 @@ import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { CopyIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export const TextCopy = ({
   value,
@@ -19,14 +19,29 @@ export const TextCopy = ({
 }) => {
   const [_, copy] = useCopyToClipboard();
   const [copied, setCopied] = useState(false);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   const copyToClipboard = () => {
     if (!value) return;
 
-    void copy(value).then(() => {
+    void copy(value).then((success) => {
+      if (!success) {
+        if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+        setCopied(false);
+        toast.error('Could not copy to clipboard');
+        return;
+      }
+
       toast.success('Copied to clipboard');
       setCopied(true);
-      setTimeout(() => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = setTimeout(() => {
         setCopied(false);
       }, 2000);
     });
