@@ -1,4 +1,5 @@
 import { albRpsQuery } from '@/features/edge/proxy/metrics/queries';
+import { useOverviewRange } from '@/features/edge/proxy/overview/overview-range';
 import { usePrometheusAPIQuery } from '@/modules/metrics/hooks';
 import { transformForRecharts, type FormattedMetricData } from '@/modules/prometheus';
 import { ChartContainer, ChartTooltip, type ChartConfig } from '@datum-cloud/datum-ui/chart';
@@ -29,13 +30,10 @@ export function ProxySparkline({ projectId, proxyId, className }: ProxySparkline
     className
   );
 
-  // Fetch metrics for the last hour
-  const endTime = useMemo(() => new Date(), []);
-  const startTime = useMemo(() => {
-    const date = new Date();
-    date.setHours(date.getHours() - 1);
-    return date;
-  }, []);
+  // Slide the last-hour window forward on the overview tick. Keying the
+  // query on the window end makes each 30s tick fetch the next hour
+  // instead of re-requesting the window captured at mount forever.
+  const range = useOverviewRange('1h');
 
   // Build query for requests rate
   const query = useMemo(
@@ -44,16 +42,13 @@ export function ProxySparkline({ projectId, proxyId, className }: ProxySparkline
   );
 
   const { data, isLoading, error } = usePrometheusAPIQuery<FormattedMetricData>(
-    ['proxy-sparkline', projectId, proxyId],
+    ['proxy-sparkline', projectId, proxyId, range.timeRange.end.getTime()],
     {
       type: 'chart',
       projectId,
       query,
-      timeRange: {
-        start: startTime,
-        end: endTime,
-      },
-      step: '1m', // 1 minute step for last hour
+      timeRange: range.timeRange,
+      step: range.step,
     },
     {
       enabled: !!projectId && !!proxyId,
