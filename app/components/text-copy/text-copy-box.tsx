@@ -1,10 +1,8 @@
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { useCopyFeedback } from '@/hooks/use-copy-feedback';
 import { Button } from '@datum-cloud/datum-ui/button';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { CheckIcon, CopyIcon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
 
 interface TextCopyBoxProps {
   value: string;
@@ -22,35 +20,7 @@ export const TextCopyBox = ({
   buttonClassName,
   buttonVariant = 'default',
 }: TextCopyBoxProps) => {
-  const [_, copy] = useCopyToClipboard();
-  const [copied, setCopied] = useState(false);
-  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-    };
-  }, []);
-
-  const copyToClipboard = () => {
-    if (!value) return;
-
-    void copy(value).then((success) => {
-      if (!success) {
-        if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-        setCopied(false);
-        toast.error('Could not copy to clipboard');
-        return;
-      }
-
-      toast.success('Copied to clipboard');
-      setCopied(true);
-      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-      copyTimeoutRef.current = setTimeout(() => {
-        setCopied(false);
-      }, 2000);
-    });
-  };
+  const { copied, copyToClipboard } = useCopyFeedback();
 
   return (
     <Text
@@ -75,7 +45,7 @@ export const TextCopyBox = ({
               'text-muted-foreground hover:text-foreground flex size-7 items-center justify-center rounded-sm transition-colors',
               buttonClassName
             )}
-            onClick={copyToClipboard}>
+            onClick={() => copyToClipboard(value)}>
             {copied ? <CheckIcon className="size-4" /> : <CopyIcon className="size-4" />}
           </button>
         ) : (
@@ -84,7 +54,7 @@ export const TextCopyBox = ({
             theme="outline"
             size="small"
             className={cn('h-7 w-fit gap-1 px-2 text-xs', buttonClassName)}
-            onClick={copyToClipboard}>
+            onClick={() => copyToClipboard(value)}>
             <CopyIcon className="size-3!" />
             {copied ? 'Copied' : 'Copy'}
           </Button>

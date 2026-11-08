@@ -1,12 +1,10 @@
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { useCopyFeedback } from '@/hooks/use-copy-feedback';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { type BadgeProps } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { CopyIcon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
 
 export interface BadgeCopyProps {
   value: string;
@@ -35,35 +33,7 @@ export const BadgeCopy = ({
   'data-e2e': dataE2e,
   wrapperTooltipMessage,
 }: BadgeCopyProps) => {
-  const [_, copy] = useCopyToClipboard();
-  const [copied, setCopied] = useState(false);
-  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-    };
-  }, []);
-
-  const copyToClipboard = () => {
-    if (!value) return;
-
-    void copy(value).then((success) => {
-      if (!success) {
-        if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-        setCopied(false);
-        toast.error('Could not copy to clipboard');
-        return;
-      }
-
-      toast.success('Copied to clipboard');
-      setCopied(true);
-      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-      copyTimeoutRef.current = setTimeout(() => {
-        setCopied(false);
-      }, 2000);
-    });
-  };
+  const { copied, copyToClipboard } = useCopyFeedback();
 
   const displayText = text ?? value;
 
@@ -86,7 +56,7 @@ export const BadgeCopy = ({
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();
-        copyToClipboard();
+        copyToClipboard(value);
       }}>
       <span className={textClassName}>{displayText}</span>
       {copyButton}

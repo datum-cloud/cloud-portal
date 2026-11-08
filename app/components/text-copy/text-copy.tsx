@@ -1,10 +1,8 @@
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { useCopyFeedback } from '@/hooks/use-copy-feedback';
 import { Button } from '@datum-cloud/datum-ui/button';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { CopyIcon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
 
 export const TextCopy = ({
   value,
@@ -17,35 +15,7 @@ export const TextCopy = ({
   className?: string;
   buttonClassName?: string;
 }) => {
-  const [_, copy] = useCopyToClipboard();
-  const [copied, setCopied] = useState(false);
-  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-    };
-  }, []);
-
-  const copyToClipboard = () => {
-    if (!value) return;
-
-    void copy(value).then((success) => {
-      if (!success) {
-        if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-        setCopied(false);
-        toast.error('Could not copy to clipboard');
-        return;
-      }
-
-      toast.success('Copied to clipboard');
-      setCopied(true);
-      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-      copyTimeoutRef.current = setTimeout(() => {
-        setCopied(false);
-      }, 2000);
-    });
-  };
+  const { copied, copyToClipboard } = useCopyFeedback();
 
   return (
     <div className="flex items-center gap-2">
@@ -59,7 +29,7 @@ export const TextCopy = ({
           onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();
-            copyToClipboard();
+            copyToClipboard(value);
           }}>
           <CopyIcon className="size-3" />
         </Button>
