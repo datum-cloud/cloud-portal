@@ -7,6 +7,7 @@ import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
+import { keepPreviousData } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { Area, AreaChart } from 'recharts';
 
@@ -53,6 +54,9 @@ export function ProxySparkline({ projectId, proxyId, className }: ProxySparkline
     {
       enabled: !!projectId && !!proxyId,
       refetchInterval: 30000, // Refresh every 30 seconds
+      // Each tick is a new query key. Keep the last window on screen while
+      // the next hour loads so the sparkline doesn't flash its spinner.
+      placeholderData: keepPreviousData,
     }
   );
 
