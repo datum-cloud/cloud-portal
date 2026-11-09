@@ -1,5 +1,5 @@
 import { getHints, viewportHint } from './client-hints';
-import { DESKTOP_MIN, TABLET_MIN, breakpointForWidth } from '@/hooks/use-breakpoint';
+import { DESKTOP_MIN, TABLET_MIN, breakpointForWidth } from '@/utils/helpers/breakpoint.helper';
 import { describe, expect, it } from 'vitest';
 
 /** Runs the hint's inline snippet the way the check script does, against a fake window. */
