@@ -17,7 +17,6 @@ import {
   isRowLocked,
 } from '@/features/edge/dns-records/utils';
 import { ReadOnlyGuard, useGuardedMutation, useProjectMode } from '@/features/project/read-only';
-import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { QuotaGuard, showMutationErrorToast } from '@/modules/quota';
 import {
   PermissionButton,
@@ -57,6 +56,7 @@ import {
   useDataTableSearch,
   type ActionItem,
 } from '@datum-cloud/datum-ui/data-table';
+import { useBreakpoint } from '@datum-cloud/datum-ui/hooks';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { ClientOnly } from '@datum-cloud/datum-ui/theme';
 import { toast } from '@datum-cloud/datum-ui/toast';

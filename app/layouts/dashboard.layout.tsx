@@ -1,6 +1,5 @@
 import { ContentWrapper } from '@/components/content-wrapper';
 import { Header } from '@/components/header';
-import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { resolveInitialSidebarOpen } from '@/layouts/initial-sidebar-open';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
@@ -15,6 +14,7 @@ import {
   SidebarHeader,
   SidebarTrigger,
 } from '@datum-cloud/datum-ui/app-navigation';
+import { useBreakpoint } from '@datum-cloud/datum-ui/hooks';
 import { SidebarInset, SidebarProvider, useSidebar } from '@datum-cloud/datum-ui/sidebar';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import React, { useEffect, useState } from 'react';
