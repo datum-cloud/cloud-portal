@@ -78,6 +78,17 @@ function cycleStartAtOrBefore(ref: Date, invoiceDay: number, periodMonths: numbe
   return start;
 }
 
+/** The next cycle start after `now` under these terms: the next invoice date. */
+export function nextCycleStart(terms: PaymentTermsInput | undefined, now = new Date()): Date {
+  const invoiceDay = terms?.invoiceDayOfMonth ?? 1;
+  const periodMonths = FREQUENCY_MONTHS[terms?.invoiceFrequency ?? 'Monthly'];
+  return addMonthsOnDay(
+    cycleStartAtOrBefore(now, invoiceDay, periodMonths),
+    periodMonths,
+    invoiceDay
+  );
+}
+
 function formatCycleRange(start: Date, end: Date): string {
   const sameYear = start.getUTCFullYear() === end.getUTCFullYear();
   const startLabel = format(start, 'd MMM');

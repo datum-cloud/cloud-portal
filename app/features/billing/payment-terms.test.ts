@@ -190,4 +190,33 @@ describe('paymentTermsSummary', () => {
       })
     ).toBe('Quarterly, on the 22nd');
   });
+
+  describe('with a contract that has not started', () => {
+    const withContract = (startsAt: string) => ({
+      spec: {
+        currencyCode: 'USD',
+        paymentTerms: { invoiceFrequency: 'Monthly' as const, invoiceDayOfMonth: 1 },
+      },
+      status: { contract: { startsAt, billingDayOfMonth: 10, fees: [] } },
+    });
+    const now = Date.parse('2026-11-04T12:00:00Z');
+
+    it("gives the contract's day when it starts before the next invoice", () => {
+      expect(billingCycleLabel(withContract('2026-11-10T00:00:00Z'), now)).toBe(
+        'Monthly, on the 10th from November 10, 2026'
+      );
+    });
+
+    it('gives both days when the terms invoice before it starts', () => {
+      expect(billingCycleLabel(withContract('2027-01-10T00:00:00Z'), now)).toBe(
+        'Monthly, on the 1st until January 10, 2027, then on the 10th'
+      );
+    });
+
+    it("gives only the contract's day once it has started", () => {
+      expect(
+        billingCycleLabel(withContract('2026-11-10T00:00:00Z'), Date.parse('2026-11-20T00:00:00Z'))
+      ).toBe('Monthly, on the 10th');
+    });
+  });
 });

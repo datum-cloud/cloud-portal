@@ -20,7 +20,7 @@ export interface ContractFee {
   amount: string;
   /**
    * How the amount is made up, when it's more than one of something or has
-   * a unit: "4 port × $300" or "3 × $8,000". Undefined for a single fee.
+   * a unit: "4 × $300 / port" or "3 × $8,000". Undefined for a single fee.
    */
   quantity?: string;
 }
@@ -54,7 +54,7 @@ function contractFee(fee: StatusContractFee): ContractFee {
     : fee.amount;
   const unitPrice = formatCurrencyAmount(fee.amount, fee.currency);
   const breakdown = fee.pricingUnit
-    ? `${quantity} ${fee.pricingUnit} × ${unitPrice}`
+    ? `${quantity} × ${unitPrice} / ${fee.pricingUnit}`
     : quantity > 1
       ? `${quantity} × ${unitPrice}`
       : undefined;
