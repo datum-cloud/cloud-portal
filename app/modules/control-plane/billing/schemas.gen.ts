@@ -278,7 +278,7 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
                 properties: {
                   amount: {
                     description:
-                      'Amount is the fee as a decimal string in currency (e.g. "2400.00").',
+                      'Amount is the fee\'s unit amount as a decimal string in currency (e.g.\n"2400.00"). The contract charges it quantity times.',
                     type: 'string',
                     pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
                   },
@@ -317,8 +317,21 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
                     maxLength: 253,
                     minLength: 1,
                   },
+                  pricingUnit: {
+                    description:
+                      'PricingUnit is what amount is per (e.g. "port"), so the fee reads\n"4 port × $300.00". Empty when the quantity is a count of the fee.',
+                    type: 'string',
+                  },
+                  quantity: {
+                    description:
+                      'Quantity is how many of the fee the contract charges, so the fee\ncharged is amount times quantity (e.g. 3 × "1000.00").',
+                    type: 'integer',
+                    format: 'int32',
+                    minimum: 1,
+                  },
                   serviceRef: {
-                    description: 'ServiceRef is the service the fee is for.',
+                    description:
+                      "ServiceRef is the service the fee is for. Empty for a fee that isn't\nfor any one service.",
                     type: 'string',
                     maxLength: 253,
                   },
@@ -3076,6 +3089,14 @@ export const com_miloapis_billing_v1alpha1_OfferSchema = {
                 type: 'string',
                 maxLength: 63,
               },
+              quantity: {
+                description:
+                  "Quantity is how many of a OneTime or Recurring fee the Offer charges:\nthe fee's amount times its quantity, such as three servers at the\nsame monthly price. Defaults to 1. Not allowed on a Usage pricing,\nwhose quantity is what was used: the Offer controller won't publish\nan Offer that sets it there.",
+                type: 'integer',
+                format: 'int32',
+                maximum: 10000,
+                minimum: 1,
+              },
             },
           },
           'x-kubernetes-list-map-keys': ['name'],
@@ -3112,17 +3133,32 @@ export const com_miloapis_billing_v1alpha1_OfferSchema = {
                 maxLength: 253,
                 minLength: 1,
               },
+              quantity: {
+                description:
+                  "Quantity is how many of a OneTime or Recurring fee the Offer charges,\ncaptured from the reference when the Offer becomes GA: 1 unless the\nreference set it. Providers charge the fee's amount times its\nquantity, and treat an unset quantity (in a snapshot taken before it\nexisted) as 1. Unset for Usage pricings.",
+                type: 'integer',
+                format: 'int32',
+                maximum: 10000,
+                minimum: 1,
+              },
               spec: {
                 description:
                   'Spec is a deep copy of the source ServicePricingSpec at publish time.',
                 type: 'object',
-                required: ['chargeType', 'currency', 'serviceRef'],
+                required: ['chargeType', 'currency'],
                 properties: {
                   amount: {
                     description:
                       'Amount is the fixed USD decimal string for OneTime and Recurring\ncharges.',
                     type: 'string',
                     pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
+                  },
+                  basedOn: {
+                    description:
+                      "BasedOn names the list pricing, in the same namespace, that this\npricing gives a customer their own price for. It must have the same\nchargeType, and the named pricing can't itself have basedOn.\n\nA Usage pricing must match it in everything but its rate amounts:\nserviceRef, metric, pricingUnit, unitConversion, each rate's match and\nwhether it's flat or tiered, and tier bounds. A OneTime or Recurring\npricing must match it in everything but its amount and displayName:\nserviceRef, pricingUnit, trigger and interval.\n\nBilling doesn't change with basedOn: it records which list price the\ncustomer's price replaces, so portals can show them side by side.",
+                    type: 'string',
+                    maxLength: 253,
+                    minLength: 1,
                   },
                   chargeType: {
                     description: 'ChargeType distinguishes Usage, OneTime, and Recurring pricing.',
@@ -3153,7 +3189,7 @@ export const com_miloapis_billing_v1alpha1_OfferSchema = {
                   },
                   pricingUnit: {
                     description:
-                      'PricingUnit is a human-readable billing unit label (e.g. "vcpu",\n"gib"). Required when chargeType is Usage. Does not need to be the\nliteral UCUM unit string of the meter.',
+                      'PricingUnit is a human-readable billing unit label (e.g. "vcpu",\n"gib"). Required when chargeType is Usage. Does not need to be the\nliteral UCUM unit string of the meter.\n\nOptional for OneTime and Recurring fees, where it labels what the\namount is per (e.g. "port", "kW"), so invoices and portals show a\nfee\'s quantity in it ("4 port × $300.00"). It doesn\'t change what\'s\ncharged.',
                     type: 'string',
                     maxLength: 64,
                   },
@@ -3233,7 +3269,7 @@ export const com_miloapis_billing_v1alpha1_OfferSchema = {
                   },
                   serviceRef: {
                     description:
-                      'ServiceRef is the canonical service identifier (e.g.\n"compute.datumapis.com").',
+                      'ServiceRef is the canonical service identifier (e.g.\n"compute.datumapis.com"). Required for Usage pricings, where it names\nthe service that owns the meter. Optional for OneTime and Recurring\nfees, which needn\'t be for any one service, such as a contract\'s\nsetup or support fee; when set, it must name a Service.',
                     type: 'string',
                     maxLength: 253,
                     minLength: 1,
@@ -3282,6 +3318,10 @@ export const com_miloapis_billing_v1alpha1_OfferSchema = {
                   {
                     rule: "self.chargeType != 'Recurring' || (has(self.amount) && has(self.interval))",
                     message: 'Recurring ServicePricing requires amount and interval',
+                  },
+                  {
+                    rule: "self.chargeType != 'Usage' || has(self.serviceRef)",
+                    message: 'Usage ServicePricing requires serviceRef',
                   },
                 ],
               },
@@ -3977,14 +4017,21 @@ export const com_miloapis_billing_v1alpha1_ServicePricingSchema = {
     },
     spec: {
       description:
-        "ServicePricingSpec defines the desired state of a ServicePricing.\n\nA ServicePricing is a price the platform sets, authored as a manifest\nnext to the service's meters. A Usage pricing selects one meter by name;\nany number of pricings may select the same meter, and each Offer picks the\none it bills. OneTime and Recurring pricings name a service and carry a\nfixed amount. Providers read the Offer's snapshot of this shape,\ndistinguished by chargeType.\n\nThe spec is immutable: a new price is a new ServicePricing.",
+        "ServicePricingSpec defines the desired state of a ServicePricing.\n\nA ServicePricing is a price the platform sets, authored as a manifest\nnext to the service's meters. A Usage pricing selects one meter by name;\nany number of pricings may select the same meter, and each Offer picks the\none it bills. OneTime and Recurring pricings name a service and carry a\nfixed amount. Providers read the Offer's snapshot of this shape,\ndistinguished by chargeType.\n\nA OneTime or Recurring pricing is a fee, such as a contract's setup or\nmonthly fee. A fee may name a service and a pricingUnit, and an Offer\ncharges it as many times as its reference's quantity.\n\nA pricing with basedOn is a customer's own price: a copy of the list\npricing basedOn names, with only its rate amounts (Usage) or its amount\n(OneTime and Recurring) changed.\n\nThe spec is immutable: a new price is a new ServicePricing.",
       type: 'object',
-      required: ['chargeType', 'currency', 'serviceRef'],
+      required: ['chargeType', 'currency'],
       properties: {
         amount: {
           description: 'Amount is the fixed USD decimal string for OneTime and Recurring\ncharges.',
           type: 'string',
           pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
+        },
+        basedOn: {
+          description:
+            "BasedOn names the list pricing, in the same namespace, that this\npricing gives a customer their own price for. It must have the same\nchargeType, and the named pricing can't itself have basedOn.\n\nA Usage pricing must match it in everything but its rate amounts:\nserviceRef, metric, pricingUnit, unitConversion, each rate's match and\nwhether it's flat or tiered, and tier bounds. A OneTime or Recurring\npricing must match it in everything but its amount and displayName:\nserviceRef, pricingUnit, trigger and interval.\n\nBilling doesn't change with basedOn: it records which list price the\ncustomer's price replaces, so portals can show them side by side.",
+          type: 'string',
+          maxLength: 253,
+          minLength: 1,
         },
         chargeType: {
           description: 'ChargeType distinguishes Usage, OneTime, and Recurring pricing.',
@@ -4015,7 +4062,7 @@ export const com_miloapis_billing_v1alpha1_ServicePricingSchema = {
         },
         pricingUnit: {
           description:
-            'PricingUnit is a human-readable billing unit label (e.g. "vcpu",\n"gib"). Required when chargeType is Usage. Does not need to be the\nliteral UCUM unit string of the meter.',
+            'PricingUnit is a human-readable billing unit label (e.g. "vcpu",\n"gib"). Required when chargeType is Usage. Does not need to be the\nliteral UCUM unit string of the meter.\n\nOptional for OneTime and Recurring fees, where it labels what the\namount is per (e.g. "port", "kW"), so invoices and portals show a\nfee\'s quantity in it ("4 port × $300.00"). It doesn\'t change what\'s\ncharged.',
           type: 'string',
           maxLength: 64,
         },
@@ -4094,7 +4141,7 @@ export const com_miloapis_billing_v1alpha1_ServicePricingSchema = {
         },
         serviceRef: {
           description:
-            'ServiceRef is the canonical service identifier (e.g.\n"compute.datumapis.com").',
+            'ServiceRef is the canonical service identifier (e.g.\n"compute.datumapis.com"). Required for Usage pricings, where it names\nthe service that owns the meter. Optional for OneTime and Recurring\nfees, which needn\'t be for any one service, such as a contract\'s\nsetup or support fee; when set, it must name a Service.',
           type: 'string',
           maxLength: 253,
           minLength: 1,
@@ -4147,6 +4194,10 @@ export const com_miloapis_billing_v1alpha1_ServicePricingSchema = {
         {
           rule: "self.chargeType != 'Recurring' || (has(self.amount) && has(self.interval))",
           message: 'Recurring ServicePricing requires amount and interval',
+        },
+        {
+          rule: "self.chargeType != 'Usage' || has(self.serviceRef)",
+          message: 'Usage ServicePricing requires serviceRef',
         },
       ],
     },

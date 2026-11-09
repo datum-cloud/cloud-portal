@@ -107,7 +107,18 @@ export const ContractCard = ({ contract }: ContractCardProps) => {
             <TableBody>
               {fees.map((fee) => (
                 <TableRow key={fee.name}>
-                  <TableCell className="h-11 text-sm">{fee.label}</TableCell>
+                  <TableCell className="h-11 text-sm">
+                    {fee.quantity ? (
+                      <div className="flex flex-col py-1.5">
+                        <span>{fee.label}</span>
+                        <Text as="span" size="xs" textColor="muted">
+                          {fee.quantity}
+                        </Text>
+                      </div>
+                    ) : (
+                      fee.label
+                    )}
+                  </TableCell>
                   <TableCell className="h-11 text-sm">
                     {CHARGE_TYPE_LABELS[fee.chargeType]}
                   </TableCell>
