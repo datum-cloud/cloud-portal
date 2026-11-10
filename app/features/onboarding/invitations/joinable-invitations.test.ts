@@ -44,4 +44,16 @@ describe('selectJoinableInvitations', () => {
   it('returns nothing when the user has no email', () => {
     expect(selectJoinableInvitations([invitation()], undefined, NOW)).toEqual([]);
   });
+
+  it('includes email domain offers only when email domain joining is on', () => {
+    const sent = invitation();
+    const offer = invitation({ name: 'email-domain-user-1', emailDomain: 'acme.com' });
+
+    expect(selectJoinableInvitations([sent, offer], 'teammate@acme.com', NOW)).toEqual([sent]);
+    expect(
+      selectJoinableInvitations([sent, offer], 'teammate@acme.com', NOW, {
+        includeEmailDomainOffers: true,
+      })
+    ).toEqual([sent, offer]);
+  });
 });

@@ -1,6 +1,7 @@
 // app/components/notification/use-notifications.ts
 import type { INotification } from './types';
 import { useUserInvitations, useInvitationWatch } from '@/resources/invitations';
+import { env } from '@/utils/env';
 
 /**
  * Notification hook — composes a direct K8s API fetch with a real-time watch.
@@ -16,7 +17,11 @@ import { useUserInvitations, useInvitationWatch } from '@/resources/invitations'
  * which uses 'me' internally, and the watch server resolves identity from session.
  */
 export function useNotifications() {
-  const { data: invitations = [], isLoading, error } = useUserInvitations('me');
+  const { data: allInvitations = [], isLoading, error } = useUserInvitations('me');
+  // Email domain offers show only while EMAIL_DOMAIN_JOINING_ENABLED is on.
+  const invitations = env.public.emailDomainJoiningEnabled
+    ? allInvitations
+    : allInvitations.filter((invitation) => !invitation.emailDomain);
 
   useInvitationWatch('me');
 
