@@ -3,6 +3,7 @@ import {
   Logs,
   type LogColumnId,
   type LogEntry,
+  type LogFacet,
   type LogFilters,
   type LogTimeRange,
 } from '@datum-cloud/datum-ui/logs';
@@ -14,11 +15,18 @@ const EXPLORER_COLUMNS: readonly LogColumnId[] = ['time', 'status', 'host', 'pat
 
 export interface AlbLogsExplorerProps {
   entries: readonly LogEntry[];
+  /**
+   * Facet options for the whole window (see `useAlbLogFacets`). While they
+   * load, or if they fail, facets are built from `entries` instead.
+   */
+  facets?: LogFacet[] | null;
   timeRange: LogTimeRange;
   filters: LogFilters;
   search: string;
   live: boolean;
   isLoading?: boolean;
+  /** A request is in flight while earlier results are still showing. */
+  isFetching?: boolean;
   error?: ReactNode;
   onTimeRangeChange: (range: LogTimeRange) => void;
   onFiltersChange: (filters: LogFilters) => void;
@@ -35,11 +43,13 @@ export interface AlbLogsExplorerProps {
  */
 export function AlbLogsExplorer({
   entries,
+  facets: windowFacets,
   timeRange,
   filters,
   search,
   live,
   isLoading,
+  isFetching,
   error,
   onTimeRangeChange,
   onFiltersChange,
@@ -49,7 +59,7 @@ export function AlbLogsExplorer({
   className,
 }: AlbLogsExplorerProps) {
   const visibleEntries = useMemo(() => filterAlbLogsByHost(entries, filters), [entries, filters]);
-  const facets = useMemo(() => albLogFacets(entries), [entries]);
+  const facets = useMemo(() => windowFacets ?? albLogFacets(entries), [windowFacets, entries]);
 
   return (
     <Logs.Root
@@ -60,6 +70,7 @@ export function AlbLogsExplorer({
       search={search}
       live={live}
       isLoading={isLoading}
+      isFetching={isFetching}
       error={error}
       onTimeRangeChange={onTimeRangeChange}
       onFiltersChange={onFiltersChange}

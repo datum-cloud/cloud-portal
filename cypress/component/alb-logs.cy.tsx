@@ -55,10 +55,11 @@ describe('AlbLogsExplorer', () => {
     cy.get('[data-slot="logs-table"]').should('not.contain', 'Message');
     cy.get('[data-slot="logs-filters"]').should('contain', 'Method');
     cy.get('[data-slot="logs-filters"]').should('contain', 'Status code');
-    // Only the first facet group is expanded by default.
-    cy.get('[data-slot="logs-filters"]').contains('button', 'Host').click();
+    // Every facet group starts open.
+    cy.get('[data-slot="logs-filters"]').should('contain', 'Host');
     cy.get('[data-slot="logs-filters"]').should('contain', 'app.example.com');
-    cy.get('[data-slot="logs-filters"]').should('contain', 'origin.internal');
+    // Host lists the host each row shows, not the authority the proxy rewrote.
+    cy.get('[data-slot="logs-filters"]').should('not.contain', 'origin.internal');
     cy.get('[data-slot="logs-search"]').should('exist');
     cy.get('[data-slot="logs-live"]').should('exist');
     cy.get('[data-slot="logs-table"] tbody tr').first().click();
