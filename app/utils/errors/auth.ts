@@ -1,3 +1,4 @@
+import { PERMISSION_DENIED_MESSAGE, toPlainAuthorizationMessage } from './authorization-message';
 import { AppError } from './base';
 
 export class TokenError extends AppError {
@@ -13,8 +14,13 @@ export class AuthenticationError extends AppError {
 }
 
 export class AuthorizationError extends AppError {
-  constructor(message: string = 'Not authorized to perform this action', requestId?: string) {
-    super(message, 403, 'FORBIDDEN', requestId);
+  /** The upstream text the plain headline replaced, kept for debugging. */
+  public readonly originalMessage?: string;
+
+  constructor(message: string = PERMISSION_DENIED_MESSAGE, requestId?: string) {
+    const display = toPlainAuthorizationMessage(message);
+    super(display.message, 403, 'FORBIDDEN', requestId);
+    this.originalMessage = display.originalMessage;
   }
 }
 
