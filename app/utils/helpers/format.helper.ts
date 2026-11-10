@@ -2,6 +2,7 @@
  * Data formatting and conversion utilities
  * JSON/YAML conversion, validation, and formatting
  */
+import { logger } from '@/modules/logger';
 import { dump, load } from 'js-yaml';
 
 /**
@@ -19,8 +20,12 @@ export function jsonToYaml(jsonStr: string): string {
       noRefs: true, // Don't output YAML references
     });
   } catch (error) {
-    console.error('JSON to YAML conversion error:', error);
-    throw new Error('Invalid JSON format');
+    // Callers catch this (form validators run it on every keystroke), so it
+    // logs at debug and keeps the parser error as the cause.
+    logger.debug('[format] JSON to YAML conversion failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw new Error('Invalid JSON format', { cause: error });
   }
 }
 
@@ -35,8 +40,12 @@ export function yamlToJson(yamlStr: string): string {
     const parsed = load(yamlStr);
     return JSON.stringify(parsed, null, 2);
   } catch (error) {
-    console.error('YAML to JSON conversion error:', error);
-    throw new Error('Invalid YAML format');
+    // Callers catch this (form validators run it on every keystroke), so it
+    // logs at debug and keeps the parser error as the cause.
+    logger.debug('[format] YAML to JSON conversion failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw new Error('Invalid YAML format', { cause: error });
   }
 }
 

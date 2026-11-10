@@ -15,8 +15,9 @@ import {
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
+import { generateRandomString, tryGenerateId } from '@/utils/helpers/text.helper';
 import { Form } from '@datum-cloud/datum-ui/form';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -93,11 +94,17 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
           : { endpoint: `${protocol}://${data.endpointHost}`, tlsHostname: data.tlsHostname };
 
       const resourceName = data.chosenName
-        ? generateId(data.chosenName, {
+        ? tryGenerateId(data.chosenName, {
             randomText: nameRandomSuffix,
             randomLength: 6,
           })
         : data.name;
+      if (!resourceName) {
+        toast.error('Application Load Balancer', {
+          description: 'Use a display name with at least one letter or number.',
+        });
+        return;
+      }
 
       const createdProxy = await createProxyMutation.mutateAsync({
         name: resourceName,
@@ -140,10 +147,10 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
           <Form.Field name="chosenName" required>
             {({ field, meta }) => {
               const resourceName = field.value
-                ? generateId(field.value as string, {
+                ? (tryGenerateId(field.value as string, {
                     randomText: nameRandomSuffix,
                     randomLength: 6,
-                  })
+                  }) ?? '')
                 : '';
 
               return (
