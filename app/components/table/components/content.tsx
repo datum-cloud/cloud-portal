@@ -11,7 +11,7 @@ import {
 } from '@datum-cloud/datum-ui/data-table';
 import { EmptyContent } from '@datum-cloud/datum-ui/empty-content';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 
 interface TableContentProps<TData extends RowData> {
   onRowClick?: (row: TData) => void;
@@ -39,6 +39,32 @@ const STICKY_HEADER_CELL =
 const stickyBodyCellClassName: NonNullable<ContentProps['cellClassName']> = (cell) =>
   cell.column.id === '_actions' ? STICKY_BODY_CELL : '';
 
+// Marks body rows that open on click as reachable from the keyboard.
+const OPENABLE_ROW_ATTR = 'data-row-openable';
+// --ring outline drawn inside the row so the table's overflow does not clip it.
+const ROW_FOCUS_CLASS_NAME =
+  '[&_tbody_tr[data-row-openable]:focus-visible]:outline-ring [&_tbody_tr[data-row-openable]:focus-visible]:outline-2 [&_tbody_tr[data-row-openable]:focus-visible]:-outline-offset-2';
+
+/**
+ * Gives every data row in `container` a tab stop, except locked rows and the
+ * empty-state row. datum-ui does not expose row props, so this runs on the DOM.
+ */
+function syncRowFocusability(container: HTMLElement) {
+  for (const tr of container.querySelectorAll<HTMLTableRowElement>('tbody tr')) {
+    const openable =
+      tr.dataset.slot === 'dt-row' &&
+      !tr.querySelector('[data-slot="dt-empty"]') &&
+      !tr.classList.contains('sync-locked');
+    if (openable) {
+      tr.tabIndex = 0;
+      tr.setAttribute(OPENABLE_ROW_ATTR, '');
+    } else if (tr.hasAttribute(OPENABLE_ROW_ATTR)) {
+      tr.removeAttribute('tabindex');
+      tr.removeAttribute(OPENABLE_ROW_ATTR);
+    }
+  }
+}
+
 const EMPTY_MESSAGE = (
   <EmptyContent
     title="try adjusting your search or filters"
@@ -48,10 +74,11 @@ const EMPTY_MESSAGE = (
 
 /**
  * Wraps DataTable.Content with:
- * 1. Row-click delegation via a click handler on a wrapping div — datum-ui's
- *    DataTable.Content does not expose onRowClick, so we walk up from the
- *    event target to find the `<tr>` index and look up the row in the store.
- * 2. cursor-pointer class on each row when onRowClick is set.
+ * 1. Row-click delegation via a click handler on a wrapping div — we walk up
+ *    from the event target to find the `<tr>` index and look up the row in
+ *    the store (datum-ui's own onRowClick has no lock check or keyboard path).
+ * 2. cursor-pointer class on each row when onRowClick is set. Those rows are
+ *    also focusable and open on Enter or Space, with a --ring focus outline.
  * 3. Server-mode error surface when the store has an error.
  * 4. A `sync-<state>` class per row when `getRowSyncKey` is given (styled in
  *    custom.css). Locked rows also get `sync-locked` and cannot be opened.
@@ -113,6 +140,21 @@ export function TableContent<TData extends RowData>({
     [tracksSync, version, isAlternateFlash]
   );
 
+  // Returns the row behind a body `<tr>`, or undefined when it cannot be opened.
+  const findOpenableRow = useCallback(
+    (tr: Element) => {
+      const tbody = tr.closest('tbody');
+      if (!tbody) return undefined;
+      const index = Array.from(tbody.children).indexOf(tr);
+      const row = rows[index];
+      if (!row) return undefined;
+      const key = getRowSyncKeyRef.current?.(row.original);
+      if (key && isTableRowLocked(key, syncState.get(key))) return undefined;
+      return row;
+    },
+    [rows]
+  );
+
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       if (!onRowClick) return;
@@ -124,17 +166,47 @@ export function TableContent<TData extends RowData>({
       if (target.closest('a')) return;
       const tr = target.closest('tbody tr');
       if (!tr) return;
-      const tbody = tr.closest('tbody');
-      if (!tbody) return;
-      const index = Array.from(tbody.children).indexOf(tr as HTMLTableRowElement);
-      const row = rows[index];
+      const row = findOpenableRow(tr);
+      if (row) onRowClick(row.original);
+    },
+    [onRowClick, findOpenableRow]
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (!onRowClick) return;
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      // Only the focused row itself: keys pressed on nested buttons, links,
+      // checkboxes or row actions keep their own behaviour.
+      const target = e.target as HTMLElement;
+      if (!(target instanceof HTMLTableRowElement) || !target.hasAttribute(OPENABLE_ROW_ATTR)) {
+        return;
+      }
+      const row = findOpenableRow(target);
       if (!row) return;
-      const key = getRowSyncKeyRef.current?.(row.original);
-      if (key && isTableRowLocked(key, syncState.get(key))) return;
+      // Space on a focused row would otherwise scroll the page.
+      e.preventDefault();
       onRowClick(row.original);
     },
-    [onRowClick, rows]
+    [onRowClick, findOpenableRow]
   );
+
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const isClickable = onRowClick !== undefined;
+
+  // Re-applied after every render (rows, lock classes) ...
+  useLayoutEffect(() => {
+    if (isClickable && wrapperRef.current) syncRowFocusability(wrapperRef.current);
+  });
+
+  // ... and when DataTable swaps rows on its own, e.g. closing an inline form.
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!isClickable || !wrapper) return;
+    const observer = new MutationObserver(() => syncRowFocusability(wrapper));
+    observer.observe(wrapper, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [isClickable]);
 
   const content = useMemo(
     () => (
@@ -157,7 +229,11 @@ export function TableContent<TData extends RowData>({
   if (!onRowClick) return content;
 
   return (
-    <div onClick={handleClick} className="[&_tbody_tr:not(.sync-locked)]:cursor-pointer">
+    <div
+      ref={wrapperRef}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      className={cn('[&_tbody_tr:not(.sync-locked)]:cursor-pointer', ROW_FOCUS_CLASS_NAME)}>
       {content}
     </div>
   );

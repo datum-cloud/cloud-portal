@@ -38,9 +38,7 @@ export const BadgeCopy = ({
   const displayText = text ?? value;
 
   const copyButton = (
-    <span
-      className={cn('flex items-center justify-center', copyButtonClassName)}
-      aria-label={copied ? 'Copied!' : 'Copy to clipboard'}>
+    <span className={cn('flex items-center justify-center', copyButtonClassName)} aria-hidden>
       <Icon icon={CopyIcon} className="size-3" />
     </span>
   );
@@ -49,11 +47,21 @@ export const BadgeCopy = ({
     <Badge
       type={badgeType}
       theme={badgeTheme}
+      role="button"
+      tabIndex={0}
+      aria-label={copied ? 'Copied!' : `Copy ${displayText}`}
       className={cn(
-        'flex cursor-pointer items-center gap-2.5 rounded-md px-1.5 py-[5px] font-mono text-xs font-normal',
+        'focus-visible:ring-ring flex cursor-pointer items-center gap-2.5 rounded-md px-1.5 py-[5px] font-mono text-xs font-normal focus-visible:ring-2 focus-visible:outline-none',
         className
       )}
       onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        copyToClipboard(value);
+      }}
+      onKeyDown={(event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        // Space would otherwise scroll the page; stopping keeps a parent row from opening too.
         event.preventDefault();
         event.stopPropagation();
         copyToClipboard(value);

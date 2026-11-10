@@ -117,17 +117,19 @@ export const EditSecretKeys = ({
                             type="quaternary"
                             theme="borderless"
                             size="icon"
+                            aria-label={`Edit ${variable}`}
                             onClick={() => editKeyValueDialogRef.current?.show(variable)}
                             className="size-6 border">
-                            <Icon icon={PencilIcon} className="size-3.5" />
+                            <Icon icon={PencilIcon} className="size-3.5" aria-hidden />
                           </Button>
                           <Button
                             type="quaternary"
                             theme="borderless"
                             size="icon"
+                            aria-label={`Delete ${variable}`}
                             onClick={() => deleteSecret(variable)}
                             className="size-6 border">
-                            <Icon icon={Trash2} className="size-3.5" />
+                            <Icon icon={Trash2} className="size-3.5" aria-hidden />
                           </Button>
                         </div>
                       )}
