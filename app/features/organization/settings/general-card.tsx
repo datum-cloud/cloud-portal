@@ -1,28 +1,28 @@
-import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
-import { useAccessReview } from '@/modules/rbac';
+import { OwnerOnlyNote } from './owner-only-note';
 import { useApp } from '@/providers/app.provider';
 import { type Organization, useUpdateOrganization } from '@/resources/organizations';
 import { updateOrganizationSchema } from '@/resources/organizations';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
-import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { toast } from '@datum-cloud/datum-ui/toast';
 
 const schema = updateOrganizationSchema.pick({ description: true, name: true });
 
 /**
  * Organization General Settings Card Component
- * Displays and allows editing of general organization settings
+ * Displays and allows editing of general organization settings. Only the
+ * organization's owners can edit (`canEdit`); everyone else sees the fields
+ * and buttons disabled.
  */
-export const OrganizationGeneralCard = ({ organization }: { organization: Organization }) => {
+export const OrganizationGeneralCard = ({
+  organization,
+  canEdit,
+}: {
+  organization: Organization;
+  canEdit: boolean;
+}) => {
   const { setOrganization } = useApp();
-
-  const { allowed: canEdit, isLoading: permLoading } = useAccessReview('organizations', 'patch', {
-    group: 'resourcemanager.miloapis.com',
-    name: organization?.name,
-    scope: 'user',
-  });
 
   const updateOrganization = useUpdateOrganization(organization?.name ?? '', {
     onSuccess: (updatedOrg) => {
@@ -41,13 +41,6 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
 
   return (
     <Card size="sm" sectioned className="relative">
-      {permLoading ? (
-        <LoaderOverlay />
-      ) : (
-        !canEdit && (
-          <RestrictedOverlay message="You don't have permission to edit this organization" />
-        )
-      )}
       <CardHeader size="sm" bordered>
         <CardTitle className="text-sm">Organization Info</CardTitle>
       </CardHeader>
@@ -68,8 +61,8 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
           });
         }}
         className="flex flex-col space-y-0">
-        {({ form, isSubmitting }) => (
-          <>
+        {({ form, isSubmitting, isDirty }) => (
+          <fieldset disabled={!canEdit} className="contents">
             <CardContent>
               <div className="flex max-w-sm flex-col gap-5">
                 {organization?.type === 'Personal' ? (
@@ -92,16 +85,17 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
                 </Form.Field>
               </div>
             </CardContent>
-            {organization && organization?.type !== 'Personal' && !permLoading && canEdit && (
+            {organization && organization?.type !== 'Personal' && (
               <CardFooter
                 bordered
                 className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                {!canEdit && <OwnerOnlyNote />}
                 <Button
                   htmlType="button"
                   type="quaternary"
                   theme="outline"
                   data-e2e="edit-organization-cancel"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !isDirty}
                   size="xs"
                   onClick={() => {
                     form.reset();
@@ -113,7 +107,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
                 </Form.Submit>
               </CardFooter>
             )}
-          </>
+          </fieldset>
         )}
       </Form.Root>
     </Card>

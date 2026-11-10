@@ -37,24 +37,28 @@ export const handle = {
 export default route.Page(() => <GeneralForm />);
 
 function GeneralForm() {
-  const { data: organization } = useGuardedRouteData<Organization, Record<string, never>>(
-    'org-detail'
-  );
+  const { data: organization, companions } = useGuardedRouteData<
+    Organization,
+    { isOwner: boolean | null }
+  >('org-detail');
+  // Only owners change organization settings. A failed ownership lookup
+  // (null) leaves the cards read-only rather than guessing.
+  const isOwner = companions.isOwner === true;
 
   return (
     <div className="flex w-full flex-col gap-8">
       <Row gutter={[0, 32]}>
         <Col span={24}>
-          <OrganizationGeneralCard organization={organization} />
+          <OrganizationGeneralCard organization={organization} canEdit={isOwner} />
         </Col>
 
         <Col span={24}>
-          <OrganizationContactCard organization={organization} />
+          <OrganizationContactCard organization={organization} canEdit={isOwner} />
         </Col>
 
         {env.public.emailDomainJoiningEnabled && (
           <Col span={24}>
-            <EmailDomainJoiningCard organization={organization} />
+            <EmailDomainJoiningCard organization={organization} canEdit={isOwner} />
           </Col>
         )}
 
@@ -63,7 +67,7 @@ function GeneralForm() {
             <Title as="h3" level={6} weight="medium" className="mb-4">
               Delete Organization
             </Title>
-            <OrganizationDangerCard organization={organization} />
+            <OrganizationDangerCard organization={organization} canEdit={isOwner} />
           </Col>
         )}
       </Row>

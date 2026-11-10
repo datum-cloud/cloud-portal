@@ -7,9 +7,8 @@ import {
 import { useOrganizationDomains } from './organization-domains';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
+import { OwnerOnlyNote } from '@/features/organization/settings/owner-only-note';
 import { RoleFieldContent } from '@/features/organization/team/invitation-form';
-import { useAccessReview } from '@/modules/rbac';
 import { isEmailDomainOffer, useInvitations } from '@/resources/invitations';
 import {
   type Organization,
@@ -22,7 +21,6 @@ import { Alert, AlertDescription, AlertTitle } from '@datum-cloud/datum-ui/alert
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
-import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { useMemo, useState } from 'react';
@@ -36,19 +34,19 @@ const RECHECK_INTERVAL_MS = 3_000;
  * may join without an invitation, and the role they get. Milo checks each
  * domain against the verified Domains in the organization's projects, rejects
  * public email providers, and reports the result in the EmailDomainsVerified
- * condition. Gated behind `organizations:patch` like the settings cards.
+ * condition. Only the organization's owners can edit (`canEdit`); everyone
+ * else sees the fields and buttons disabled.
  */
-export const EmailDomainJoiningCard = ({ organization }: { organization: Organization }) => {
+export const EmailDomainJoiningCard = ({
+  organization,
+  canEdit,
+}: {
+  organization: Organization;
+  canEdit: boolean;
+}) => {
   const orgId = organization.name;
   const { confirm } = useConfirmationDialog();
   const [savedAt, setSavedAt] = useState<number>();
-  const [saveError, setSaveError] = useState<string>();
-
-  const { allowed: canEdit, isLoading: permLoading } = useAccessReview('organizations', 'patch', {
-    group: 'resourcemanager.miloapis.com',
-    name: orgId,
-    scope: 'user',
-  });
 
   // Milo sets the condition shortly after a save, so poll for a little while.
   const { data: org = organization } = useOrganization(orgId, {
@@ -72,7 +70,6 @@ export const EmailDomainJoiningCard = ({ organization }: { organization: Organiz
   );
 
   const update = useUpdateOrganizationEmailDomainJoining(orgId, {
-    onMutate: () => setSaveError(undefined),
     onSuccess: (_data, variables) => {
       setSavedAt(Date.now());
       if (variables === null) {
@@ -81,7 +78,11 @@ export const EmailDomainJoiningCard = ({ organization }: { organization: Organiz
         toast.success('Allowed email domains saved');
       }
     },
-    onError: (error) => setSaveError(emailDomainJoiningErrorMessage(error)),
+    onError: (error) => {
+      toast.error("Couldn't save allowed email domains", {
+        description: emailDomainJoiningErrorMessage(error),
+      });
+    },
   });
 
   const defaultValues = useMemo<Partial<EmailDomainJoiningFormValues>>(
@@ -92,6 +93,22 @@ export const EmailDomainJoiningCard = ({ organization }: { organization: Organiz
     }),
     [joining]
   );
+
+  // What the owner has picked since the form last loaded, for enabling Cancel.
+  // The form's own isDirty can't be used: the domain list is set without an
+  // input, so the adapter reports it changed before anyone touches it. The
+  // draft belongs to one saved setting (formKey) and is dropped when it changes.
+  const formKey = JSON.stringify(joining ?? null);
+  const [draft, setDraft] = useState<{ key: string; domains?: string[]; role?: string }>({
+    key: formKey,
+  });
+  const current = draft.key === formKey ? draft : { key: formKey };
+  const savedDomains = defaultValues.domains ?? [];
+  const isDirty =
+    (current.domains !== undefined &&
+      (current.domains.length !== savedDomains.length ||
+        current.domains.some((domain) => !savedDomains.includes(domain)))) ||
+    (current.role !== undefined && current.role !== (defaultValues.role ?? ''));
 
   const turnOff = () =>
     confirm({
@@ -113,20 +130,13 @@ export const EmailDomainJoiningCard = ({ organization }: { organization: Organiz
 
   return (
     <Card size="sm" sectioned className="relative">
-      {permLoading ? (
-        <LoaderOverlay />
-      ) : (
-        !canEdit && (
-          <RestrictedOverlay message="You don't have permission to change how people join this organization" />
-        )
-      )}
       <CardHeader size="sm" bordered className="flex flex-row items-center justify-between gap-2">
         <CardTitle className="text-sm">Allowed email domains</CardTitle>
         {joining && <JoiningStatusBadge status={verified?.status} />}
       </CardHeader>
       <Form.Root
         // Remount after a save so the fields show what was stored.
-        key={JSON.stringify(joining ?? null)}
+        key={formKey}
         name="update-email-domain-joining"
         id="update-email-domain-joining-form"
         schema={emailDomainJoiningFormSchema}
@@ -142,7 +152,7 @@ export const EmailDomainJoiningCard = ({ organization }: { organization: Organiz
         }}
         className="flex flex-col space-y-0">
         {({ form, isSubmitting }) => (
-          <>
+          <fieldset disabled={!canEdit} className="contents">
             <CardContent className="flex flex-col gap-6">
               <Text as="p" size="sm" textColor="muted">
                 Anyone who signs in with a confirmed email address at these domains can join this
@@ -164,81 +174,91 @@ export const EmailDomainJoiningCard = ({ organization }: { organization: Organiz
                 </Text>
               )}
 
-              <Form.Field
-                name="domains"
-                label="Domains"
-                required
-                description="Choose from the domains verified in this organization's projects.">
-                {({ control }) => (
-                  <DomainPicker
-                    orgId={orgId}
-                    domains={organizationDomains.domains}
-                    isLoading={organizationDomains.isLoading}
-                    failedProjects={organizationDomains.failedProjects}
-                    value={toStringArray(control.value)}
-                    onChange={control.change}
-                    disabled={!canEdit || isSubmitting}
-                  />
-                )}
-              </Form.Field>
-
-              <Form.Field
-                name="role"
-                label="Role"
-                required
-                description="People who join this way get this role.">
-                {(props) => (
-                  <div className="sm:max-w-xs">
-                    <RoleFieldContent {...props} />
-                  </div>
-                )}
-              </Form.Field>
-
-              {saveError && (
-                <Alert variant="destructive">
-                  <AlertTitle className="text-sm">Couldn&apos;t save</AlertTitle>
-                  <AlertDescription>{saveError}</AlertDescription>
-                </Alert>
-              )}
-            </CardContent>
-            {!permLoading && canEdit && (
-              <CardFooter
-                bordered
-                className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
-                <div>
-                  {joining && (
-                    <Button
-                      htmlType="button"
-                      type="danger"
-                      theme="outline"
-                      size="xs"
-                      disabled={isSubmitting}
-                      onClick={() => void turnOff()}
-                      data-e2e="email-domain-joining-turn-off">
-                      Turn off
-                    </Button>
+              {/* Two columns on wide screens, like the Contact card. Each hint
+                  sits under its label rather than in `description`, so the
+                  columns line up and the domain list's unverified toggle
+                  doesn't separate the hint from its label. */}
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr] lg:gap-8">
+                <Form.Field name="domains" label="Domains" required>
+                  {({ control }) => (
+                    <div className="flex flex-col gap-2">
+                      <Text as="p" size="xs" textColor="muted">
+                        Choose from the domains verified in this organization&apos;s projects.
+                      </Text>
+                      <DomainPicker
+                        orgId={orgId}
+                        domains={organizationDomains.domains}
+                        isLoading={organizationDomains.isLoading}
+                        failedProjects={organizationDomains.failedProjects}
+                        value={toStringArray(control.value)}
+                        onChange={(domains) => {
+                          control.change(domains);
+                          setDraft({ ...current, domains });
+                        }}
+                        disabled={!canEdit || isSubmitting}
+                      />
+                    </div>
                   )}
-                </div>
-                <div className="flex flex-col-reverse gap-2 sm:flex-row">
+                </Form.Field>
+
+                <Form.Field name="role" label="Role" required>
+                  {({ control, ...rest }) => (
+                    <div className="flex flex-col gap-2">
+                      <Text as="p" size="xs" textColor="muted">
+                        People who join this way get this role.
+                      </Text>
+                      <RoleFieldContent
+                        {...rest}
+                        control={{
+                          ...control,
+                          change: (role: unknown) => {
+                            control.change(role);
+                            setDraft({ ...current, role: typeof role === 'string' ? role : '' });
+                          },
+                        }}
+                      />
+                    </div>
+                  )}
+                </Form.Field>
+              </div>
+            </CardContent>
+            <CardFooter
+              bordered
+              className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+              <div className="flex">
+                {joining && (
                   <Button
                     htmlType="button"
-                    type="quaternary"
+                    type="danger"
                     theme="outline"
-                    disabled={isSubmitting}
                     size="xs"
-                    onClick={() => {
-                      setSaveError(undefined);
-                      form.reset();
-                    }}>
-                    Cancel
+                    disabled={isSubmitting}
+                    onClick={() => void turnOff()}
+                    data-e2e="email-domain-joining-turn-off">
+                    Turn off
                   </Button>
-                  <Form.Submit size="xs" loadingText="Saving" data-e2e="email-domain-joining-save">
-                    {joining ? 'Save' : 'Turn on'}
-                  </Form.Submit>
-                </div>
-              </CardFooter>
-            )}
-          </>
+                )}
+                {!canEdit && <OwnerOnlyNote />}
+              </div>
+              <div className="flex flex-col-reverse gap-2 sm:flex-row">
+                <Button
+                  htmlType="button"
+                  type="quaternary"
+                  theme="outline"
+                  disabled={isSubmitting || !isDirty}
+                  size="xs"
+                  onClick={() => {
+                    form.reset();
+                    setDraft({ key: formKey });
+                  }}>
+                  Cancel
+                </Button>
+                <Form.Submit size="xs" loadingText="Saving" data-e2e="email-domain-joining-save">
+                  {joining ? 'Save' : 'Turn on'}
+                </Form.Submit>
+              </div>
+            </CardFooter>
+          </fieldset>
         )}
       </Form.Root>
     </Card>

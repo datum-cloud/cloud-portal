@@ -1,4 +1,4 @@
-import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
+import { OwnerOnlyNote } from './owner-only-note';
 import { AddressFields } from '@/features/address/address-fields';
 import { BILLING_COUNTRIES, BILLING_PRIORITY_COUNTRY_CODES } from '@/features/billing/constants';
 import {
@@ -7,12 +7,10 @@ import {
   orgContactInfoToFormValues,
   toOrganizationContactInfoPatch,
 } from '@/features/onboarding/schemas/org-contact-info-schema';
-import { useAccessReview } from '@/modules/rbac';
 import { type Organization, useUpdateOrganizationContactInfo } from '@/resources/organizations';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
-import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { SelectSeparator } from '@datum-cloud/datum-ui/select';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useMemo } from 'react';
@@ -23,16 +21,16 @@ import { useMemo } from 'react';
  * Displays and edits `Organization.spec.contactInfo` — the same details
  * collected during onboarding (primary contact, business name, and postal
  * address). Reuses the onboarding contact schema/mappers so the shape stays in
- * lockstep with the create flow. Gated behind `organizations:patch` like the
- * general card.
+ * lockstep with the create flow. Only the organization's owners can edit
+ * (`canEdit`); everyone else sees the fields and buttons disabled.
  */
-export const OrganizationContactCard = ({ organization }: { organization: Organization }) => {
-  const { allowed: canEdit, isLoading: permLoading } = useAccessReview('organizations', 'patch', {
-    group: 'resourcemanager.miloapis.com',
-    name: organization?.name,
-    scope: 'user',
-  });
-
+export const OrganizationContactCard = ({
+  organization,
+  canEdit,
+}: {
+  organization: Organization;
+  canEdit: boolean;
+}) => {
   const updateContactInfo = useUpdateOrganizationContactInfo(organization?.name ?? '', {
     onSuccess: () => {
       toast.success('Contact information', {
@@ -69,13 +67,6 @@ export const OrganizationContactCard = ({ organization }: { organization: Organi
 
   return (
     <Card size="sm" sectioned className="relative">
-      {permLoading ? (
-        <LoaderOverlay />
-      ) : (
-        !canEdit && (
-          <RestrictedOverlay message="You don't have permission to edit this organization" />
-        )
-      )}
       <CardHeader size="sm" bordered>
         <CardTitle className="text-sm">Contact</CardTitle>
       </CardHeader>
@@ -92,8 +83,8 @@ export const OrganizationContactCard = ({ organization }: { organization: Organi
           });
         }}
         className="flex flex-col space-y-0">
-        {({ form, isSubmitting }) => (
-          <>
+        {({ form, isSubmitting, isDirty }) => (
+          <fieldset disabled={!canEdit} className="contents">
             <CardContent className="flex flex-col gap-8">
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <Form.Field name="email" label="Email" required>
@@ -133,25 +124,22 @@ export const OrganizationContactCard = ({ organization }: { organization: Organi
 
               <AddressFields layout="grid" includeCountry={false} dataE2ePrefix="org-contact" />
             </CardContent>
-            {!permLoading && canEdit && (
-              <CardFooter
-                bordered
-                className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                <Button
-                  htmlType="button"
-                  type="quaternary"
-                  theme="outline"
-                  disabled={isSubmitting}
-                  size="xs"
-                  onClick={() => form.reset()}>
-                  Cancel
-                </Button>
-                <Form.Submit size="xs" loadingText="Saving">
-                  Save
-                </Form.Submit>
-              </CardFooter>
-            )}
-          </>
+            <CardFooter bordered className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              {!canEdit && <OwnerOnlyNote />}
+              <Button
+                htmlType="button"
+                type="quaternary"
+                theme="outline"
+                disabled={isSubmitting || !isDirty}
+                size="xs"
+                onClick={() => form.reset()}>
+                Cancel
+              </Button>
+              <Form.Submit size="xs" loadingText="Saving">
+                Save
+              </Form.Submit>
+            </CardFooter>
+          </fieldset>
         )}
       </Form.Root>
     </Card>
