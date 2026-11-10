@@ -68,9 +68,13 @@ export const InvitationsPage = ({ invitations }: InvitationsPageProps) => {
               {heading}
             </Title>
             <Text as="p" size="sm" textColor="muted">
-              {invitations.length === 1
-                ? "You've been invited to an organization."
-                : "You've been invited to these organizations."}{' '}
+              {invitations.every((invitation) => invitation.emailDomain)
+                ? invitations.length === 1
+                  ? 'Your email address lets you join an organization.'
+                  : 'Your email address lets you join these organizations.'
+                : invitations.length === 1
+                  ? "You've been invited to an organization."
+                  : "You've been invited to these organizations."}{' '}
               Join to start working with your team. You won&apos;t need to add a payment method.
             </Text>
           </div>
@@ -96,7 +100,12 @@ export const InvitationsPage = ({ invitations }: InvitationsPageProps) => {
                       <Text as="p" size="sm" weight="medium" ellipsis className="leading-[18px]">
                         {orgName}
                       </Text>
-                      {inviter ? (
+                      {invitation.emailDomain ? (
+                        <Text as="p" size="xs" textColor="muted" ellipsis className="leading-4">
+                          Anyone at {invitation.emailDomain} can join
+                          {invitation.role ? ` as ${invitation.role}` : null}
+                        </Text>
+                      ) : inviter ? (
                         <Text as="p" size="xs" textColor="muted" ellipsis className="leading-4">
                           Invited by {inviter}
                           {invitation.role ? ` as ${invitation.role}` : null}

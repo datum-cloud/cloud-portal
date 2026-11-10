@@ -90,8 +90,12 @@ const publicSchema = z.object({
   // Optional: Feature toggles
   //   PAYMENT_TERMS_ENABLED: "true" offers customers "Apply for payment
   //     terms" during setup and in billing settings. Off by default.
+  //   EMAIL_DOMAIN_JOINING_ENABLED: "true" lets owners offer membership to
+  //     everyone at a verified email domain. Turn it on only where milo's
+  //     EmailDomainJoining feature gate is on. Off by default.
   // ─────────────────────────────────────────────────────────
   PAYMENT_TERMS_ENABLED: z.string().optional(),
+  EMAIL_DOMAIN_JOINING_ENABLED: z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Logging Configuration
@@ -266,6 +270,7 @@ export const env: Env = {
     otelLogLevel: data.OTEL_LOG_LEVEL,
     googleMapsApiKey: data.GOOGLE_MAPS_API_KEY || undefined,
     paymentTermsEnabled: data.PAYMENT_TERMS_ENABLED === 'true',
+    emailDomainJoiningEnabled: data.EMAIL_DOMAIN_JOINING_ENABLED === 'true',
   },
   server: {
     sessionSecret: data.SESSION_SECRET,

@@ -9,6 +9,7 @@ import {
   createOrganizationSchema,
   createOnboardingOrganizationSchema,
   type Organization,
+  type OrganizationEmailDomainJoining,
   type OrganizationList,
   type CreateOrganizationInput,
   type CreateOnboardingOrganizationInput,
@@ -227,7 +228,7 @@ export function createOrganizationService() {
             spec: {
               contactInfo: input.contactInfo,
             },
-          } as never,
+          },
           query: options?.dryRun ? { dryRun: 'All' } : undefined,
           headers: { 'Content-Type': 'application/merge-patch+json' },
         });
@@ -246,6 +247,44 @@ export function createOrganizationService() {
         return org;
       } catch (error) {
         logger.error(`${SERVICE_NAME}.updateContactInfo failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+
+    /**
+     * Sets `spec.emailDomainJoining`, or removes it when `joining` is null.
+     * Milo's webhook rejects public email providers and domains no project in
+     * the organization has verified; its messages explain how to fix each.
+     */
+    async updateEmailDomainJoining(
+      name: string,
+      joining: OrganizationEmailDomainJoining | null
+    ): Promise<Organization> {
+      const startTime = Date.now();
+
+      try {
+        const response = await patchResourcemanagerMiloapisComV1Alpha1Organization({
+          baseURL: getUserScopedBase(),
+          path: { name },
+          // emailDomainJoining isn't in the generated types yet.
+          body: { spec: { emailDomainJoining: joining } },
+          headers: { 'Content-Type': 'application/merge-patch+json' },
+        });
+
+        if (!response.data) {
+          throw new Error('Failed to update email domain joining');
+        }
+
+        const org = toOrganization(response.data);
+
+        logger.service(SERVICE_NAME, 'updateEmailDomainJoining', {
+          input: { name, enabled: joining !== null },
+          duration: Date.now() - startTime,
+        });
+
+        return org;
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.updateEmailDomainJoining failed`, error as Error);
         throw mapApiError(error);
       }
     },

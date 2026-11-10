@@ -17,7 +17,7 @@ import { useNavigate } from 'react-router';
  * RoleFieldContent - Extracted component to properly use hooks
  * This is needed because useField cannot be called inside a callback
  */
-const RoleFieldContent = ({ control, meta }: FormFieldRenderProps) => {
+export const RoleFieldContent = ({ control, meta }: FormFieldRenderProps) => {
   const { control: roleNamespaceControl } = useField('roleNamespace');
   const roleValue = Array.isArray(control.value)
     ? (control.value[0] as string | undefined)

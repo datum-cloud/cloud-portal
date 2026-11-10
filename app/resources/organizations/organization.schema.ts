@@ -37,6 +37,31 @@ export const organizationMemberAvatarSchema = z.object({
 
 export type OrganizationMemberAvatar = z.infer<typeof organizationMemberAvatarSchema>;
 
+/**
+ * `spec.emailDomainJoining`: everyone with a verified email address at one of
+ * `domains` is offered membership with `roles`, without an invitation.
+ */
+export const organizationEmailDomainJoiningSchema = z.object({
+  domains: z.array(z.string()),
+  roles: z.array(z.object({ name: z.string(), namespace: z.string().optional() })),
+});
+
+export type OrganizationEmailDomainJoining = z.infer<typeof organizationEmailDomainJoiningSchema>;
+
+/**
+ * The `EmailDomainsVerified` condition. Absent until milo's controller has
+ * checked the domains, and whenever email domain joining is off.
+ */
+export const organizationEmailDomainsVerifiedSchema = z.object({
+  status: z.enum(['True', 'False', 'Unknown']),
+  reason: z.string().optional(),
+  message: z.string().optional(),
+});
+
+export type OrganizationEmailDomainsVerified = z.infer<
+  typeof organizationEmailDomainsVerifiedSchema
+>;
+
 export const organizationSchema = resourceMetadataSchema.extend({
   type: organizationTypeSchema.optional(),
   status: organizationStatusSchema,
@@ -47,6 +72,8 @@ export const organizationSchema = resourceMetadataSchema.extend({
   // and we never want a malformed contact block to break loading the org, so
   // fall back to `undefined` instead of throwing on parse.
   contactInfo: organizationContactInfoSchema.optional().catch(undefined),
+  emailDomainJoining: organizationEmailDomainJoiningSchema.optional().catch(undefined),
+  emailDomainsVerified: organizationEmailDomainsVerifiedSchema.optional().catch(undefined),
 });
 
 export type Organization = z.infer<typeof organizationSchema>;

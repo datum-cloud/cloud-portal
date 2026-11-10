@@ -33,10 +33,47 @@ describe('toOrganization', () => {
 
   it('falls back to Pending when there are no conditions, and name for displayName', () => {
     const raw = { metadata: rawMetadata({ name: 'no-status' }), spec: {} };
-    const org = toOrganization(raw as never);
+    const org = toOrganization(raw);
     expect(org.status).toBe('Pending');
     expect(org.displayName).toBe('no-status');
     expect(org.type).toBeUndefined();
+  });
+
+  it('maps email domain joining and its EmailDomainsVerified condition', () => {
+    const org = toOrganization({
+      metadata: rawMetadata({ name: 'acme' }),
+      spec: {
+        emailDomainJoining: {
+          domains: ['acme.com'],
+          roles: [{ name: 'viewer', namespace: 'datum-cloud' }],
+        },
+      },
+      status: {
+        conditions: [
+          { type: 'Ready', status: 'True', reason: 'Ready' },
+          {
+            type: 'EmailDomainsVerified',
+            status: 'False',
+            reason: 'DomainNotVerified',
+            message: 'Membership is not offered: no project has a verified Domain for acme.com',
+          },
+        ],
+      },
+    } as never);
+
+    expect(org.emailDomainJoining).toEqual({
+      domains: ['acme.com'],
+      roles: [{ name: 'viewer', namespace: 'datum-cloud' }],
+    });
+    expect(org.emailDomainsVerified).toEqual({
+      status: 'False',
+      reason: 'DomainNotVerified',
+      message: 'Membership is not offered: no project has a verified Domain for acme.com',
+    });
+
+    const off = toOrganization({ metadata: rawMetadata({ name: 'off' }), spec: {} });
+    expect(off.emailDomainJoining).toBeUndefined();
+    expect(off.emailDomainsVerified).toBeUndefined();
   });
 
   it('drops empty or unknown organization types from unified orgs', () => {
@@ -126,7 +163,7 @@ describe('toOrganizationList', () => {
       ],
       metadata: { continue: 'tok' },
     };
-    const list = toOrganizationList(raw as never);
+    const list = toOrganizationList(raw);
     expect(list.items.map((o) => o.name)).toEqual(['a', 'b']);
     expect(list.nextCursor).toBe('tok');
     expect(list.hasMore).toBe(true);

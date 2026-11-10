@@ -9,6 +9,7 @@ import { syncKey } from '@/modules/watch/sync-state';
 import { useApp } from '@/providers/app.provider';
 import {
   INVITATION_SYNC_KIND,
+  isEmailDomainOffer,
   useCancelInvitation,
   useResendInvitation,
   useInvitations,
@@ -131,10 +132,12 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
     }));
   }, [members]);
 
-  // Transform invitations to team members format
+  // Transform invitations to team members format. Email domain offers are
+  // left out: milo makes one for everyone at an allowed domain, nobody sent
+  // them, and the email domain card in Settings > General counts them instead.
   const invitationTeamMembers: ITeamMember[] = useMemo(() => {
     return invitations
-      .filter((invitation) => invitation.state === 'Pending')
+      .filter((invitation) => invitation.state === 'Pending' && !isEmailDomainOffer(invitation))
       .map((invitation) => ({
         id: invitation.name,
         fullName: invitation.email ?? '',

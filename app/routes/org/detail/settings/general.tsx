@@ -1,10 +1,12 @@
 import { OrganizationDangerCard } from '@/features/organization';
 import { OrganizationContactCard } from '@/features/organization/settings/contact-card';
+import { EmailDomainJoiningCard } from '@/features/organization/settings/email-domain-joining/email-domain-joining-card';
 import { OrganizationGeneralCard } from '@/features/organization/settings/general-card';
 import { useGuardedRouteData } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runRouteGate } from '@/modules/rbac/run-resource-loader';
 import { type Organization } from '@/resources/organizations';
+import { env } from '@/utils/env';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Title } from '@datum-cloud/datum-ui/typography';
 import { type LoaderFunctionArgs } from 'react-router';
@@ -49,6 +51,12 @@ function GeneralForm() {
         <Col span={24}>
           <OrganizationContactCard organization={organization} />
         </Col>
+
+        {env.public.emailDomainJoiningEnabled && (
+          <Col span={24}>
+            <EmailDomainJoiningCard organization={organization} />
+          </Col>
+        )}
 
         {organization.type !== 'Personal' && (
           <Col span={24}>
