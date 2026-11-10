@@ -41,9 +41,11 @@ const stickyBodyCellClassName: NonNullable<ContentProps['cellClassName']> = (cel
 
 // Marks body rows that open on click as reachable from the keyboard.
 const OPENABLE_ROW_ATTR = 'data-row-openable';
-// --ring outline drawn inside the row so the table's overflow does not clip it.
+// A bolder version of the row border, in the same focus colour form fields use
+// (--input-focus-border). Drawn inside the row so the table's overflow does not
+// clip it.
 const ROW_FOCUS_CLASS_NAME =
-  '[&_tbody_tr[data-row-openable]:focus-visible]:outline-ring [&_tbody_tr[data-row-openable]:focus-visible]:outline-2 [&_tbody_tr[data-row-openable]:focus-visible]:-outline-offset-2';
+  '[&_tbody_tr[data-row-openable]:focus-visible]:outline-input-focus-border [&_tbody_tr[data-row-openable]:focus-visible]:outline-2 [&_tbody_tr[data-row-openable]:focus-visible]:-outline-offset-2';
 
 /**
  * Gives every data row in `container` a tab stop, except locked rows and the
