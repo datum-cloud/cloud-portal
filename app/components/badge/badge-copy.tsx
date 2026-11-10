@@ -51,9 +51,9 @@ export const BadgeCopy = ({
       tabIndex={0}
       aria-label={copied ? 'Copied!' : `Copy ${displayText}`}
       className={cn(
-        // Focus shows on the badge's own border, in the form-field focus colour,
-        // instead of the Badge base's dark ring.
-        'focus-visible:border-input-focus-border flex cursor-pointer items-center gap-2.5 rounded-md px-1.5 py-[5px] font-mono text-xs font-normal focus:ring-0 focus:ring-offset-0 focus-visible:shadow-(--input-focus-shadow) focus-visible:outline-none',
+        // Focus shows on the badge's own border in the primary colour, with a soft
+        // primary halo, instead of the Badge base's dark ring.
+        'focus-visible:border-primary focus-visible:ring-primary/30 flex cursor-pointer items-center gap-2.5 rounded-md px-1.5 py-[5px] font-mono text-xs font-normal focus:ring-0 focus:ring-offset-0 focus-visible:ring-2 focus-visible:outline-none',
         className
       )}
       onClick={(event) => {

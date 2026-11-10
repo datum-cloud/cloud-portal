@@ -27,7 +27,7 @@ export const UnsupportedRecordsAlert = ({
       .{' '}
       <button
         type="button"
-        className="focus-visible:outline-input-focus-border cursor-pointer rounded-sm underline focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="focus-visible:outline-primary cursor-pointer rounded-sm underline focus-visible:outline-2 focus-visible:outline-offset-2"
         onClick={onContactSupport}>
         Contact us
       </button>{' '}
