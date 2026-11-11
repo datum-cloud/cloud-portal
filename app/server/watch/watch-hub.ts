@@ -24,11 +24,11 @@ const MAX_RECONNECT_ATTEMPTS = 5;
 /** Base delay for exponential backoff on upstream reconnection (doubles each attempt). */
 const BASE_RECONNECT_DELAY = 1000;
 /**
- * How long a streamed response may sit with no bytes written before the
- * runtime closes it. Measured at ~12s against this stack (Bun + Hono
- * `streamSSE`), identically on `react-router-hono-server` v3 and v4, and not
- * affected by `Bun.serve`'s `idleTimeout`. Treated as an empirical ceiling:
- * anything the hub does to keep a connection open must happen well inside it.
+ * How long a streamed response may sit with no bytes written before something
+ * on the path closes it. Measured at ~12s when the portal ran on Bun (Hono
+ * `streamSSE`) and not re-measured since the move to Node. Treated as an
+ * empirical ceiling: anything the hub does to keep a connection open must
+ * happen well inside it.
  */
 export const SSE_IDLE_TIMEOUT_MS = 12000;
 

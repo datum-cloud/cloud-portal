@@ -14,8 +14,9 @@ import { dirname, join } from 'node:path';
 // expected path.
 const SHUTDOWN_GRACE_MS = 5000;
 
-// The TTY delivers SIGINT to every process in the foreground group, and
-// `npm run` forwards it again, so a single Ctrl+C can arrive here twice.
+// The TTY delivers SIGINT to every process in the foreground group, and the
+// package manager's script runner may forward it again, so a single Ctrl+C
+// can arrive here twice.
 // Signals closer together than this are treated as one interrupt.
 const DUPLICATE_SIGNAL_MS = 500;
 

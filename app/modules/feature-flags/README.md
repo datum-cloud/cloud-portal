@@ -58,5 +58,5 @@ gating is the responsibility of each call site.
 ## Tests
 
 ```sh
-npm run test:feature-flags
+pnpm test:feature-flags
 ```

@@ -49,7 +49,7 @@ export function runWhenIdle(task: () => void): () => void {
 
 /**
  * The parts of the Sentry SDK replay loading uses. A parameter so tests can
- * drive it: under `bun test` the package resolves to its server build, which
+ * drive it: under the test runner the package resolves to its server build, which
  * has no `lazyLoadIntegration` at all.
  */
 export type ReplaySdk = Pick<typeof Sentry, 'getClient' | 'lazyLoadIntegration' | 'addIntegration'>;

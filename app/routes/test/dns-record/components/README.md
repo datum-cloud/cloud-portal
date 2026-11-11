@@ -202,10 +202,10 @@ The test page is fully covered by Cypress component tests.
 
 ```bash
 # Open Cypress
-npm run cypress:open
+pnpm cypress:open
 
 # Run component tests
-npm run cypress:run --component
+pnpm cypress:run --component
 ```
 
 ### Test Coverage
