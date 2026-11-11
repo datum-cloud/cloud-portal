@@ -15,7 +15,7 @@
     "ghcr.io/devcontainers/features/docker-in-docker": {
       "moby": false
     },
-    "ghcr.io/devcontainers/features/node:1": { "version": "26.13.0", "pnpmVersion": "11.28.9" },
+    "ghcr.io/devcontainers/features/node:1": { "version": "26.13.1", "pnpmVersion": "11.28.9" },
     "ghcr.io/audacioustux/devcontainers/kustomize": {}
   },
   "customizations": {
