@@ -3,7 +3,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DangerCard } from '@/components/danger-card/danger-card';
 import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
 import { DisplayNameFormCard } from '@/features/service-account';
-import { useResourcePermissions } from '@/modules/rbac';
+import { PermissionGate, useResourcePermissions } from '@/modules/rbac';
 import { useDeleteServiceAccount } from '@/resources/service-accounts';
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
@@ -27,15 +27,11 @@ export default function ServiceAccountSettingsPage() {
   const { confirm } = useConfirmationDialog();
   const navigate = useNavigate();
 
-  const {
-    canPatch,
-    canDelete,
-    isLoading: permissionsLoading,
-  } = useResourcePermissions({
+  const { canDelete, isLoading: permissionsLoading } = useResourcePermissions({
     resource: 'serviceaccounts',
     group: 'iam.miloapis.com',
     scope: 'project',
-    verbs: ['patch', 'delete'],
+    verbs: ['delete'],
   });
 
   const deleteMutation = useDeleteServiceAccount(projectId ?? '', {
@@ -77,14 +73,19 @@ export default function ServiceAccountSettingsPage() {
 
   return (
     <Row type="flex" gutter={[24, 24]}>
-      {canPatch && (
+      <PermissionGate
+        resource="serviceaccounts"
+        group="iam.miloapis.com"
+        scope="project"
+        verb="patch"
+        mode="hide">
         <Col span={24}>
           <Title as="h3" level={6} weight="medium" className="mb-4">
             Display Name
           </Title>
           <DisplayNameFormCard projectId={projectId ?? ''} defaultValue={account} />
         </Col>
-      )}
+      </PermissionGate>
 
       <Col span={24}>
         <Title as="h3" level={6} weight="medium" className="mb-4">

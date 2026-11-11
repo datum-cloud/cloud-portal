@@ -27,11 +27,23 @@ import { useLoaderData, useParams, type MetaFunction } from 'react-router';
  * commit for the original failure mode.
  */
 
+/**
+ * `Page` hands the route component's own props (React Router's
+ * `Route.ComponentProps`: `params`, `matches`, ...) to `render` as a second
+ * argument. Pass the generated type to read typed params without `useParams`:
+ *
+ *   export default route.Page<Route.ComponentProps>(({ data }, { params }) => (
+ *     <Inner data={data} orgId={params.orgId} />
+ *   ));
+ */
 interface DefineListRouteOutput<TData> {
   meta: MetaFunction;
-  Page: (
-    render: (props: { data: TData; companions: Record<string, never> }) => React.ReactNode
-  ) => () => React.ReactElement;
+  Page: <TRouteProps extends object = object>(
+    render: (
+      props: { data: TData; companions: Record<string, never> },
+      routeProps: TRouteProps
+    ) => React.ReactNode
+  ) => (routeProps: TRouteProps) => React.ReactElement;
 }
 
 interface DefineDetailRouteOutput<TData, TCompanions extends Record<string, unknown>> {
@@ -39,16 +51,21 @@ interface DefineDetailRouteOutput<TData, TCompanions extends Record<string, unkn
     breadcrumb: (loaderData: DslLoaderData<TData, TCompanions> | undefined) => React.ReactNode;
   };
   meta: MetaFunction;
-  Page: (
-    render: (props: { data: TData; companions: TCompanions }) => React.ReactNode
-  ) => () => React.ReactElement;
+  Page: <TRouteProps extends object = object>(
+    render: (
+      props: { data: TData; companions: TCompanions },
+      routeProps: TRouteProps
+    ) => React.ReactNode
+  ) => (routeProps: TRouteProps) => React.ReactElement;
 }
 
 interface DefineGateRouteOutput {
   meta: MetaFunction;
   // Gate routes fetch no resource, so the render prop takes no args. The
   // wrapper emits <RestrictedState> when the loader verdict is restricted.
-  Page: (render: () => React.ReactNode) => () => React.ReactElement;
+  Page: <TRouteProps extends object = object>(
+    render: (routeProps: TRouteProps) => React.ReactNode
+  ) => (routeProps: TRouteProps) => React.ReactElement;
 }
 
 export function defineResourceRoute<TData>(
@@ -81,7 +98,7 @@ function defineListRoute<TData>(cfg: DefineListPageInput): DefineListRouteOutput
   const meta: MetaFunction = mergeMeta(() => metaObject(cfg.metaTitle ?? cfg.resource));
 
   const Page: DefineListRouteOutput<TData>['Page'] = (render) => {
-    return function GuardedRouteOutlet() {
+    return function GuardedRouteOutlet(routeProps) {
       const loaderData = useLoaderData<DslLoaderData<TData, Record<string, never>>>();
       const { projectId = '' } = useParams<{ projectId: string }>();
       // Identity-stable seedCache so GuardedPage's seed effect doesn't re-fire on
@@ -100,7 +117,7 @@ function defineListRoute<TData>(cfg: DefineListPageInput): DefineListRouteOutput
           restrictedTitle={cfg.restrictedTitle}
           restrictedMessage={cfg.restrictedMessage}
           seedCache={cfg.seedCache ? seedCache : undefined}>
-          {(d, companions) => render({ data: d, companions })}
+          {(d, companions) => render({ data: d, companions }, routeProps)}
         </GuardedPage>
       );
     };
@@ -113,12 +130,12 @@ function defineGateRoute(cfg: DefineGatePageInput): DefineGateRouteOutput {
   const meta: MetaFunction = mergeMeta(() => metaObject(cfg.metaTitle ?? cfg.restrictedTitle));
 
   const Page: DefineGateRouteOutput['Page'] = (render) => {
-    return function GuardedGateOutlet() {
+    return function GuardedGateOutlet(routeProps) {
       const loaderData = useLoaderData<GateLoaderData>();
       if (loaderData.restricted) {
         return <RestrictedState title={cfg.restrictedTitle} message={cfg.restrictedMessage} />;
       }
-      return <>{render()}</>;
+      return <>{render(routeProps)}</>;
     };
   };
 
@@ -156,7 +173,7 @@ function defineDetailRoute<TData, TCompanions extends Record<string, unknown>>(
   });
 
   const Page: DefineDetailRouteOutput<TData, TCompanions>['Page'] = (render) => {
-    return function GuardedDetailOutlet() {
+    return function GuardedDetailOutlet(routeProps) {
       const loaderData = useLoaderData<DslLoaderData<TData, TCompanions>>();
       const params = useParams<Record<string, string>>();
       const projectId = params.projectId ?? '';
@@ -174,7 +191,7 @@ function defineDetailRoute<TData, TCompanions extends Record<string, unknown>>(
           restrictedTitle={cfg.restrictedTitle}
           restrictedMessage={cfg.restrictedMessage}
           seedCache={cfg.seedCache ? seedCache : undefined}>
-          {(d, companions) => render({ data: d, companions })}
+          {(d, companions) => render({ data: d, companions }, routeProps)}
         </GuardedPage>
       );
     };

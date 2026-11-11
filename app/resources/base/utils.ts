@@ -14,6 +14,7 @@
 import { client } from '@/modules/control-plane/shared/client.gen';
 import { logger } from '@/modules/logger';
 import { AppError, AuthenticationError, AuthorizationError } from '@/utils/errors';
+import { limitAsync } from 'es-toolkit/promise';
 
 /**
  * Constructs the appropriate base URL for the current environment.
@@ -62,6 +63,9 @@ export function getProjectScopedBase(projectId: string): string {
   return getScopedBaseUrl(getProjectControlPlanePath(projectId));
 }
 
+/** Most per-org upstream calls one fan-out keeps in flight at a time. */
+export const ORG_FAN_OUT_CONCURRENCY = 6;
+
 /**
  * Fan-out a per-org list across the supplied org ids and concatenate the
  * results, tolerating per-org failures.
@@ -71,7 +75,9 @@ export function getProjectScopedBase(projectId: string): string {
  * cross-org views have to hit each org's control-plane individually. This
  * centralizes that fan-out so the three billing services stay in lockstep:
  *
- * - runs every per-org `fn` concurrently via `Promise.allSettled`,
+ * - runs the per-org `fn` calls via `Promise.allSettled`, at most
+ *   {@link ORG_FAN_OUT_CONCURRENCY} at a time, so a user in many orgs does
+ *   not open one upstream connection per org at once,
  * - swallows `AuthorizationError` / `AuthenticationError` (routine for an
  *   org the user can enumerate but whose billing they can't read, or one
  *   they were just removed from) so a single bad org doesn't blank the
@@ -90,7 +96,8 @@ export async function fanOutAcrossOrgs<T>(
 ): Promise<T[]> {
   const operation = ctx.operation ?? 'listForOrgs';
   const startTime = Date.now();
-  const results = await Promise.allSettled(orgIds.map((orgId) => fn(orgId)));
+  const limited = limitAsync(fn, ORG_FAN_OUT_CONCURRENCY);
+  const results = await Promise.allSettled(orgIds.map((orgId) => limited(orgId)));
   const items: T[] = [];
   for (let i = 0; i < results.length; i++) {
     const result = results[i];

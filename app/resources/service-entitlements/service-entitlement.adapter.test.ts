@@ -1,4 +1,5 @@
 import {
+  activeEntitlementServiceIds,
   entitlementObjectName,
   entitlementServiceIds,
   findEntitlementForService,
@@ -88,5 +89,55 @@ describe('toCreateServiceEntitlementPayload', () => {
       metadata: { name: 'acme-web--networking-datumapis-com' },
       spec: { serviceRef: { name: NETWORKING_SERVICE_REF_NAME } },
     });
+  });
+});
+
+describe('activeEntitlementServiceIds', () => {
+  it('returns the ids of Active entitlements only', () => {
+    expect(
+      activeEntitlementServiceIds([
+        entitlement({
+          spec: { serviceRef: { name: 'compute-datumapis-com' } },
+          status: { phase: 'Active', serviceName: 'compute.datumapis.com' },
+        }),
+        entitlement({
+          spec: { serviceRef: { name: 'interconnect-datumapis-com' } },
+          status: { phase: 'PendingApproval', serviceName: 'interconnect.datumapis.com' },
+        }),
+        entitlement({ spec: { serviceRef: { name: 'no-status' } } }),
+      ])
+    ).toEqual(['compute.datumapis.com', 'compute-datumapis-com']);
+  });
+
+  it('lists an id once when several Active entitlements name it', () => {
+    expect(
+      activeEntitlementServiceIds([
+        entitlement({
+          spec: { serviceRef: { name: 'compute.datumapis.com' } },
+          status: { phase: 'Active', serviceName: 'compute.datumapis.com' },
+        }),
+        entitlement({
+          metadata: { name: 'proj--compute-datumapis-com' },
+          spec: { serviceRef: { name: 'compute.datumapis.com' } },
+          status: { phase: 'Active' },
+        }),
+      ])
+    ).toEqual(['compute.datumapis.com']);
+  });
+
+  it('never matches on the entitlement object name', () => {
+    expect(
+      activeEntitlementServiceIds([
+        entitlement({
+          metadata: { name: 'proj--compute-datumapis-com' },
+          spec: { serviceRef: { name: '' } },
+          status: { phase: 'Active' },
+        }),
+      ])
+    ).toEqual([]);
+  });
+
+  it('returns an empty list when there are no entitlements', () => {
+    expect(activeEntitlementServiceIds([])).toEqual([]);
   });
 });
