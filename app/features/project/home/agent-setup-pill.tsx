@@ -80,7 +80,7 @@ function MarkChip({ index, children }: { index: number; children: ReactNode }) {
     <motion.span
       custom={index}
       variants={chipVariants}
-      className="bg-muted dark:bg-accent text-foreground ring-card flex size-5.5 items-center justify-center rounded-full ring-2 will-change-transform">
+      className="bg-muted dark:bg-accent text-foreground ring-card flex size-5 items-center justify-center rounded-full ring-2 will-change-transform">
       {children}
     </motion.span>
   );
@@ -89,18 +89,18 @@ function MarkChip({ index, children }: { index: number; children: ReactNode }) {
 /** The agents the setup prompt covers, as a stack of overlapping chips. */
 function AgentMarks() {
   return (
-    <span aria-hidden className="flex items-center -space-x-1.5">
+    <span aria-hidden className="flex items-center -space-x-1">
       <MarkChip index={0}>
-        <ClaudeLogo size={12} />
+        <ClaudeLogo size={11} />
       </MarkChip>
       <MarkChip index={1}>
-        <SquareTerminal size={12} strokeWidth={2} />
+        <SquareTerminal size={11} strokeWidth={2} />
       </MarkChip>
       <MarkChip index={2}>
-        <CursorLogo size={11} />
+        <CursorLogo size={10} />
       </MarkChip>
       <MarkChip index={3}>
-        <GitHubCopilotLogo size={12} />
+        <GitHubCopilotLogo size={11} />
       </MarkChip>
     </span>
   );
@@ -136,10 +136,10 @@ export function AgentSetupPill({
       whileHover={reduceMotion ? undefined : 'fan'}
       whileTap={reduceMotion ? undefined : { scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 600, damping: 30 }}
-      className="bg-card hover:border-foreground/25 focus-visible:ring-ring inline-flex shrink-0 items-center gap-2.5 rounded-full border px-3.5 py-1.5 text-sm whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:outline-none">
+      className="bg-card hover:border-foreground/25 focus-visible:ring-ring inline-flex h-7 shrink-0 items-center gap-2 rounded-full border px-3 text-xs whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:outline-none">
       <span className="text-foreground">Onboard your agent to Datum</span>
       <AgentMarks />
-      <Icon icon={copied ? Check : Copy} size={13} className="text-muted-foreground" aria-hidden />
+      <Icon icon={copied ? Check : Copy} size={12} className="text-muted-foreground" aria-hidden />
     </motion.button>
   );
 }
