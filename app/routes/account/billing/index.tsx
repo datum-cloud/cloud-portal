@@ -5,6 +5,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DateTime } from '@/components/date-time';
 import { type ColumnDef, Table } from '@/components/table';
 import type { RowAction } from '@/components/table/types';
+import { loadAccountBillingData } from '@/features/billing/account-billing-data.server';
 import { canOrgCreateBillingAccount } from '@/features/billing/can-create-billing-account';
 import { CardBrandIcon } from '@/features/billing/components/card-brand-icon';
 import {
@@ -18,28 +19,20 @@ import {
   isBillingAccountReady,
   normalizeCardBrand,
   type BillingAccount,
-  type BillingAccountBinding,
   type PaymentMethod,
 } from '@/features/billing/types';
 import { requireOwnedBillingOrgs } from '@/modules/billing/billing-access.server';
-import { FeatureFlag } from '@/modules/feature-flags';
-import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { checkPermissionAPI } from '@/modules/rbac/client/rbac-api';
 import { useApp } from '@/providers/app.provider';
+import { useBillingAccountBindingsForOrgs } from '@/resources/billing-account-bindings';
 import {
-  createBillingAccountBindingService,
-  useBillingAccountBindingsForOrgs,
-} from '@/resources/billing-account-bindings';
-import {
-  createBillingAccountService,
   useBillingAccountsForOrgs,
   useCreateBillingAccount,
   useDeleteBillingAccount,
 } from '@/resources/billing-accounts';
 import { useOrganizations } from '@/resources/organizations';
 import { createOrganizationService } from '@/resources/organizations/organization.service';
-import { createPaymentMethodService, usePaymentMethodsForOrgs } from '@/resources/payment-methods';
-import { createProjectService } from '@/resources/projects/project.service';
+import { usePaymentMethodsForOrgs } from '@/resources/payment-methods';
 import { buildOrganizationNamespace, orgIdFromNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
@@ -87,58 +80,9 @@ export const loader = async () => {
   // Only the orgs the user owns: an org's billing is for its owners.
   const orgIds = await requireOwnedBillingOrgs(organizations.items.map((o) => o.name));
 
-  const [accounts, bindings, paymentMethods] = await Promise.all([
-    createBillingAccountService().listForOrgs(orgIds),
-    createBillingAccountBindingService().listForOrgs(orgIds),
-    createPaymentMethodService().listForOrgs(orgIds),
-  ]);
+  const billing = await loadAccountBillingData(orgIds);
 
-  // Resolve project display names so the "Projects" chip column can
-  // show human labels instead of bare resource ids. Only fan out to
-  // orgs that actually have an active binding — the list is bounded by
-  // the user's org membership so it stays small. Mirrors the per-org
-  // hydration the account-detail loader does for its assignments table.
-  const bindingOrgIds = new Set<string>();
-  for (const binding of bindings) {
-    if (binding.status?.phase && binding.status.phase !== 'Active') continue;
-    const oid = orgIdFromNamespace(binding.metadata?.namespace);
-    if (oid) bindingOrgIds.add(oid);
-  }
-  const projectsByOrg: Record<string, Array<{ name: string; displayName: string }>> = {};
-  await Promise.all(
-    Array.from(bindingOrgIds).map(async (oid) => {
-      try {
-        const list = await createProjectService().list(oid);
-        projectsByOrg[oid] = list.items.map((p) => ({
-          name: p.name,
-          displayName: p.displayName ?? p.name,
-        }));
-      } catch {
-        projectsByOrg[oid] = [];
-      }
-    })
-  );
-
-  const multiBillingByOrg = Object.fromEntries(
-    await Promise.all(
-      orgIds.map(async (orgId) => {
-        const enabled = await isFeatureEnabled(FeatureFlag.MultiBillingAccounts, orgId).catch(
-          () => false
-        );
-        return [orgId, enabled] as const;
-      })
-    )
-  );
-
-  return {
-    accounts,
-    bindings,
-    paymentMethods,
-    organizations,
-    orgIds,
-    projectsByOrg,
-    multiBillingByOrg,
-  };
+  return { ...billing, organizations, orgIds };
 };
 
 interface AccountRow {
@@ -313,7 +257,7 @@ export default function AccountBillingAccountsPage() {
   // for cross-org rows the loader couldn't hydrate.
   const projectsByAccount = useMemo(() => {
     const map = new Map<string, string[]>();
-    for (const binding of allBindings as BillingAccountBinding[]) {
+    for (const binding of allBindings) {
       if (binding.status?.phase && binding.status.phase !== 'Active') continue;
       const ns = binding.metadata?.namespace;
       const accountName = binding.spec?.billingAccountRef?.name;

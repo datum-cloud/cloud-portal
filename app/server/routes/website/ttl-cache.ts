@@ -1,3 +1,5 @@
+import { makeRoom, MEMORY_MAX_ENTRIES } from './bounded-map';
+
 /** The subset of ioredis this cache uses; a Map-backed fallback is used when null. */
 export interface KvLike {
   get(key: string): Promise<string | null>;
@@ -15,11 +17,15 @@ export interface TtlCache<T> {
  * null, in memory. Callers key it per user and read it only after the session
  * cookie has been validated, so a logout needs no invalidation: with no valid
  * cookie the route answers before it looks here.
+ *
+ * The in-memory fallback holds at most `maxEntries` keys. At the cap a write
+ * drops expired entries first, then the oldest written ones.
  */
 export function createTtlCache<T>(
   redis: KvLike | null,
   prefix: string,
-  now: () => number = Date.now
+  now: () => number = Date.now,
+  maxEntries: number = MEMORY_MAX_ENTRIES
 ): TtlCache<T> {
   if (redis) {
     return {
@@ -53,7 +59,11 @@ export function createTtlCache<T>(
       return hit.value;
     },
     async set(key, value, ttlSeconds) {
-      memory.set(key, { value, expiresAt: now() + ttlSeconds * 1000 });
+      const ts = now();
+      // Delete first so a rewritten key counts as the newest insertion.
+      memory.delete(key);
+      makeRoom(memory, (entry) => entry.expiresAt <= ts, maxEntries);
+      memory.set(key, { value, expiresAt: ts + ttlSeconds * 1000 });
     },
   };
 }

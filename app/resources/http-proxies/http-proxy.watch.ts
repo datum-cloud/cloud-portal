@@ -1,48 +1,13 @@
-import {
-  getParanoiaLevels,
-  getRuleExclusions,
-  getTrafficProtectionMode,
-  toHttpProxy,
-} from './http-proxy.adapter';
+import { toHttpProxy } from './http-proxy.adapter';
 import type { HttpProxy } from './http-proxy.schema';
-import {
-  HTTP_PROXY_SYNC_KIND,
-  httpProxyKeys,
-  type TrafficProtectionView,
-} from './http-proxy.service';
-import {
-  getTrafficProtectionProgrammedMessage,
-  getTrafficProtectionProgrammedReason,
-  isTrafficProtectionProgrammed,
-  mergeTrafficProtectionView,
-} from './http-proxy.waf-status';
-import type {
-  ComDatumapisNetworkingV1AlphaHttpProxy,
-  ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy,
-} from '@/modules/control-plane/networking';
+import { HTTP_PROXY_SYNC_KIND, httpProxyKeys } from './http-proxy.service';
+import type { ComDatumapisNetworkingV1AlphaHttpProxy } from '@/modules/control-plane/networking';
 import { useResourceWatch } from '@/modules/watch';
 import type { WatchCacheConfig } from '@/modules/watch/watch-cache-handler';
 import { waitForWatch } from '@/modules/watch/watch-wait.helper';
 import { ControlPlaneStatus } from '@/resources/base';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { useQueryClient } from '@tanstack/react-query';
-
-function toTrafficProtectionView(
-  raw: ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy
-): TrafficProtectionView {
-  const view: TrafficProtectionView = {
-    mode: getTrafficProtectionMode(raw),
-    paranoiaLevels: getParanoiaLevels(raw),
-    ruleExclusions: getRuleExclusions(raw),
-    policyName: raw.metadata?.name,
-  };
-  if (raw.status?.ancestors !== undefined) {
-    view.programmed = isTrafficProtectionProgrammed(raw.status);
-    view.programmedMessage = getTrafficProtectionProgrammedMessage(raw.status);
-    view.programmedReason = getTrafficProtectionProgrammedReason(raw.status);
-  }
-  return view;
-}
 
 /**
  * Watch events can omit fields derived from spec.rules or a sibling policy.
@@ -147,33 +112,6 @@ export function useHttpProxyWatch(
         );
       });
     },
-  });
-}
-
-/**
- * Watch a proxy's TrafficProtectionPolicy for live mode/Programmed updates.
- * Updates the permission-gated WAF detail query cache (same key as
- * useTrafficProtectionPolicy). `policyName` is the actual TPP object name when
- * it differs from the proxy (e.g. `{proxy}-protection`).
- */
-export function useTrafficProtectionPolicyWatch(
-  projectId: string,
-  proxyName: string,
-  options?: { enabled?: boolean; policyName?: string }
-) {
-  const queryKey = httpProxyKeys.wafDetail(projectId, proxyName);
-  const watchName = options?.policyName || proxyName;
-
-  useResourceWatch<TrafficProtectionView>({
-    resourceType: 'apis/networking.datumapis.com/v1alpha/trafficprotectionpolicies',
-    projectId,
-    namespace: 'default',
-    name: watchName,
-    queryKey,
-    transform: (item) =>
-      toTrafficProtectionView(item as ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy),
-    enabled: (options?.enabled ?? true) && !!projectId && !!watchName,
-    updateSingleCache: (oldData, newItem) => mergeTrafficProtectionView(oldData, newItem),
   });
 }
 

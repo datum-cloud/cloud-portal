@@ -183,6 +183,10 @@ export default route.Page(({ data, companions }) => (
 - `handle` (detail only) — breadcrumb function reading loader data shape.
 - `meta` — wraps `mergeMeta` + `metaObject`.
 - `Page(render)` — wraps a render prop in `<GuardedPage>`.
+  `render` also receives the route component's props as a second argument;
+  pass the generated type to read typed params instead of `useParams`:
+  `route.Page<Route.ComponentProps>(({ data }, { params }) => …)` with
+  `import type { Route } from './+types/<route>'`.
 - `useGuardedRouteData(routeId)` — child routes read typed loader data.
 
 ### `RedirectDescriptor` required fields

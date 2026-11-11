@@ -1,3 +1,4 @@
+import { isUpstreamTimeout, UPSTREAM_TIMEOUT_BODY, upstreamSignal } from './upstream-deadline';
 import { isEmailNotVerifiedDenial } from '@/features/account/email-verification/email-verification-error';
 import { getClientIP } from '@/server/middleware/client-ip';
 import { extractQuotaDenialLabels, quotaDeniedTotal } from '@/server/observability/quota-metrics';
@@ -29,12 +30,10 @@ proxyRoutes.all('/*', async (c) => {
   }
 
   try {
-    const controller = new AbortController();
-
-    // Cancel upstream request if client disconnects
-    c.req.raw.signal?.addEventListener('abort', () => {
-      controller.abort();
-    });
+    // Cancel the upstream request when the client disconnects or the upstream
+    // misses its deadline. A watch is a stream with no natural end, so it is
+    // only ever cancelled by the client.
+    const signal = upstreamSignal(c.req.raw.signal, { deadline: !isWatch });
 
     // The address Envoy Gateway appended to X-Forwarded-For; the leftmost
     // entry is whatever the client sent.
@@ -66,7 +65,7 @@ proxyRoutes.all('/*', async (c) => {
         method: c.req.method,
         headers: { ...upstreamHeaders, Authorization: `Bearer ${accessToken}` },
         body: requestBody,
-        signal: controller.signal,
+        signal,
       });
 
     let response = await callUpstream(session.accessToken);
@@ -136,6 +135,11 @@ proxyRoutes.all('/*', async (c) => {
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
       return new Response(null, { status: 499 }); // Client Closed Request
+    }
+
+    if (isUpstreamTimeout(error)) {
+      console.error('[proxy] Upstream timed out:', c.req.method, path);
+      return c.json(UPSTREAM_TIMEOUT_BODY, 504);
     }
 
     console.error('[proxy] Error:', isWatch ? '(watch)' : '', error);

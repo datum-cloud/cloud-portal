@@ -3,16 +3,41 @@
  * Centralized duplicate detection and record matching logic
  */
 import { extractValue } from './flatten.helper';
+import type { ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet } from '@/modules/control-plane/dns-networking';
 
 // =============================================================================
 // Types
 // =============================================================================
 
+/** One entry of a DNSRecordSet's `spec.records`, as the API defines it. */
+type DnsRecordEntry = ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet['spec']['records'][number];
+
+/**
+ * A record as the comparison functions accept it.
+ *
+ * It is the API entry with every field optional and `name` / `ttl` nullable,
+ * because callers compare records that are still being built: BIND imports
+ * carry `ttl: null` for "use the default", and a record only ever fills the
+ * rdata field for its own type.
+ *
+ * `alias` is declared here because the generated entry type lists ALIAS as a
+ * record type but has no `alias` field, while the form transform and the BIND
+ * import both write one.
+ */
+export type ComparableDnsRecord = Partial<Omit<DnsRecordEntry, 'name' | 'ttl'>> & {
+  name?: string | null;
+  ttl?: DnsRecordEntry['ttl'] | null;
+  alias?: { content: string };
+};
+
 /**
  * Type-specific record comparator function
  * Returns true if records are considered duplicates
  */
-type RecordComparator = (newRecord: any, existingRecord: any) => boolean;
+type RecordComparator = (
+  newRecord: ComparableDnsRecord,
+  existingRecord: ComparableDnsRecord
+) => boolean;
 
 // =============================================================================
 // Domain Name Normalization (RFC 1035)
@@ -52,7 +77,10 @@ export function normalizeRecordName(name: string | undefined | null): string {
  * - Excludes serial (it changes on every zone update)
  * - Normalizes mname and rname domain names
  */
-function compareSoaRecords(newRecord: any, existingRecord: any): boolean {
+function compareSoaRecords(
+  newRecord: ComparableDnsRecord,
+  existingRecord: ComparableDnsRecord
+): boolean {
   const newSoa = newRecord.soa;
   const existingSoa = existingRecord.soa;
 
@@ -71,7 +99,10 @@ function compareSoaRecords(newRecord: any, existingRecord: any): boolean {
 /**
  * Compare MX records (normalize exchange domain)
  */
-function compareMxRecords(newRecord: any, existingRecord: any): boolean {
+function compareMxRecords(
+  newRecord: ComparableDnsRecord,
+  existingRecord: ComparableDnsRecord
+): boolean {
   const newMx = newRecord.mx;
   const existingMx = existingRecord.mx;
 
@@ -86,7 +117,10 @@ function compareMxRecords(newRecord: any, existingRecord: any): boolean {
 /**
  * Compare CNAME records (normalize target domain)
  */
-function compareCnameRecords(newRecord: any, existingRecord: any): boolean {
+function compareCnameRecords(
+  newRecord: ComparableDnsRecord,
+  existingRecord: ComparableDnsRecord
+): boolean {
   return (
     normalizeDomainName(newRecord.cname?.content) ===
     normalizeDomainName(existingRecord.cname?.content)
@@ -96,7 +130,10 @@ function compareCnameRecords(newRecord: any, existingRecord: any): boolean {
 /**
  * Compare ALIAS records (normalize target domain)
  */
-function compareAliasRecords(newRecord: any, existingRecord: any): boolean {
+function compareAliasRecords(
+  newRecord: ComparableDnsRecord,
+  existingRecord: ComparableDnsRecord
+): boolean {
   return (
     normalizeDomainName(newRecord.alias?.content) ===
     normalizeDomainName(existingRecord.alias?.content)
@@ -106,7 +143,10 @@ function compareAliasRecords(newRecord: any, existingRecord: any): boolean {
 /**
  * Compare NS records (normalize nameserver domain)
  */
-function compareNsRecords(newRecord: any, existingRecord: any): boolean {
+function compareNsRecords(
+  newRecord: ComparableDnsRecord,
+  existingRecord: ComparableDnsRecord
+): boolean {
   return (
     normalizeDomainName(newRecord.ns?.content) === normalizeDomainName(existingRecord.ns?.content)
   );
@@ -115,7 +155,10 @@ function compareNsRecords(newRecord: any, existingRecord: any): boolean {
 /**
  * Compare PTR records (normalize target domain)
  */
-function comparePtrRecords(newRecord: any, existingRecord: any): boolean {
+function comparePtrRecords(
+  newRecord: ComparableDnsRecord,
+  existingRecord: ComparableDnsRecord
+): boolean {
   return (
     normalizeDomainName(newRecord.ptr?.content) === normalizeDomainName(existingRecord.ptr?.content)
   );
@@ -124,7 +167,10 @@ function comparePtrRecords(newRecord: any, existingRecord: any): boolean {
 /**
  * Compare SRV records (normalize target domain)
  */
-function compareSrvRecords(newRecord: any, existingRecord: any): boolean {
+function compareSrvRecords(
+  newRecord: ComparableDnsRecord,
+  existingRecord: ComparableDnsRecord
+): boolean {
   const newSrv = newRecord.srv;
   const existingSrv = existingRecord.srv;
 
@@ -141,7 +187,10 @@ function compareSrvRecords(newRecord: any, existingRecord: any): boolean {
 /**
  * Compare HTTPS records (normalize target domain)
  */
-function compareHttpsRecords(newRecord: any, existingRecord: any): boolean {
+function compareHttpsRecords(
+  newRecord: ComparableDnsRecord,
+  existingRecord: ComparableDnsRecord
+): boolean {
   const newHttps = newRecord.https;
   const existingHttps = existingRecord.https;
 
@@ -157,7 +206,10 @@ function compareHttpsRecords(newRecord: any, existingRecord: any): boolean {
 /**
  * Compare SVCB records (normalize target domain)
  */
-function compareSvcbRecords(newRecord: any, existingRecord: any): boolean {
+function compareSvcbRecords(
+  newRecord: ComparableDnsRecord,
+  existingRecord: ComparableDnsRecord
+): boolean {
   const newSvcb = newRecord.svcb;
   const existingSvcb = existingRecord.svcb;
 
@@ -174,7 +226,11 @@ function compareSvcbRecords(newRecord: any, existingRecord: any): boolean {
  * Default comparator: value + TTL comparison
  * Used for types without domain name fields (A, AAAA, TXT, CAA, TLSA)
  */
-function compareByValueAndTTL(newRecord: any, existingRecord: any, recordType: string): boolean {
+function compareByValueAndTTL(
+  newRecord: ComparableDnsRecord,
+  existingRecord: ComparableDnsRecord,
+  recordType: string
+): boolean {
   const existingValue = extractValue(existingRecord, recordType);
   const newValue = extractValue(newRecord, recordType);
   if (existingValue !== newValue) return false;
@@ -188,7 +244,7 @@ function compareByValueAndTTL(newRecord: any, existingRecord: any, recordType: s
  * Registry of type-specific comparators
  * Types with domain name fields need special handling for trailing dot normalization
  */
-const RECORD_COMPARATORS: Record<string, RecordComparator> = {
+const RECORD_COMPARATORS: Partial<Record<string, RecordComparator>> = {
   SOA: compareSoaRecords,
   MX: compareMxRecords,
   CNAME: compareCnameRecords,
@@ -213,8 +269,8 @@ const RECORD_COMPARATORS: Record<string, RecordComparator> = {
  * @returns true if duplicate found, false otherwise
  */
 export function isDuplicateRecord(
-  newRecord: any,
-  existingRecords: any[],
+  newRecord: ComparableDnsRecord,
+  existingRecords: readonly ComparableDnsRecord[],
   recordType: string
 ): boolean {
   const comparator = RECORD_COMPARATORS[recordType];
@@ -250,7 +306,7 @@ const DOMAIN_NAME_VALUE_TYPES = new Set(['CNAME', 'ALIAS', 'NS', 'PTR']);
  * @returns Index of matching record, or -1 if not found
  */
 export function findRecordIndex(
-  existingRecords: any[],
+  existingRecords: readonly ComparableDnsRecord[],
   recordType: string,
   criteria: {
     name: string;

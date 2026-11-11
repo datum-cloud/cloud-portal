@@ -1,3 +1,4 @@
+import type { Route } from './+types/invite';
 import { InvitationForm } from '@/features/organization/team/invitation-form';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runRouteGate } from '@/modules/rbac/run-resource-loader';
@@ -12,7 +13,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { useState, useCallback } from 'react';
-import { type LoaderFunctionArgs, useNavigate, useParams } from 'react-router';
+import { useNavigate } from 'react-router';
 
 const route = defineResourceRoute({
   type: 'gate',
@@ -23,7 +24,7 @@ const route = defineResourceRoute({
 
 // Org-scoped gate: `userinvitations:create`. Namespace is derived from scope
 // server-side (organization-{orgId}), so it is not passed here.
-export const loader = (args: LoaderFunctionArgs) =>
+export const loader = (args: Route.LoaderArgs) =>
   runRouteGate(args, {
     resource: 'userinvitations',
     verb: 'create',
@@ -36,7 +37,9 @@ export const handle = {
   breadcrumb: () => <span>Invite Member</span>,
 };
 
-export default route.Page(() => <InviteForm />);
+export default route.Page<Route.ComponentProps>(({ params }) => (
+  <InviteForm orgId={params.orgId} />
+));
 
 interface InvitationResult {
   email: string;
@@ -45,18 +48,15 @@ interface InvitationResult {
   error?: string;
 }
 
-function InviteForm() {
-  const { orgId } = useParams();
+function InviteForm({ orgId }: { orgId: string }) {
   const navigate = useNavigate();
   const { trackAction } = useAnalytics();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const createInvitation = useCreateInvitation(orgId ?? '');
+  const createInvitation = useCreateInvitation(orgId);
 
   const handleSubmit = useCallback(
     async (formData: InvitationFormSchema) => {
-      if (!orgId) return;
-
       setIsSubmitting(true);
 
       const BATCH_SIZE = 3; // Process 3 at a time to avoid overwhelming API
