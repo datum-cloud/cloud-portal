@@ -25,7 +25,10 @@ export function SubLayout({
           </div>
         )}
       </div>
-      <div className={cn('mt-5 h-full w-full', containerClassName)}>
+      {/* flex-1, not h-full: h-full is the whole SubLayout, title and tabs
+          included, so the content ran past the bottom by their height and
+          full-height pages (logs) scrolled. */}
+      <div className={cn('mt-5 flex w-full flex-1 flex-col', containerClassName)}>
         <div className={cn('flex h-full flex-1 flex-col', contentClassName)}>{children}</div>
       </div>
     </div>

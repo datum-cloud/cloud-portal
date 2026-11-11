@@ -61,6 +61,71 @@ describe('contractSummary', () => {
     });
   });
 
+  it('charges a fee times its quantity, and says how it adds up', () => {
+    const withQuantities: BillingAccount = {
+      ...account,
+      status: {
+        contract: {
+          startsAt: '2026-04-18T00:00:00Z',
+          billingDayOfMonth: 18,
+          fees: [
+            {
+              name: 'acme-racks',
+              displayName: 'Rack setup',
+              chargeType: 'OneTime',
+              amount: '500.00',
+              quantity: 3,
+              currency: 'USD',
+            },
+            {
+              name: 'acme-ports',
+              displayName: 'Cross connect',
+              chargeType: 'Recurring',
+              amount: '300.00',
+              quantity: 4,
+              pricingUnit: 'port',
+              currency: 'USD',
+              interval: 'monthly',
+            },
+            {
+              name: 'acme-power',
+              displayName: 'Power',
+              chargeType: 'Recurring',
+              amount: '0.10',
+              quantity: 3,
+              pricingUnit: 'kW',
+              currency: 'USD',
+              interval: 'monthly',
+            },
+          ],
+        },
+      },
+    };
+    expect(contractSummary(withQuantities, afterStart)?.fees).toEqual([
+      {
+        name: 'acme-racks',
+        label: 'Rack setup',
+        chargeType: 'OneTime',
+        amount: '$1,500',
+        quantity: '3 × $500',
+      },
+      {
+        name: 'acme-ports',
+        label: 'Cross connect',
+        chargeType: 'Recurring',
+        amount: '$1,200 / month',
+        quantity: '4 × $300 / port',
+      },
+      {
+        name: 'acme-power',
+        label: 'Power',
+        chargeType: 'Recurring',
+        amount: '$0.30 / month',
+        quantity: '3 × $0.10 / kW',
+      },
+    ]);
+  });
+
   it("isn't started before its start date", () => {
     expect(contractSummary(account, beforeStart)?.started).toBe(false);
   });
@@ -72,9 +137,13 @@ describe('contractSummary', () => {
 });
 
 describe('billing cycle with a contract', () => {
-  it('follows the payment terms until the contract starts', () => {
-    expect(billingCycleLabel(account, beforeStart)).toBe('Monthly, on the 1st');
-    expect(paymentTermsSummary(account, beforeStart)?.billingCycle).toBe('Monthly, on the 1st');
+  it("says when the contract's day takes over, before it starts", () => {
+    expect(billingCycleLabel(account, beforeStart)).toBe(
+      'Monthly, on the 18th from April 18, 2026'
+    );
+    expect(paymentTermsSummary(account, beforeStart)?.billingCycle).toBe(
+      'Monthly, on the 18th from April 18, 2026'
+    );
   });
 
   it("follows the contract's day once it has started", () => {

@@ -15,13 +15,15 @@ import {
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
+import { generateRandomString, tryGenerateId } from '@/utils/helpers/text.helper';
 import { Form } from '@datum-cloud/datum-ui/form';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 export interface HttpProxyFormDialogRef {
-  show: () => void;
+  /** `workload` opens it on Datum compute with that workload chosen, when it has a service. */
+  show: (options?: { workload?: string }) => void;
   hide: () => void;
 }
 
@@ -43,6 +45,8 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
     const [isIPOrigin, setIsIPOrigin] = useState(false);
     const [protocol, setProtocol] = useState('https');
     const [originType, setOriginType] = useState<OriginType>('endpoint');
+    // The workload a link asked for (the compute plugin's "Add to a load balancer").
+    const [preferredWorkload, setPreferredWorkload] = useState<string>();
     // Only projects entitled to compute have the plugin, and workloads to pick.
     const computeAvailable = !!useComputePluginSlug(projectId);
     const toWorkload = computeAvailable && originType === 'networkService';
@@ -62,14 +66,17 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
     });
 
     const defaultValues: Partial<HttpProxySchema> = {
-      originType: 'endpoint',
+      originType: preferredWorkload && computeAvailable ? 'networkService' : 'endpoint',
+      ...(preferredWorkload ? { chosenName: preferredWorkload } : {}),
       protocol: 'https',
       trafficProtectionMode: 'Enforce',
       paranoiaLevelBlocking: 1,
       enableHttpRedirect: true,
     };
 
-    const show = useCallback(() => {
+    const show = useCallback((options?: { workload?: string }) => {
+      setPreferredWorkload(options?.workload);
+      setOriginType(options?.workload ? 'networkService' : 'endpoint');
       setOpen(true);
     }, []);
 
@@ -87,11 +94,17 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
           : { endpoint: `${protocol}://${data.endpointHost}`, tlsHostname: data.tlsHostname };
 
       const resourceName = data.chosenName
-        ? generateId(data.chosenName as string, {
+        ? tryGenerateId(data.chosenName, {
             randomText: nameRandomSuffix,
             randomLength: 6,
           })
         : data.name;
+      if (!resourceName) {
+        toast.error('Application Load Balancer', {
+          description: 'Use a display name with at least one letter or number.',
+        });
+        return;
+      }
 
       const createdProxy = await createProxyMutation.mutateAsync({
         name: resourceName,
@@ -134,10 +147,10 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
           <Form.Field name="chosenName" required>
             {({ field, meta }) => {
               const resourceName = field.value
-                ? generateId(field.value as string, {
+                ? (tryGenerateId(field.value as string, {
                     randomText: nameRandomSuffix,
                     randomLength: 6,
-                  })
+                  }) ?? '')
                 : '';
 
               return (
@@ -175,7 +188,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
             ) : null}
 
             {toWorkload ? (
-              <WorkloadServiceFields projectId={projectId} />
+              <WorkloadServiceFields projectId={projectId} preferredWorkload={preferredWorkload} />
             ) : (
               <Form.Field
                 tooltip="Origin is the hostname or IP address where your service is running"

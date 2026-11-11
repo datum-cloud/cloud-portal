@@ -1,7 +1,6 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { Table } from '@/components/table';
-import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { ControlPlaneStatus } from '@/resources/base';
 import { IExportPolicyControlResponse } from '@/resources/export-policies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
@@ -9,6 +8,7 @@ import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@datum-cloud/datum-ui/card';
 import { CodeEditor } from '@datum-cloud/datum-ui/code-editor';
+import { useBreakpoint } from '@datum-cloud/datum-ui/hooks';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { MobileSheet } from '@datum-cloud/datum-ui/mobile-sheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
