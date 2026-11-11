@@ -1,6 +1,7 @@
 /**
  * Text manipulation, formatting, and ID generation utilities
  */
+import { logger } from '@/modules/logger';
 import { ValidationError } from '@/utils/errors';
 
 // ============================================================================
@@ -168,60 +169,63 @@ const validateId = (id: string): boolean => {
  * @param name - The base name for the ID
  * @param options - Configuration options for ID generation
  * @returns Generated ID string
+ * @throws ValidationError when no valid ID can be built from `name` (for
+ *   example a name with no ASCII letters or digits). Use `tryGenerateId` when
+ *   an invalid name is an expected state, such as while the user is typing.
  */
 export const generateId = (name: string, options: IdGeneratorOptions = {}): string => {
   const config = { ...DEFAULT_OPTIONS, ...options };
+  const parts: string[] = [];
 
+  if (config.prefix) {
+    parts.push(toKebabCase(config.prefix));
+  }
+  parts.push(toKebabCase(name));
+  if (config.suffix) {
+    parts.push(toKebabCase(config.suffix));
+  }
+
+  let baseId = parts.join(config.separator);
+
+  const randomPart =
+    config.randomLength > 0 ? config.randomText || generateRandomString(config.randomLength) : '';
+  const timestampPart = config.includeTimestamp ? getTimestamp() : '';
+
+  // Leave room for the random and timestamp parts (+1 each for the separator)
+  const randomPartLength = randomPart ? randomPart.length + 1 : 0;
+  const timestampPartLength = timestampPart ? timestampPart.length + 1 : 0;
+  const maxBaseLength = config.maxLength - randomPartLength - timestampPartLength;
+
+  // Truncate, and drop a hyphen the cut leaves at the end so it cannot become
+  // a trailing hyphen when nothing is appended after it.
+  if (baseId.length > maxBaseLength) {
+    baseId = baseId.slice(0, maxBaseLength).replace(/-+$/, '');
+  }
+
+  const idParts = [baseId];
+  if (randomPart) idParts.push(randomPart);
+  if (timestampPart) idParts.push(timestampPart);
+  const finalId = idParts.join(config.separator);
+
+  if (!validateId(finalId) || !config.customValidation(finalId)) {
+    logger.warn('[generateId] Could not build a valid ID from name', { name, id: finalId });
+    throw new ValidationError('Generated ID failed validation');
+  }
+
+  return finalId;
+};
+
+/**
+ * Like `generateId`, but returns `null` instead of throwing when the name
+ * cannot produce a valid ID. For previews and live form values, where the
+ * caller shows an empty or invalid state rather than failing.
+ */
+export const tryGenerateId = (name: string, options?: IdGeneratorOptions): string | null => {
   try {
-    const parts: string[] = [];
-
-    // Add prefix
-    if (config.prefix) {
-      parts.push(toKebabCase(config.prefix));
-    }
-
-    // Add main name
-    parts.push(toKebabCase(name));
-
-    // Add suffix
-    if (config.suffix) {
-      parts.push(toKebabCase(config.suffix));
-    }
-
-    // Join parts
-    let baseId = parts.join(config.separator);
-
-    // Calculate remaining length for random part
-    const randomPart =
-      config.randomLength > 0 ? config.randomText || generateRandomString(config.randomLength) : '';
-    const timestampPart = config.includeTimestamp ? getTimestamp() : '';
-
-    // Calculate max base length accounting for random and timestamp parts
-    const randomPartLength = randomPart ? randomPart.length + 1 : 0; // +1 for separator
-    const timestampPartLength = timestampPart ? timestampPart.length + 1 : 0; // +1 for separator
-    const maxBaseLength = config.maxLength - randomPartLength - timestampPartLength;
-
-    // Truncate if necessary
-    if (baseId.length > maxBaseLength) {
-      baseId = baseId.slice(0, maxBaseLength);
-    }
-
-    // Build final ID
-    const idParts = [baseId];
-    if (randomPart) idParts.push(randomPart);
-    if (timestampPart) idParts.push(timestampPart);
-    const finalId = idParts.join(config.separator);
-
-    // Validate
-    if (!validateId(finalId) || !config.customValidation(finalId)) {
-      throw new ValidationError('Generated ID failed validation');
-    }
-
-    return finalId;
+    return generateId(name, options);
   } catch (error) {
-    console.error('Error generating ID:', error);
-    // Fallback to a simple but valid ID
-    return `${toKebabCase(name)}-${generateRandomString(8)}`;
+    if (error instanceof ValidationError) return null;
+    throw error;
   }
 };
 

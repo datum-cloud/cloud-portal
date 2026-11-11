@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { ProxyRequestRatesProvider } from './proxy-request-rates';
 import { ProxySparkline } from './proxy-sparkline';
 import type { PrometheusAPIRequest } from '@/modules/metrics/utils/prometheus-request';
 import type { FormattedMetricData } from '@/modules/prometheus';
@@ -42,14 +43,14 @@ function chartDataFor(request: PrometheusAPIRequest): FormattedMetricData {
   return {
     series: [
       {
-        name: 'requests',
-        labels: {},
+        name: 'alb-a',
+        labels: { gateway_name: 'alb-a' },
         data: [
           {
             timestamp: range.end.getTime(),
             value: 1,
             formattedTime: range.end.toISOString(),
-            labels: {},
+            labels: { gateway_name: 'alb-a' },
           },
         ],
       },
@@ -93,7 +94,10 @@ describe('ProxySparkline', () => {
     await act(async () => {
       root.render(
         <QueryClientProvider client={queryClient}>
-          <ProxySparkline projectId="project-a" proxyId="alb-a" />
+          <ProxyRequestRatesProvider projectId="project-a">
+            <ProxySparkline proxyId="alb-a" />
+            <ProxySparkline proxyId="alb-idle" />
+          </ProxyRequestRatesProvider>
         </QueryClientProvider>
       );
       await Promise.resolve();
@@ -114,6 +118,11 @@ describe('ProxySparkline', () => {
   });
 
   it('advances the one-hour window and keeps the chart while the next window loads', async () => {
+    // Two rows, one request: the page asks once and each row reads its series.
+    expect(requests).toHaveLength(1);
+    expect(container.querySelectorAll('[data-testid="chart"]')).toHaveLength(1);
+    expect(container.textContent).toContain('No data');
+
     const first = requests[0];
     const firstRange = first.timeRange as { start: Date; end: Date };
     expect(firstRange.end.getTime()).toBe(T0);
