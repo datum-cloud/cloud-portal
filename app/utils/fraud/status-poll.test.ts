@@ -164,11 +164,16 @@ describe('fetchFraudStatus', () => {
 });
 
 describe('resolveVerifyingDestination', () => {
-  it('keeps waiting while the evaluation is pending', () => {
+  it('keeps waiting while the fraud evaluation is pending', () => {
     expect(resolveVerifyingDestination(PENDING)).toBeNull();
-    expect(
-      resolveVerifyingDestination({ status: 'pending', reason: 'email-unverified' })
-    ).toBeNull();
+  });
+
+  it('hands an email-verification wait to /verify-email', () => {
+    // /verifying polls without a token refresh, so only /verify-email can see the
+    // verified claim arrive.
+    expect(resolveVerifyingDestination({ status: 'pending', reason: 'email-unverified' })).toBe(
+      paths.fraud.verifyEmail
+    );
   });
 
   it('sends a REVIEW decision to the under-review page', () => {

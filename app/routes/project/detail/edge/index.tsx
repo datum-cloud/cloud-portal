@@ -3,6 +3,7 @@ import { BadgeStatus } from '@/components/badge/badge-status';
 import { DateTime } from '@/components/date-time';
 import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
 import { useDeleteProxy } from '@/features/edge/proxy/hooks/use-delete-proxy';
+import { ProxyRequestRatesProvider } from '@/features/edge/proxy/metrics/proxy-request-rates';
 import { ProxySparkline } from '@/features/edge/proxy/metrics/proxy-sparkline';
 import { listOriginDisplay } from '@/features/edge/proxy/overview/backend-summary';
 import {
@@ -268,7 +269,7 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
         enableSorting: false,
         meta: { tooltip: 'Traffic activity over the last hour to this edge' },
         cell: ({ row }) => {
-          return <ProxySparkline projectId={projectId} proxyId={row.original.name} />;
+          return <ProxySparkline proxyId={row.original.name} />;
         },
       },
       {
@@ -434,7 +435,7 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
   );
 
   return (
-    <>
+    <ProxyRequestRatesProvider projectId={projectId} enabled={(data ?? []).length > 0}>
       <Table.Client
         columns={columns}
         data={data ?? []}
@@ -498,6 +499,6 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
       />
 
       <HttpProxyFormDialog ref={proxyFormRef} projectId={projectId} />
-    </>
+    </ProxyRequestRatesProvider>
   );
 }

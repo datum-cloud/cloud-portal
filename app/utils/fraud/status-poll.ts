@@ -76,7 +76,12 @@ export async function fetchFraudStatus(
  * Only a completed evaluation moves them.
  */
 export function resolveVerifyingDestination(result: FraudPollResult): string | null {
-  if (result.status !== 'completed') return null;
+  if (result.status !== 'completed') {
+    // /verifying reads the status without a token refresh, so it cannot see an
+    // email verification land: that is an id_token claim. /verify-email refreshes
+    // on every tick and exists to hold exactly this wait, so hand the user over.
+    return result.reason === 'email-unverified' ? paths.fraud.verifyEmail : null;
+  }
 
   if (result.decision === 'REVIEW') return paths.fraud.accountUnderReview;
   if (result.decision === 'DEACTIVATE') return paths.fraud.accountSuspended;
