@@ -1,6 +1,6 @@
 import { Field } from '../field/field';
 import { FieldLabel } from '@/components/field/field-label';
-import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
+import { generateRandomString, tryGenerateId } from '@/utils/helpers/text.helper';
 import { Checkbox } from '@datum-cloud/datum-ui/checkbox';
 import { type NormalizedFieldState } from '@datum-cloud/datum-ui/form';
 import { Input } from '@datum-cloud/datum-ui/input';
@@ -48,11 +48,13 @@ export const InputName = ({
   // Auto generate name when base name is provided and auto generate is enabled
   useEffect(() => {
     if (baseName && auto) {
+      // An empty value lets the name field's own validation flag a base name
+      // that has no usable characters.
       field.change(
-        generateId(baseName, {
+        tryGenerateId(baseName, {
           randomText: randomSuffix,
           randomLength: disabledRandomSuffix ? 0 : 6,
-        })
+        }) ?? ''
       );
     }
   }, [baseName, auto, disabledRandomSuffix]);
