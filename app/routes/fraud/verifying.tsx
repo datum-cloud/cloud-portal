@@ -13,6 +13,13 @@ import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { useEffect } from 'react';
 import { Link, MetaFunction, LoaderFunctionArgs } from 'react-router';
 
+// A read, not a refresh. The decision this page waits on is the user's
+// platform access, which the status endpoint reads from the API on every call.
+// Without `refresh=0` each 4s tick also redeemed and rotated the refresh
+// token. An access token that expires mid-wait is still renewed by the session
+// middleware. /verify-email is the opposite case and must keep the refresh.
+const STATUS_URL = `${paths.fraud.statusApi}?refresh=0`;
+
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Verifying Your Account');
 });
@@ -29,7 +36,7 @@ export default function VerifyingPage() {
       // used to overlap the next one. The loop waits for each read to settle,
       // stops once the evaluation completes, and aborts on unmount.
       startStatusPoll({
-        fetchStatus: (signal) => fetchFraudStatus(signal),
+        fetchStatus: (signal) => fetchFraudStatus(signal, STATUS_URL),
         onResult: (result) => {
           const destination = resolveVerifyingDestination(result);
           if (!destination) return false; // still pending, keep polling
