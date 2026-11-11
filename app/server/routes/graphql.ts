@@ -1,4 +1,5 @@
 // app/server/routes/graphql.ts
+import { isUpstreamTimeout, UPSTREAM_TIMEOUT_BODY, upstreamSignal } from './upstream-deadline';
 import { parseScope, buildScopedEndpoint } from '@/modules/graphql/endpoints';
 import type { Variables } from '@/server/types';
 import { AuthService } from '@/utils/auth';
@@ -38,6 +39,10 @@ graphqlRoutes.all('/:scopeType/:scopeId', async (c) => {
         return c.json({ error: error.message }, 400);
       }
     }
+    if (isUpstreamTimeout(error)) {
+      console.error('[graphql-proxy] Upstream timed out');
+      return c.json(UPSTREAM_TIMEOUT_BODY, 504);
+    }
 
     console.error('[graphql-proxy] Error:', error);
     return c.json({ error: error instanceof Error ? error.message : 'Proxy error' }, 502);
@@ -60,6 +65,10 @@ graphqlRoutes.all('/', async (c) => {
     if (error instanceof Error && error.name === 'AbortError') {
       return new Response(null, { status: 499 });
     }
+    if (isUpstreamTimeout(error)) {
+      console.error('[graphql-proxy] Upstream timed out');
+      return c.json(UPSTREAM_TIMEOUT_BODY, 504);
+    }
 
     console.error('[graphql-proxy] Error:', error);
     return c.json({ error: error instanceof Error ? error.message : 'Proxy error' }, 502);
@@ -77,12 +86,9 @@ async function forwardGraphql(
   session: IAccessTokenSession,
   targetUrl: string
 ): Promise<Response> {
-  const controller = new AbortController();
-
-  // Cancel upstream request if client disconnects
-  c.req.raw.signal?.addEventListener('abort', () => {
-    controller.abort();
-  });
+  // Cancel the upstream request when the client disconnects or the gateway
+  // misses its deadline.
+  const signal = upstreamSignal(c.req.raw.signal);
 
   const headers = graphqlUpstreamHeaders(c);
   // Read once: a retry re-sends the same body.
@@ -93,7 +99,7 @@ async function forwardGraphql(
       method: c.req.method,
       headers: { ...headers, Authorization: `Bearer ${accessToken}` },
       body,
-      signal: controller.signal,
+      signal,
     });
 
   let response = await call(session.accessToken);

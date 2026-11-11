@@ -4,7 +4,7 @@
  * A plugin whose spec says `visibility.entitlement: Required` mounts in a
  * project only when that project holds an Active ServiceEntitlement for the
  * plugin's service. The lookup is the same one the client sidebar runs
- * (`use-active-service-entitlements`): list the project's
+ * (`useActiveServiceEntitlements` in `@/resources/service-entitlements`): list the project's
  * `services.miloapis.com/v1alpha1` ServiceEntitlements and match
  * `status.serviceName` or `spec.serviceRef.name`. Here it runs with the
  * caller's session token, which the control-plane client reads from the

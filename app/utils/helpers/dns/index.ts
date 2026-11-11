@@ -50,6 +50,7 @@ export {
   normalizeRecordName,
   isDuplicateRecord,
   findRecordIndex,
+  type ComparableDnsRecord,
 } from './record-comparison.helper';
 
 // Record hostname (record name + zone → hostname)

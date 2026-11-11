@@ -19,7 +19,7 @@ export function isGatedService(serviceName: string | undefined): serviceName is 
 
 /**
  * The parts of a ServiceEntitlement the visibility rules read. Structural so
- * both the generated SDK type and the raw JSON the client hook fetches fit.
+ * the generated SDK type fits.
  */
 export interface EntitlementLike {
   spec?: { serviceRef?: { name?: string } };

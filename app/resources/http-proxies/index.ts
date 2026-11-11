@@ -64,8 +64,6 @@ export {
   httpProxyKeys,
   HTTP_PROXY_SYNC_KIND,
   type HttpProxyService,
-  type TrafficProtectionView,
-  type TrafficProtectionMaps,
 } from './http-proxy.service';
 
 // Query hooks exports
@@ -73,20 +71,13 @@ export {
   useHttpProxies,
   useHttpProxiesByConnector,
   useHttpProxy,
-  useTrafficProtectionPolicies,
-  useTrafficProtectionPolicy,
   useCreateHttpProxy,
   useUpdateHttpProxy,
   useDeleteHttpProxy,
 } from './http-proxy.queries';
 
 // Watch hooks exports
-export {
-  useHttpProxiesWatch,
-  useHttpProxyWatch,
-  useTrafficProtectionPolicyWatch,
-  waitForHttpProxyReady,
-} from './http-proxy.watch';
+export { useHttpProxiesWatch, useHttpProxyWatch, waitForHttpProxyReady } from './http-proxy.watch';
 
 // Utility exports
 export {

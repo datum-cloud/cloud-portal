@@ -1,5 +1,5 @@
 import { DateTime } from '@/components/date-time';
-import { useResourcePermissions } from '@/modules/rbac';
+import { PermissionGate } from '@/modules/rbac';
 import type { Domain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -20,13 +20,6 @@ export const DomainReadyCard = ({ domain, projectId }: { domain: Domain; project
     (c) => c.type === 'Verified' && c.status === 'True'
   )?.lastTransitionTime;
 
-  const { canCreate: canCreateProxy } = useResourcePermissions({
-    resource: 'httpproxies',
-    group: 'networking.datumapis.com',
-    scope: 'project',
-    verbs: ['create'],
-  });
-
   return (
     <Alert variant="success" data-e2e="domain-ready-notice">
       <Icon icon={CircleCheckIcon} className="size-4" />
@@ -43,7 +36,12 @@ export const DomainReadyCard = ({ domain, projectId }: { domain: Domain; project
               </>
             )}
           </span>
-          {canCreateProxy && (
+          <PermissionGate
+            resource="httpproxies"
+            group="networking.datumapis.com"
+            scope="project"
+            verb="create"
+            mode="hide">
             <div>
               <LinkButton
                 as={Link}
@@ -58,7 +56,7 @@ export const DomainReadyCard = ({ domain, projectId }: { domain: Domain; project
                 Create an ALB
               </LinkButton>
             </div>
-          )}
+          </PermissionGate>
         </div>
       </AlertDescription>
     </Alert>

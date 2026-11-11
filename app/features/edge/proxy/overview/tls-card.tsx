@@ -4,7 +4,7 @@ import { ToggleState } from '@/components/card/toggle-state';
 import { WildcardsNotEnabledChip } from '@/features/edge/proxy/overview/hostname-status-chips';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { showMutationErrorToast } from '@/modules/quota';
-import { useResourcePermissions } from '@/modules/rbac';
+import { PermissionGate } from '@/modules/rbac';
 import {
   type HttpProxy,
   getCertificateReadyCondition,
@@ -166,13 +166,6 @@ export function HttpProxyTlsCard({ proxy, projectId }: { proxy: HttpProxy; proje
   const [draftTlsHostname, setDraftTlsHostname] = useState('');
   const [, copy, isCopied] = useCopyToClipboard();
 
-  const { canPatch, isLoading: patchPermLoading } = useResourcePermissions({
-    resource: 'httpproxies',
-    group: 'networking.datumapis.com',
-    scope: 'project',
-    verbs: ['patch'],
-  });
-
   const updateProxy = useUpdateHttpProxy(projectId, proxy.name);
 
   const currentForceHttps = proxy.enableHttpRedirect ?? false;
@@ -263,7 +256,7 @@ export function HttpProxyTlsCard({ proxy, projectId }: { proxy: HttpProxy; proje
       theme="outline"
       size="xs"
       className={`shrink-0 ${editing ? 'invisible' : ''}`}
-      disabled={editing || patchPermLoading || isAdvanced}
+      disabled={editing || isAdvanced}
       aria-hidden={editing}
       tabIndex={editing ? -1 : undefined}
       onClick={startEdit}>
@@ -279,7 +272,12 @@ export function HttpProxyTlsCard({ proxy, projectId }: { proxy: HttpProxy; proje
           <Icon icon={LockIcon} size={16} className="text-secondary" />
           TLS & Certificates
         </CardTitle>
-        {canPatch ? (
+        <PermissionGate
+          resource="httpproxies"
+          group="networking.datumapis.com"
+          scope="project"
+          verb="patch"
+          mode="hide">
           <CardAction>
             {isAdvanced ? (
               <Tooltip message="This load balancer has advanced rules the portal can't edit. Use datumctl or edit the resource directly.">
@@ -289,7 +287,7 @@ export function HttpProxyTlsCard({ proxy, projectId }: { proxy: HttpProxy; proje
               editButton
             )}
           </CardAction>
-        ) : null}
+        </PermissionGate>
       </CardHeader>
       <CardContent padding="none">
         <CardField>

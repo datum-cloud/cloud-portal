@@ -7,6 +7,7 @@ export {
 } from './service-entitlement.schema';
 
 export {
+  activeEntitlementServiceIds,
   entitlementServiceIds,
   findEntitlementForService,
   entitlementObjectName,
@@ -18,3 +19,8 @@ export {
   serviceEntitlementKeys,
   type ServiceEntitlementService,
 } from './service-entitlement.service';
+
+export {
+  ACTIVE_SERVICE_ENTITLEMENTS_STALE_TIME,
+  useActiveServiceEntitlements,
+} from './service-entitlement.queries';

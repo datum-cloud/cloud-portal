@@ -33,13 +33,13 @@ import {
   httpProxyKeys,
   useHttpProxies,
   useHttpProxiesWatch,
-  useTrafficProtectionPolicies,
   formatWafProtectionDisplay,
   getCertificatesReadyCondition,
   getCertificatesReadyDisplay,
   getHttpProxyStatus,
 } from '@/resources/http-proxies';
 import { useNetworkServices } from '@/resources/network-services';
+import { useTrafficProtectionPolicies } from '@/resources/traffic-protection-policies';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';

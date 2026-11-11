@@ -1,12 +1,6 @@
 import { toBackendPayload, toHttpProxyBackend } from './http-proxy.adapter';
 import type { HttpProxy, CreateHttpProxyInput, UpdateHttpProxyInput } from './http-proxy.schema';
-import {
-  HTTP_PROXY_SYNC_KIND,
-  createHttpProxyService,
-  httpProxyKeys,
-  type TrafficProtectionMaps,
-  type TrafficProtectionView,
-} from './http-proxy.service';
+import { HTTP_PROXY_SYNC_KIND, createHttpProxyService, httpProxyKeys } from './http-proxy.service';
 import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import {
   beginRowPending,
@@ -20,6 +14,10 @@ import { withAllowanceRefresh } from '@/resources/allowance-buckets';
 import { domainKeys } from '@/resources/domains/domain.service';
 import { locationKeys } from '@/resources/locations';
 import { serviceEntitlementKeys } from '@/resources/service-entitlements';
+import {
+  trafficProtectionPolicyKeys,
+  type TrafficProtectionView,
+} from '@/resources/traffic-protection-policies/traffic-protection-policy.service';
 import {
   useQuery,
   useQueryClient,
@@ -67,40 +65,6 @@ export function useHttpProxy(
   return useQuery({
     queryKey: httpProxyKeys.detail(projectId, name),
     queryFn: () => createHttpProxyService().get(projectId, name),
-    enabled: !!projectId && !!name,
-    ...options,
-  });
-}
-
-/**
- * WAF (TrafficProtectionPolicy) modes for a project, keyed by proxy name.
- * Decoupled from the proxy list and gated by `enabled` so callers without
- * `trafficprotectionpolicies` view permission never trigger the request.
- */
-export function useTrafficProtectionPolicies(
-  projectId: string,
-  options?: Omit<UseQueryOptions<TrafficProtectionMaps>, 'queryKey' | 'queryFn'>
-) {
-  return useQuery({
-    queryKey: httpProxyKeys.wafList(projectId),
-    queryFn: () => createHttpProxyService().listTrafficProtectionPolicies(projectId),
-    enabled: !!projectId,
-    ...options,
-  });
-}
-
-/**
- * WAF (TrafficProtectionPolicy) view for a single proxy. Gated by `enabled` so
- * callers without view permission never trigger the request.
- */
-export function useTrafficProtectionPolicy(
-  projectId: string,
-  name: string,
-  options?: Omit<UseQueryOptions<TrafficProtectionView | null>, 'queryKey' | 'queryFn'>
-) {
-  return useQuery({
-    queryKey: httpProxyKeys.wafDetail(projectId, name),
-    queryFn: () => createHttpProxyService().getTrafficProtectionPolicy(projectId, name),
     enabled: !!projectId && !!name,
     ...options,
   });
@@ -170,7 +134,9 @@ export function useCreateHttpProxy(
           onSuccess: (...args) => {
             const [, input] = args;
             // Not covered by the proxy watch, so these still invalidate.
-            void queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
+            void queryClient.invalidateQueries({
+              queryKey: trafficProtectionPolicyKeys.list(projectId),
+            });
             void queryClient.invalidateQueries({
               queryKey: serviceEntitlementKeys.active(projectId),
             });
@@ -265,7 +231,7 @@ async function applyOptimisticUpdate(
   queryClient.setQueryData<HttpProxy>(detailKey, (old) => old && applyProxyInput(old, input));
 
   if (!touchesWaf(input)) return { previous, touchesWaf: false };
-  const wafKey = httpProxyKeys.wafDetail(projectId, name);
+  const wafKey = trafficProtectionPolicyKeys.detail(projectId, name);
   await queryClient.cancelQueries({ queryKey: wafKey });
   const previousWaf = queryClient.getQueryData<TrafficProtectionView | null>(wafKey);
   queryClient.setQueryData<TrafficProtectionView | null>(wafKey, (old) =>
@@ -284,7 +250,10 @@ function rollbackOptimisticUpdate(
     queryClient.setQueryData(httpProxyKeys.detail(projectId, name), context.previous);
   }
   if (context?.touchesWaf) {
-    queryClient.setQueryData(httpProxyKeys.wafDetail(projectId, name), context.previousWaf ?? null);
+    queryClient.setQueryData(
+      trafficProtectionPolicyKeys.detail(projectId, name),
+      context.previousWaf ?? null
+    );
   }
 }
 
@@ -302,8 +271,10 @@ function onUpdateSuccess(
   // Exception to watch-or-invalidate: watch events omit redirect and basic-auth
   // fields, so only a re-GET shows them. Not awaited, or the dialog hangs (#1491).
   void queryClient.invalidateQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
-  void queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafDetail(projectId, name) });
-  void queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
+  void queryClient.invalidateQueries({
+    queryKey: trafficProtectionPolicyKeys.detail(projectId, name),
+  });
+  void queryClient.invalidateQueries({ queryKey: trafficProtectionPolicyKeys.list(projectId) });
   invalidateDomainsForHostnames(queryClient, projectId, input.hostnames);
 }
 
@@ -380,8 +351,12 @@ export function useDeleteHttpProxy(
           ...options,
           onSuccess: (...args) => {
             const [, name] = args;
-            queryClient.removeQueries({ queryKey: httpProxyKeys.wafDetail(projectId, name) });
-            void queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
+            queryClient.removeQueries({
+              queryKey: trafficProtectionPolicyKeys.detail(projectId, name),
+            });
+            void queryClient.invalidateQueries({
+              queryKey: trafficProtectionPolicyKeys.list(projectId),
+            });
             return options?.onSuccess?.(...args);
           },
         },
