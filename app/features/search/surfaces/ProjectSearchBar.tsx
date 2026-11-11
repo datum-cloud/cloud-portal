@@ -27,6 +27,7 @@ import { Command, CommandEmpty, CommandList } from '@datum-cloud/datum-ui/comman
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { InputWithAddons } from '@datum-cloud/datum-ui/input-with-addons';
 import { Popover, PopoverAnchor, PopoverContent } from '@datum-cloud/datum-ui/popover';
+import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { Search, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -74,7 +75,11 @@ export function ProjectSearchBar({ variant = 'header' }: { variant?: ProjectSear
     return () => document.removeEventListener('keydown', onKey);
   }, [breakpoint, isHero]);
 
-  if (!project) return null;
+  // The hero bar holds its place while the project resolves, so the home page
+  // below it doesn't jump down when the bar appears.
+  if (!project) {
+    return isHero ? <Skeleton className="h-10 w-full rounded-xl" aria-hidden /> : null;
+  }
 
   const showPartial = engine.hasPartialPermission && !partialDismissed;
   const debouncedQuery = engine.debouncedQuery;
@@ -109,7 +114,7 @@ export function ProjectSearchBar({ variant = 'header' }: { variant?: ProjectSear
               containerClassName={cn(
                 'relative outline-none',
                 isHero
-                  ? 'bg-card border-input h-12 rounded-lg border pr-3 pl-3 shadow-xs'
+                  ? 'bg-card h-10 rounded-xl border pr-3 pl-3.5'
                   : 'border-none min-w-64 focus-within:shadow-none pl-1 pr-2'
               )}
               leading={

@@ -1,20 +1,15 @@
 import { AGENT_SETUP_COPIED_TOAST, agentSetupPrompt } from './agent-setup';
 import { ClaudeLogo, CursorLogo, GitHubCopilotLogo } from '@/components/icon/agent-logos';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
-import { AnalyticsAction, useAnalytics, type AnalyticsActionName } from '@/modules/rybbit';
-import { Button } from '@datum-cloud/datum-ui/button';
+import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Check, Copy, SquareTerminal } from 'lucide-react';
 import { motion, useReducedMotion, type Variants } from 'motion/react';
 import type { ReactNode } from 'react';
 
-/** Copies the agent setup prompt, with a toast, and records which control was used. */
-function useCopyAgentSetupPrompt(
-  organizationId: string | undefined,
-  projectId: string,
-  action: AnalyticsActionName
-) {
+/** Copies the agent setup prompt, with a toast, and records the copy. */
+function useCopyAgentSetupPrompt(organizationId: string | undefined, projectId: string) {
   const [copied, copy] = useCopyToClipboard();
   const { trackAction } = useAnalytics();
 
@@ -24,7 +19,7 @@ function useCopyAgentSetupPrompt(
       toastMessage: AGENT_SETUP_COPIED_TOAST,
     });
     if (ok) {
-      trackAction(action);
+      trackAction(AnalyticsAction.CopyAgentSetupPrompt);
     } else {
       toast.error("Couldn't copy the setup prompt. Check that this page can use the clipboard.");
     }
@@ -117,11 +112,7 @@ export function AgentSetupPill({
   organizationId?: string;
   projectId: string;
 }) {
-  const [copied, copyPrompt] = useCopyAgentSetupPrompt(
-    organizationId,
-    projectId,
-    AnalyticsAction.CopyAgentSetupPrompt
-  );
+  const [copied, copyPrompt] = useCopyAgentSetupPrompt(organizationId, projectId);
 
   // With reduced motion the chips stay put and the pill doesn't shrink on press.
   const reduceMotion = useReducedMotion();
@@ -136,37 +127,10 @@ export function AgentSetupPill({
       whileHover={reduceMotion ? undefined : 'fan'}
       whileTap={reduceMotion ? undefined : { scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 600, damping: 30 }}
-      className="bg-card hover:border-foreground/25 focus-visible:ring-ring inline-flex h-7 shrink-0 items-center gap-2 rounded-full border px-3 text-xs whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:outline-none">
+      className="bg-card hover:border-foreground/25 focus-visible:ring-ring inline-flex h-8 shrink-0 items-center gap-2.5 rounded-full border px-3.5 text-sm whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:outline-none">
       <span className="text-foreground">Onboard your agent to Datum</span>
       <AgentMarks />
-      <Icon icon={copied ? Check : Copy} size={12} className="text-muted-foreground" aria-hidden />
+      <Icon icon={copied ? Check : Copy} size={13} className="text-muted-foreground" aria-hidden />
     </motion.button>
-  );
-}
-
-/** The same copy action as a button, for the suggested next steps list. */
-export function CopyAgentSetupPromptButton({
-  organizationId,
-  projectId,
-}: {
-  organizationId?: string;
-  projectId: string;
-}) {
-  const [copied, copyPrompt] = useCopyAgentSetupPrompt(
-    organizationId,
-    projectId,
-    AnalyticsAction.CopyAgentSetupPromptNextSteps
-  );
-
-  return (
-    <Button
-      type="secondary"
-      theme="outline"
-      size="xs"
-      className="shrink-0"
-      icon={<Icon icon={copied ? Check : Copy} size={12} aria-hidden="true" />}
-      onClick={copyPrompt}>
-      Copy prompt
-    </Button>
   );
 }

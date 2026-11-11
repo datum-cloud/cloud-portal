@@ -24,7 +24,6 @@ export const AnalyticsAction = {
   /** Agent setup prompt copied from the project home header. */
   CopyAgentSetupPrompt: 'copy_agent_setup_prompt',
   /** Agent setup prompt copied from the project home's suggested next steps. */
-  CopyAgentSetupPromptNextSteps: 'copy_agent_setup_prompt_next_steps',
 } as const;
 
 export type AnalyticsActionName = (typeof AnalyticsAction)[keyof typeof AnalyticsAction];

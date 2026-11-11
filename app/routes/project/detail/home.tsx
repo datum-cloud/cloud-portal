@@ -2,6 +2,7 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import DiscordIcon from '@/components/icon/discord';
 import { GitHubLineIcon } from '@/components/icon/github-line';
 import { AgentSetupPill } from '@/features/project/home/agent-setup-pill';
+import { HomeBodySkeleton, HomeHeaderSkeleton } from '@/features/project/home/home-skeleton';
 import { ProjectHomeBody } from '@/features/project/home/project-home-body';
 import { ProjectHomePluginCards } from '@/modules/plugins/client/plugin-cards';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
@@ -9,6 +10,7 @@ import { useApp } from '@/providers/app.provider';
 import { useProjectContext } from '@/providers/project.provider';
 import NotFound from '@/routes/not-found';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { CalendarFold } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -79,8 +81,18 @@ export default function ProjectHomePage() {
     trackAction(AnalyticsAction.FirstProjectView);
   }, [isNewUser, trackAction]);
 
+  // The page's own shape while the project loads, rather than a blank screen.
   if (isLoading) {
-    return null;
+    return (
+      <div
+        className="mx-auto flex w-full max-w-6xl flex-col gap-6"
+        role="status"
+        aria-label="Loading project">
+        <HomeHeaderSkeleton />
+        <Skeleton className="h-10 w-full rounded-xl" />
+        <HomeBodySkeleton />
+      </div>
+    );
   }
 
   if (!project) {
@@ -98,28 +110,41 @@ export default function ProjectHomePage() {
       {/* Header. Its `/main` container queries follow the content column, which
           narrows when a dock panel is open, not the viewport. */}
       <div className="flex flex-col gap-3 @3xl/main:flex-row @3xl/main:items-start @3xl/main:justify-between @3xl/main:gap-6">
-        <div className="flex min-w-0 flex-col gap-2">
-          <Title
-            as="h1"
-            level={2}
+        {/* The same title and description spacing as PageTitle on other pages:
+            a 3xl title with no extra line height, a 4px gap, then small text. */}
+        <div className="flex min-w-0 flex-col gap-1">
+          {/* The project ID sits beside the name it identifies, and wraps under
+              a long name. It shows even when there's no display name, since
+              it's where the ID is copied from. The title font sits low in its
+              line box, so the badge is nudged down from centre to sit level
+              with the letters. */}
+          <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+            <Title
+              as="h1"
+              level={2}
+              weight="normal"
+              textColor="default"
+              className="font-title min-w-0 leading-none tracking-normal break-words">
+              {projectDisplayName}
+            </Title>
+            <BadgeCopy
+              value={projectName}
+              text={projectName}
+              badgeTheme="solid"
+              badgeType="muted"
+              className="bg-table-accent shrink-0 translate-y-[3px]"
+            />
+          </div>
+          <Text
+            as="p"
+            size="sm"
             weight="normal"
-            textColor="default"
-            className="font-title tracking-normal break-words">
-            {projectDisplayName}
-          </Title>
-          <Text as="p" weight="normal" className="dark:text-card-quaternary text-foreground/60">
+            className="dark:text-card-quaternary text-foreground/60">
             {greeting} Search your project, or pick up where you left off.
           </Text>
         </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2 self-start">
+        <div className="flex shrink-0 self-start">
           <AgentSetupPill organizationId={project.organizationId} projectId={projectName} />
-          <BadgeCopy
-            value={projectName}
-            text={projectName}
-            badgeTheme="solid"
-            badgeType="muted"
-            className="bg-table-accent shrink-0"
-          />
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import { CopyAgentSetupPromptButton } from './agent-setup-pill';
+import { AskPatchCard } from './ask-patch-card';
 import { CommandBlock } from './command-block';
 import {
   deployCommand,
@@ -9,27 +9,12 @@ import {
 } from './home-mode';
 import { ConnectCommands, NeedsNetwork } from './path-choice';
 import type { SetupStep } from './setup-progress.helpers';
-import { useProjectContext } from '@/providers/project.provider';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { Input } from '@datum-cloud/datum-ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
 import { Text } from '@datum-cloud/datum-ui/typography';
-import { cn } from '@datum-cloud/datum-ui/utils';
-import {
-  ArrowRight,
-  Bot,
-  Brain,
-  Globe,
-  Network,
-  Plug,
-  Send,
-  Server,
-  Split,
-  Wrench,
-  type LucideIcon,
-} from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { Globe, Network, Plug, Server, Split, type LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 const TOOL_ICONS: Record<Suggestion['tool'], LucideIcon> = {
   network: Network,
@@ -65,7 +50,6 @@ export function NextSuggestions({
   onAskPatch?: (prompt: string) => void;
 }) {
   const suggestions = suggestNextSteps(steps, networkCount);
-  const [text, setText] = useState('');
 
   return (
     <section className="flex flex-col gap-3" aria-labelledby="next-suggestions-heading">
@@ -74,148 +58,56 @@ export function NextSuggestions({
           Suggested next steps
         </Text>
         <Text as="p" size="xs" textColor="muted">
-          Do it yourself, or hand it to Patch.
+          {onAskPatch
+            ? 'Do it yourself, or hand it to Patch.'
+            : 'Picked from what this project has.'}
         </Text>
       </div>
-      {/* One card, split down the middle, with the same plain rows on both
-          sides; only the text input keeps a border of its own. */}
-      <div
-        className={cn(
-          'bg-card grid rounded-xl border',
-          onAskPatch && 'divide-y @3xl/main:grid-cols-2 @3xl/main:divide-x @3xl/main:divide-y-0'
-        )}>
-        <div className="flex flex-col px-5 py-2">
-          <CardLabel icon={Wrench}>Build it yourself</CardLabel>
-          <ul className="flex flex-col">
-            {suggestions.map((suggestion) => (
-              <li key={suggestion.tool} className="flex items-center gap-3 border-t py-2.5">
-                <Icon
-                  icon={TOOL_ICONS[suggestion.tool]}
-                  size={15}
-                  className="text-icon-quaternary shrink-0"
-                />
-                <span className="flex min-w-0 flex-1 flex-col">
-                  <Text size="sm" weight="medium">
-                    {suggestion.title}
-                  </Text>
-                  <Text size="xs" textColor="muted">
-                    {suggestion.description}
-                  </Text>
-                </span>
-                <SuggestionAction
-                  suggestion={suggestion}
-                  projectId={projectId}
-                  networkName={networkName}
-                  networkCount={networkCount}
-                  onTool={onTool}
-                  onCreateNetwork={onCreateNetwork}
-                />
-              </li>
-            ))}
-            <AgentSetupRow projectId={projectId} />
-          </ul>
-        </div>
-
-        {onAskPatch && (
-          <div className="flex flex-col px-5 py-2">
-            <CardLabel icon={Brain} accent>
-              Ask Patch
-            </CardLabel>
-            <ul className="flex flex-col">
-              {suggestions.map((suggestion) => (
-                <li key={suggestion.tool} className="border-t">
-                  <button
-                    type="button"
-                    onClick={() => onAskPatch(suggestion.patchPrompt)}
-                    className="group hover:bg-muted/50 -mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-md px-2 py-3 text-left transition-colors">
-                    <Icon
-                      icon={TOOL_ICONS[suggestion.tool]}
-                      size={15}
-                      className="text-btn-primary shrink-0"
-                    />
-                    <Text as="span" size="sm" className="flex-1">
-                      {suggestion.patchLabel}
-                    </Text>
-                    <Icon
-                      icon={ArrowRight}
-                      size={13}
-                      className="text-icon-quaternary shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
-                    />
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <form
-              className="flex items-center gap-2 border-t pt-3 pb-1"
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (!text.trim()) return;
-                onAskPatch(freeTextPrompt(text, networkName, networkCount));
-                setText('');
-              }}>
-              <Input
-                value={text}
-                onChange={(event) => setText(event.target.value)}
-                placeholder="Or describe what you want to connect..."
-                aria-label="Ask Patch"
-              />
-              <Button
-                htmlType="submit"
-                type="quaternary"
-                theme="borderless"
-                size="small"
-                aria-label="Send to Patch"
-                disabled={!text.trim()}>
-                <Icon icon={Send} size={14} className="text-btn-primary" />
-              </Button>
-            </form>
-          </div>
-        )}
-      </div>
+      {/* Each step is a compact tile of its own, side by side; Patch, when
+          it is installed, is one more card underneath with the same steps as
+          questions. */}
+      <ul className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2">
+        {suggestions.map((suggestion) => (
+          <li
+            key={suggestion.tool}
+            className="bg-card flex items-center gap-3 rounded-xl border px-4 py-3">
+            <span className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
+              <Icon icon={TOOL_ICONS[suggestion.tool]} size={15} className="text-icon-primary" />
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col">
+              <Text size="sm" weight="medium">
+                {suggestion.title}
+              </Text>
+              <Text size="xs" textColor="muted">
+                {suggestion.description}
+              </Text>
+            </span>
+            <SuggestionAction
+              suggestion={suggestion}
+              projectId={projectId}
+              networkName={networkName}
+              networkCount={networkCount}
+              onTool={onTool}
+              onCreateNetwork={onCreateNetwork}
+            />
+          </li>
+        ))}
+      </ul>
+      {onAskPatch && (
+        <AskPatchCard
+          description="Hand a step to Patch. It plans each piece and waits for your OK before creating anything."
+          prompts={suggestions.map((suggestion) => ({
+            key: suggestion.tool,
+            label: suggestion.patchLabel,
+            icon: TOOL_ICONS[suggestion.tool],
+            prompt: suggestion.patchPrompt,
+          }))}
+          placeholder="Or describe what you want to connect..."
+          onAsk={onAskPatch}
+          onAskText={(text) => onAskPatch(freeTextPrompt(text, networkName, networkCount))}
+        />
+      )}
     </section>
-  );
-}
-
-/** Hand the project to a coding agent: copy the agent setup prompt. */
-function AgentSetupRow({ projectId }: { projectId: string }) {
-  const { project } = useProjectContext();
-  return (
-    <li className="flex items-center gap-3 border-t py-2.5">
-      <Icon icon={Bot} size={15} className="text-icon-quaternary shrink-0" />
-      <span className="flex min-w-0 flex-1 flex-col">
-        <Text size="sm" weight="medium">
-          Set up your coding agent
-        </Text>
-        <Text size="xs" textColor="muted">
-          Give Claude Code, Codex, Cursor or Copilot datumctl and the Datum MCP server.
-        </Text>
-      </span>
-      <CopyAgentSetupPromptButton organizationId={project?.organizationId} projectId={projectId} />
-    </li>
-  );
-}
-
-function CardLabel({
-  icon,
-  accent = false,
-  children,
-}: {
-  icon: LucideIcon;
-  accent?: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <div className="flex items-center gap-2 py-2">
-      <Icon
-        icon={icon}
-        size={14}
-        className={accent ? 'text-btn-primary' : 'text-icon-quaternary'}
-        aria-hidden
-      />
-      <Text size="xs" weight="medium" textColor="muted">
-        {children}
-      </Text>
-    </div>
   );
 }
 
@@ -244,14 +136,14 @@ function SuggestionAction({
   }
   if (tool === 'connect') {
     return (
-      <CommandPopover label="datumctl connect" onOpen={() => onTool('connect')}>
+      <CommandPopover onOpen={() => onTool('connect')}>
         <ConnectCommands projectId={projectId} />
       </CommandPopover>
     );
   }
   if (tool === 'deploy') {
     return (
-      <CommandPopover label="datumctl compute deploy" onOpen={() => onTool('deploy')}>
+      <CommandPopover onOpen={() => onTool('deploy')}>
         {networkCount > 0 ? (
           // With several networks, a placeholder rather than an arbitrary pick.
           <CommandBlock command={deployCommand(networkName ?? '<network>')} />
@@ -273,20 +165,16 @@ function SuggestionAction({
   );
 }
 
-function CommandPopover({
-  label,
-  onOpen,
-  children,
-}: {
-  label: string;
-  onOpen: () => void;
-  children: ReactNode;
-}) {
+/**
+ * A CLI step: the button opens the command to copy. It looks like the other
+ * rows' buttons, so the list reads as one set of actions.
+ */
+function CommandPopover({ onOpen, children }: { onOpen: () => void; children: ReactNode }) {
   return (
     <Popover onOpenChange={(open) => open && onOpen()}>
       <PopoverTrigger asChild>
-        <Button type="secondary" theme="outline" size="xs" className="shrink-0 font-mono">
-          {label}
+        <Button type="secondary" theme="outline" size="xs" className="shrink-0">
+          Show command
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[min(36rem,90vw)]">
