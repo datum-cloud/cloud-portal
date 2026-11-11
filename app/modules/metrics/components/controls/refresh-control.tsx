@@ -2,6 +2,8 @@ import { METRICS_CONTROL_HEIGHT_CLASS, REFRESH_OPTIONS } from '@/modules/metrics
 import { useMetrics } from '@/modules/metrics/context';
 import { parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { ButtonGroup } from '@datum-cloud/datum-ui/button-group';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import {
   Select,
@@ -99,31 +101,37 @@ export const RefreshControl = ({
     return 'Refresh metrics';
   };
 
+  const currentRefresh = refreshInterval || defaultValue;
+  const refreshLabel =
+    REFRESH_OPTIONS.find((option) => option.value === currentRefresh)?.label ?? currentRefresh;
+
   return (
-    <div
-      className={cn(
-        'border-input bg-card flex items-stretch overflow-hidden rounded-lg border shadow-none',
-        METRICS_CONTROL_HEIGHT_CLASS
-      )}>
-      {/* Manual Refresh Button */}
+    <ButtonGroup className={cn('w-full sm:w-fit', METRICS_CONTROL_HEIGHT_CLASS)}>
+      {/* Manual Refresh Button: field border and colours so it reads as part of the control.
+          Tooltip wraps it in a span, so ButtonGroup cannot square its corners. */}
       <Tooltip message={getTooltipText()}>
-        <button
-          type="button"
+        <Button
+          type="quaternary"
+          theme="outline"
+          size="icon"
           aria-label="Refresh metrics"
-          className="hover:bg-muted inline-flex h-full w-9 shrink-0 items-center justify-center border-r disabled:pointer-events-none disabled:opacity-50"
+          className="border-input-border bg-card text-muted-foreground dark:border-input-border dark:text-muted-foreground h-auto w-9 shrink-0 rounded-r-none"
           onClick={handleManualRefresh}
           disabled={isManualRefreshing || isAutoRefreshing}>
           <Icon
             icon={RefreshCw}
             className={cn('size-4', (isManualRefreshing || isAutoRefreshing) && 'animate-spin')}
           />
-        </button>
+        </Button>
       </Tooltip>
 
       {/* Auto Refresh Interval Dropdown */}
       <Select value={refreshInterval || defaultValue} onValueChange={setRefreshInterval}>
-        <SelectTrigger className="h-full min-h-0 min-w-10 rounded-l-none border-0 bg-transparent px-2 py-0 shadow-none focus:ring-0">
-          <SelectValue placeholder="Auto refresh" />
+        <SelectTrigger
+          aria-label="Auto refresh"
+          className={cn('bg-card flex-1 sm:w-auto sm:flex-initial', METRICS_CONTROL_HEIGHT_CLASS)}>
+          {/* Explicit label so the server render shows it too; Radix fills SelectValue only on the client. */}
+          <SelectValue placeholder="Auto refresh">{refreshLabel}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           {REFRESH_OPTIONS.map((option) => (
@@ -133,6 +141,6 @@ export const RefreshControl = ({
           ))}
         </SelectContent>
       </Select>
-    </div>
+    </ButtonGroup>
   );
 };

@@ -44,10 +44,10 @@ importers:
         version: 1.21.1(zod@4.6.6)
       '@datum-cloud/activity-ui':
         specifier: ^0.7.1
-        version: 0.7.1(@datum-cloud/datum-ui@3.10.0(b2400c276217603e25468f7448342d99))(@monaco-editor/react@4.7.0(monaco-editor@0.56.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@radix-ui/react-tooltip@1.2.16(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(monaco-editor@0.56.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        version: 0.7.1(@datum-cloud/datum-ui@3.11.0(b2400c276217603e25468f7448342d99))(@monaco-editor/react@4.7.0(monaco-editor@0.56.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@radix-ui/react-tooltip@1.2.16(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(monaco-editor@0.56.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@datum-cloud/datum-ui':
-        specifier: ^3.10.0
-        version: 3.10.0(b2400c276217603e25468f7448342d99)
+        specifier: ^3.11.0
+        version: 3.11.0(b2400c276217603e25468f7448342d99)
       '@datum-cloud/portal-plugin-sdk':
         specifier: ^1.0.0
         version: 1.0.0(react@19.3.0)
@@ -623,8 +623,8 @@ packages:
     peerDependencies:
       ai: '>=7 <8'
 
-  '@datum-cloud/datum-ui@3.10.0':
-    resolution: {integrity: sha512-pKXQK0Swbci68sEKzC6EYsae/+RnPJcTxi41Xd6cIYmZglU9FUoQZQCL7SE8K9gPz4CBQXTmp4SidYODSFP0gg==}
+  '@datum-cloud/datum-ui@3.11.0':
+    resolution: {integrity: sha512-mRCIx9fvXPa69Z6pYDQ4s0tqQRlvZnT7aHx3aLmP1lun7hPqTIQls8Az8/avmN9W1Ehe9hCoGFVCPwx0w6+UVw==}
     peerDependencies:
       '@conform-to/react': '>=1.19.4 <2'
       '@conform-to/zod': '>=1.19.4 <2'
@@ -8076,9 +8076,9 @@ snapshots:
 
   '@date-fns/tz@1.5.0': {}
 
-  '@datum-cloud/activity-ui@0.7.1(@datum-cloud/datum-ui@3.10.0(b2400c276217603e25468f7448342d99))(@monaco-editor/react@4.7.0(monaco-editor@0.56.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@radix-ui/react-tooltip@1.2.16(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(monaco-editor@0.56.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+  '@datum-cloud/activity-ui@0.7.1(@datum-cloud/datum-ui@3.11.0(b2400c276217603e25468f7448342d99))(@monaco-editor/react@4.7.0(monaco-editor@0.56.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@radix-ui/react-tooltip@1.2.16(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(monaco-editor@0.56.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
-      '@datum-cloud/datum-ui': 3.10.0(b2400c276217603e25468f7448342d99)
+      '@datum-cloud/datum-ui': 3.11.0(b2400c276217603e25468f7448342d99)
       '@monaco-editor/react': 4.7.0(monaco-editor@0.56.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@radix-ui/react-tooltip': 1.2.16(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       class-variance-authority: 0.7.1
@@ -8094,7 +8094,7 @@ snapshots:
     dependencies:
       ai: 7.0.97(zod@4.6.6)
 
-  '@datum-cloud/datum-ui@3.10.0(b2400c276217603e25468f7448342d99)':
+  '@datum-cloud/datum-ui@3.11.0(b2400c276217603e25468f7448342d99)':
     dependencies:
       '@datum-cloud/datum-ui-assistant-core': 0.1.0(ai@7.0.97(zod@4.6.6))
       '@radix-ui/react-avatar': 1.2.6(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
