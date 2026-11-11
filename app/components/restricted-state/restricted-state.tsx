@@ -6,12 +6,17 @@ import { LockIcon } from 'lucide-react';
 interface RestrictedStateProps {
   title?: string;
   message?: string;
+  /** Who can grant access. Pass `null` to hide it. */
+  guidance?: string | null;
   className?: string;
 }
+
+export const RESTRICTED_GUIDANCE = 'An organization owner or admin can give you access.';
 
 export function RestrictedState({
   title = 'Access restricted',
   message = "You don't have permission to view this.",
+  guidance = RESTRICTED_GUIDANCE,
   className,
 }: RestrictedStateProps) {
   return (
@@ -28,6 +33,11 @@ export function RestrictedState({
         <Text as="p" textColor="muted" className="max-w-sm">
           {message}
         </Text>
+        {guidance ? (
+          <Text as="p" size="sm" textColor="muted" className="max-w-sm">
+            {guidance}
+          </Text>
+        ) : null}
       </div>
     </div>
   );

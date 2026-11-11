@@ -99,7 +99,7 @@ describe('Copy feedback', () => {
       stubClipboard(() => Promise.resolve());
       mountWithToaster(<BadgeCopy value="project-1" />);
 
-      cy.get('[aria-label="Copy to clipboard"]').click();
+      cy.findByRole('button', { name: 'Copy project-1' }).click();
 
       cy.get('[aria-label="Copied!"]').should('exist');
       cy.contains(SUCCESS).should('exist');
@@ -110,11 +110,35 @@ describe('Copy feedback', () => {
       stubClipboard(() => Promise.reject(new Error('denied')));
       mountWithToaster(<BadgeCopy value="project-1" />);
 
-      cy.get('[aria-label="Copy to clipboard"]').click();
+      cy.findByRole('button', { name: 'Copy project-1' }).click();
 
       cy.contains(FAILURE).should('exist');
       cy.contains(SUCCESS).should('not.exist');
       cy.get('[aria-label="Copied!"]').should('not.exist');
+    });
+
+    it('copies from the keyboard with Enter and Space', () => {
+      const writes: string[] = [];
+      stubClipboard((text) => {
+        writes.push(text);
+        return Promise.resolve();
+      });
+      mountWithToaster(<BadgeCopy value="project-1" />);
+
+      cy.findByRole('button', { name: 'Copy project-1' }).focus();
+      cy.focused().should('have.attr', 'tabindex', '0').type('{enter}');
+
+      cy.focused().should('have.attr', 'aria-label', 'Copied!');
+      cy.contains(SUCCESS).should('exist');
+      cy.focused().type(' ');
+      cy.wrap(writes).should('deep.equal', ['project-1', 'project-1']);
+    });
+
+    it('names the copy action after the text it shows', () => {
+      stubClipboard(() => Promise.resolve());
+      mountWithToaster(<BadgeCopy value="10.0.0.1/32" text="10.0.0.1" />);
+
+      cy.findByRole('button', { name: 'Copy 10.0.0.1' }).should('exist');
     });
   });
 });
