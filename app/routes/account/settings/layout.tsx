@@ -1,14 +1,13 @@
 import { BackButton } from '@/components/back-button';
 import { type SubNavigationTab } from '@/components/sub-navigation';
 import { DashboardLayout, SubLayout } from '@/layouts';
-import { createOrganizationService } from '@/resources/organizations';
+import { hasOrganizationsForRequest } from '@/resources/organizations/organization-request-cache.server';
 import { paths } from '@/utils/config/paths.config';
 import { Outlet, useLoaderData } from 'react-router';
 
 export const loader = async () => {
   try {
-    const orgs = await createOrganizationService().list({ limit: 1 });
-    return { hasOrgs: orgs.items.length > 0 };
+    return { hasOrgs: await hasOrganizationsForRequest() };
   } catch {
     return { hasOrgs: false };
   }

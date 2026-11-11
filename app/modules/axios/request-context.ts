@@ -21,13 +21,10 @@ export interface RequestContext {
   cachedUser?: User;
   /**
    * Whether the signed-in user belongs to at least one organization. Written by
-   * authMiddleware's no-orgs onboarding guard, which already probes this with a
-   * `list({ limit: 1 })`; read by routes that repeat the same guard for
-   * client-side navigations that bypass the middleware.
-   *
-   * Deliberately a boolean, not the list: it is derived from a `limit: 1`
-   * response, so it answers "any orgs?" and nothing else. Anything needing the
-   * user's actual organizations must fetch them.
+   * authMiddleware's no-orgs onboarding guard; read by routes that repeat the
+   * same guard for client-side navigations that bypass the middleware.
+   * Anything needing the organizations themselves reads
+   * `listOrganizationsForRequest`, which shares the middleware's call.
    */
   hasOrganizations?: boolean;
   /**
