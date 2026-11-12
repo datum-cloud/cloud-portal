@@ -6,10 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // controlling what it returns or throws. getSession controls the no-session
 // keeper. Mutable per-test behaviour, following legacy-setup.middleware.test.ts.
 //
-// Passed through the middleware's deps rather than mock.module. That mock is
-// process-global in bun, so replacing '@/utils/fraud/user-access' here handed
-// the stub to every later suite, including user-access's own, whose spies then
-// sat on a module its code never called.
+// Passed through the middleware's deps rather than mocking
+// '@/utils/fraud/user-access'.
 type Access = { error: 'not_found' | 'forbidden' | 'other' } | { user: Record<string, unknown> };
 
 let access: Access | (() => never) = { error: 'other' };

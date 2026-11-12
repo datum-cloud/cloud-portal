@@ -55,7 +55,7 @@ This guide covers creating components at different layers of the architecture.
 
 ```bash
 # Use the shadcn CLI
-npx shadcn@latest add accordion
+pnpm dlx shadcn@latest add accordion
 ```
 
 This creates `app/modules/shadcn/ui/accordion.tsx`.

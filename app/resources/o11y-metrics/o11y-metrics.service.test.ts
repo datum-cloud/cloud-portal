@@ -13,10 +13,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const getSpy = vi.fn();
 const postSpy = vi.fn();
 
-// `mock.module` is process-global in bun. Keep these replacements faithful to
-// the real modules (and identical to the o11y-logs suite) so other suites still
-// see org/user scoped bases and a logger surface. Do not mock the shared
-// control-plane client: that strips `getConfig` and breaks `getOrgScopedBase`.
+// Keep these replacements faithful to the real modules (and identical to the
+// o11y-logs suite). Do not mock the shared control-plane client: inject a spy
+// through `client` instead, as mocking it strips `getConfig`.
 vi.mock('@/resources/base/utils', () => ({
   getProjectScopedBase: (id: string) =>
     `/apis/resourcemanager.miloapis.com/v1alpha1/projects/${id}/control-plane`,

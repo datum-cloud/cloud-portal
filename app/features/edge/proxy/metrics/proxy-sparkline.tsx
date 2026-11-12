@@ -1,18 +1,14 @@
-import { albRpsQuery } from '@/features/edge/proxy/metrics/queries';
-import { useOverviewRange } from '@/features/edge/proxy/overview/overview-range';
-import { usePrometheusAPIQuery } from '@/modules/metrics/hooks';
-import { transformForRecharts, type FormattedMetricData } from '@/modules/prometheus';
+import { useProxyRequestRate } from '@/features/edge/proxy/metrics/proxy-request-rates';
+import { transformForRecharts } from '@/modules/prometheus';
 import { ChartContainer, ChartTooltip, type ChartConfig } from '@datum-cloud/datum-ui/chart';
 import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { keepPreviousData } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { Area, AreaChart } from 'recharts';
 
 interface ProxySparklineProps {
-  projectId: string;
   proxyId: string;
   /** Width override. Defaults to the ALB table's 200px minimum. */
   className?: string;
@@ -25,40 +21,15 @@ const chartConfig: ChartConfig = {
   },
 };
 
-export function ProxySparkline({ projectId, proxyId, className }: ProxySparklineProps) {
+export function ProxySparkline({ proxyId, className }: ProxySparklineProps) {
   const wrapperClassName = cn(
     'flex h-8 w-full min-w-[200px] items-center justify-center px-1.5',
     className
   );
 
-  // Slide the last-hour window forward on the overview tick. Keying the
-  // query on the window end makes each 30s tick fetch the next hour
-  // instead of re-requesting the window captured at mount forever.
-  const range = useOverviewRange('1h');
-
-  // Build query for requests rate
-  const query = useMemo(
-    () => albRpsQuery({ projectId, proxyId, requireRegion: false }, '1m'),
-    [projectId, proxyId]
-  );
-
-  const { data, isLoading, error } = usePrometheusAPIQuery<FormattedMetricData>(
-    ['proxy-sparkline', projectId, proxyId, range.timeRange.end.getTime()],
-    {
-      type: 'chart',
-      projectId,
-      query,
-      timeRange: range.timeRange,
-      step: range.step,
-    },
-    {
-      enabled: !!projectId && !!proxyId,
-      refetchInterval: 30000, // Refresh every 30 seconds
-      // Each tick is a new query key. Keep the last window on screen while
-      // the next hour loads so the sparkline doesn't flash its spinner.
-      placeholderData: keepPreviousData,
-    }
-  );
+  // The page asks once for every ALB; this row reads its own series.
+  const proxyNames = useMemo(() => (proxyId ? [proxyId] : []), [proxyId]);
+  const { data, isLoading, error } = useProxyRequestRate(proxyNames);
 
   const chartData = useMemo(() => {
     if (!data || error) {

@@ -402,7 +402,7 @@ export function toBackendPayload(input: HttpProxyBackendInput): Record<string, u
 
 /**
  * Generate htpasswd file content from a list of users using SHA1 hashing.
- * Uses the Web Crypto API (available in Node.js 15+, Bun, and browsers).
+ * Uses the Web Crypto API (available in Node.js 15+ and browsers).
  *
  * A user with an empty password keeps the hash stored for its `originalUsername`
  * in `existingHashes` (see parseHtpasswdHashes), so unchanged passwords need not

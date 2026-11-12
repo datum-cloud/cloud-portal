@@ -9,7 +9,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 type TestListItem = { name: string };
 
 // clientLoaders run only in the browser, where getQueryClient() is the
-// provider's singleton. Bun has no window, so pretend to be the browser.
+// provider's singleton. Tests run in Node with no window, so pretend to be the browser.
 describe('getValidCachedQueryData', () => {
   const wasServer = environmentManager.isServer();
   let queryClient: QueryClient;

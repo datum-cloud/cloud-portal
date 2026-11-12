@@ -16,14 +16,14 @@ A practical guide for developers to verify the architecture is working correctly
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Configure environment
 cp .env.example .env
 # Edit .env with your values
 
 # Start development server
-npm run dev
+pnpm dev
 ```
 
 ### Verify App Loads
@@ -43,7 +43,7 @@ Use this checklist to verify all systems are working correctly.
 
 | Feature       | Test                                  | Expected Result              | ✓   |
 | ------------- | ------------------------------------- | ---------------------------- | --- |
-| Hono server   | Start `npm run dev`                   | Server starts without errors | ☐   |
+| Hono server   | Start `pnpm dev`                      | Server starts without errors | ☐   |
 | Health check  | `curl http://localhost:3000/_healthz` | 200 OK                       | ☐   |
 | Rate limiting | Send 100+ requests quickly            | 429 after limit              | ☐   |
 
