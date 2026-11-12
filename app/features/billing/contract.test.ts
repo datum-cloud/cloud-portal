@@ -1,4 +1,4 @@
-import { contractInvoiceSchedule, contractSummary } from './contract';
+import { chargeNames, contractInvoiceSchedule, contractSummary } from './contract';
 import { billingCycleLabel, paymentTermsSummary } from './payment-terms';
 import type { BillingAccount } from './types';
 import { describe, expect, it } from 'vitest';
@@ -251,5 +251,18 @@ describe('billing cycle with a contract', () => {
   it("follows the contract's day once it has started", () => {
     expect(billingCycleLabel(account, afterStart)).toBe('Monthly, on the 18th');
     expect(paymentTermsSummary(account, afterStart)?.billingCycle).toBe('Monthly, on the 18th');
+  });
+});
+
+describe('chargeNames', () => {
+  const charges = (...labels: string[]) => labels.map((label) => ({ label, total: 1 }));
+  it('names one or two fees, and counts the rest', () => {
+    expect(chargeNames(charges('Private link'))).toBe('Private link');
+    expect(chargeNames(charges('Private link', 'Cross connect'))).toBe(
+      'Private link and Cross connect'
+    );
+    expect(chargeNames(charges('Private link', 'Cross connect', 'Support', 'Power', 'Racks'))).toBe(
+      'Private link, Cross connect and 3 more'
+    );
   });
 });

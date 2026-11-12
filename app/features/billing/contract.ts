@@ -247,3 +247,16 @@ export function contractSummary(
     ),
   };
 }
+
+/**
+ * The fees on an invoice in a few words, however many there are: "Private
+ * link", "Private link and Cross connect", or "Private link, Cross connect
+ * and 3 more" past `shown` of them.
+ */
+export function chargeNames(charges: ScheduledCharge[], shown = 2): string {
+  const names = charges.map((charge) => charge.label);
+  if (names.length <= shown) {
+    return names.length === 2 ? `${names[0]} and ${names[1]}` : names.join('');
+  }
+  return `${names.slice(0, shown).join(', ')} and ${names.length - shown} more`;
+}

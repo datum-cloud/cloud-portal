@@ -1,6 +1,6 @@
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { DateTime } from '@/components/date-time';
-import type { ContractSummary } from '@/features/billing/contract';
+import { chargeNames, type ContractSummary } from '@/features/billing/contract';
 import { ordinal } from '@/features/billing/payment-terms';
 import { Card, CardContent, CardFooter } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -166,23 +166,33 @@ export const ContractCard = ({ contract }: ContractCardProps) => {
                   <Text as="span" size="sm">
                     <ContractDate date={invoice.date} />
                   </Text>
-                  <Text as="span" size="xs" textColor="muted" className="break-words">
-                    {invoice.charges.map((charge) => charge.label).join(' · ')}
-                    {invoice.dueDate ? (
-                      <>
-                        {invoice.charges.length > 0 ? ' · ' : ''}due{' '}
-                        <ContractDate date={invoice.dueDate} />
-                      </>
-                    ) : null}
-                  </Text>
+                  {invoice.charges.length > 0 ? (
+                    // However many fees are on it, one line: the first two
+                    // and how many more, with the full list on hover.
+                    <Text
+                      as="span"
+                      size="xs"
+                      textColor="muted"
+                      className="truncate"
+                      title={invoice.charges.map((charge) => charge.label).join(', ')}>
+                      {chargeNames(invoice.charges)}
+                    </Text>
+                  ) : null}
                 </div>
-                <Text as="span" size="sm" className="shrink-0 tabular-nums">
-                  {invoice.charges.length === 0
-                    ? 'Usage'
-                    : invoice.billsUsage
-                      ? `${invoice.total} plus usage`
-                      : invoice.total}
-                </Text>
+                <div className="flex shrink-0 flex-col items-end gap-0.5">
+                  <Text as="span" size="sm" className="tabular-nums">
+                    {invoice.charges.length === 0
+                      ? 'Usage'
+                      : invoice.billsUsage
+                        ? `${invoice.total} plus usage`
+                        : invoice.total}
+                  </Text>
+                  {invoice.dueDate ? (
+                    <Text as="span" size="xs" textColor="muted">
+                      Due <ContractDate date={invoice.dueDate} />
+                    </Text>
+                  ) : null}
+                </div>
               </li>
             ))}
           </ul>
