@@ -2,8 +2,10 @@ import { BadgeStatus } from '@/components/badge/badge-status';
 import { DateTime } from '@/components/date-time';
 import { chargeNames, type ContractSummary } from '@/features/billing/contract';
 import { ordinal } from '@/features/billing/payment-terms';
+import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Input } from '@datum-cloud/datum-ui/input';
 import {
   Table,
   TableBody,
@@ -15,12 +17,15 @@ import {
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { FileSignatureIcon } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 // Line the first/last cells up with the card padding, as the other billing
 // tables do.
 const ROW_INSET =
   '[&_th:first-child]:pl-5 [&_th:last-child]:pr-5 [&_td:first-child]:pl-5 [&_td:last-child]:pr-5';
+
+/** How many fees a contract shows before "Show all". */
+const FEES_SHOWN = 5;
 
 const HEADER_DIVIDERS = '[&_th:not(:last-child)]:border-r [&_th]:border-border';
 
@@ -73,6 +78,14 @@ export const ContractCard = ({ contract }: ContractCardProps) => {
     upcomingInvoices,
     hasFeesInArrears,
   } = contract;
+  // A long contract shows its first fees, with the rest a click away, and
+  // can be searched by name.
+  const [search, setSearch] = useState('');
+  const [showAll, setShowAll] = useState(false);
+  const query = search.trim().toLowerCase();
+  const matching = query ? fees.filter((fee) => fee.label.toLowerCase().includes(query)) : fees;
+  const shownFees = showAll || query ? matching : matching.slice(0, FEES_SHOWN);
+  const long = fees.length > FEES_SHOWN;
 
   return (
     <Card size="sm" sectioned className="overflow-hidden" data-e2e="contract-card">
@@ -102,6 +115,17 @@ export const ContractCard = ({ contract }: ContractCardProps) => {
           </Detail>
         </div>
       </CardContent>
+      {long ? (
+        <CardContent className="pt-0 pb-3">
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder={`Search ${fees.length} fees`}
+            aria-label="Search fees"
+            className="h-9 w-full sm:w-64"
+          />
+        </CardContent>
+      ) : null}
       {fees.length > 0 ? (
         <CardContent padding="none">
           <Table className={cn(ROW_INSET, HEADER_DIVIDERS)} data-e2e="contract-fees">
@@ -115,7 +139,14 @@ export const ContractCard = ({ contract }: ContractCardProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {fees.map((fee) => (
+              {shownFees.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-muted-foreground h-11 text-center text-sm">
+                    No fees match “{search.trim()}”.
+                  </TableCell>
+                </TableRow>
+              ) : null}
+              {shownFees.map((fee) => (
                 <TableRow key={fee.name}>
                   <TableCell className="h-11 text-sm">
                     <div className="flex flex-col py-1.5">
@@ -152,6 +183,19 @@ export const ContractCard = ({ contract }: ContractCardProps) => {
               ))}
             </TableBody>
           </Table>
+          {long && !query ? (
+            <div className="border-t px-5 py-2">
+              <Button
+                htmlType="button"
+                type="quaternary"
+                theme="borderless"
+                size="xs"
+                className="-ml-2"
+                onClick={() => setShowAll((value) => !value)}>
+                {showAll ? 'Show fewer' : `Show all ${fees.length} fees`}
+              </Button>
+            </div>
+          ) : null}
         </CardContent>
       ) : null}
       {upcomingInvoices.length > 0 ? (
