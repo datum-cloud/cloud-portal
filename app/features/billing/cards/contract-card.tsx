@@ -58,11 +58,21 @@ export interface ContractCardProps {
 
 /**
  * Billing settings' "Contract" section: the contract the account is billed
- * under, its fixed fees and whether usage is billed on top. Read-only; staff
- * set contracts up, so changes go through support.
+ * under, its fixed fees (how often each is charged, whether in advance or in
+ * arrears, and for how long), whether usage is billed on top, and the
+ * invoices coming up. Read-only; staff set contracts up, so changes go
+ * through support.
  */
 export const ContractCard = ({ contract }: ContractCardProps) => {
-  const { started, startsAt, billingDayOfMonth, fees, usageBilled } = contract;
+  const {
+    started,
+    startsAt,
+    billingDayOfMonth,
+    fees,
+    usageBilled,
+    upcomingInvoices,
+    hasFeesInArrears,
+  } = contract;
 
   return (
     <Card size="sm" sectioned className="overflow-hidden" data-e2e="contract-card">
@@ -108,19 +118,34 @@ export const ContractCard = ({ contract }: ContractCardProps) => {
               {fees.map((fee) => (
                 <TableRow key={fee.name}>
                   <TableCell className="h-11 text-sm">
-                    {fee.quantity ? (
-                      <div className="flex flex-col py-1.5">
-                        <span>{fee.label}</span>
+                    <div className="flex flex-col py-1.5">
+                      <span>{fee.label}</span>
+                      {fee.quantity ? (
                         <Text as="span" size="xs" textColor="muted">
                           {fee.quantity}
                         </Text>
-                      </div>
-                    ) : (
-                      fee.label
-                    )}
+                      ) : null}
+                      {fee.renewals ? (
+                        <Text as="span" size="xs" textColor="muted">
+                          {fee.renewals}
+                          {fee.endsAt ? (
+                            <>
+                              , until <ContractDate date={fee.endsAt} />
+                            </>
+                          ) : null}
+                        </Text>
+                      ) : null}
+                    </div>
                   </TableCell>
                   <TableCell className="h-11 text-sm">
-                    {CHARGE_TYPE_LABELS[fee.chargeType]}
+                    <div className="flex flex-col py-1.5">
+                      <span>{fee.frequency ?? CHARGE_TYPE_LABELS[fee.chargeType]}</span>
+                      {fee.billing ? (
+                        <Text as="span" size="xs" textColor="muted">
+                          {fee.billing}
+                        </Text>
+                      ) : null}
+                    </div>
                   </TableCell>
                   <TableCell className="h-11 text-right text-sm">{fee.amount}</TableCell>
                 </TableRow>
@@ -129,10 +154,50 @@ export const ContractCard = ({ contract }: ContractCardProps) => {
           </Table>
         </CardContent>
       ) : null}
+      {upcomingInvoices.length > 0 ? (
+        <CardContent className="flex flex-col gap-3" data-e2e="contract-upcoming-invoices">
+          <Text as="p" size="sm" weight="medium">
+            Upcoming invoices
+          </Text>
+          <ul className="flex flex-col gap-2.5">
+            {upcomingInvoices.map((invoice) => (
+              <li key={invoice.date} className="flex items-start justify-between gap-4">
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <Text as="span" size="sm">
+                    <ContractDate date={invoice.date} />
+                  </Text>
+                  <Text as="span" size="xs" textColor="muted" className="break-words">
+                    {invoice.charges.map((charge) => charge.label).join(' · ')}
+                    {invoice.dueDate ? (
+                      <>
+                        {invoice.charges.length > 0 ? ' · ' : ''}due{' '}
+                        <ContractDate date={invoice.dueDate} />
+                      </>
+                    ) : null}
+                  </Text>
+                </div>
+                <Text as="span" size="sm" className="shrink-0 tabular-nums">
+                  {invoice.charges.length === 0
+                    ? 'Usage'
+                    : invoice.billsUsage
+                      ? `${invoice.total} plus usage`
+                      : invoice.total}
+                </Text>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      ) : null}
       <CardFooter bordered className="text-muted-foreground bg-background py-3 text-xs">
         {started
           ? 'Fees are shown before discounts. To change your contract, contact support.'
-          : 'One-time fees are charged when the contract starts. Fees are shown before discounts.'}
+          : 'One-time fees, and fees billed in advance, are charged when the contract starts. Fees are shown before discounts.'}
+        {hasFeesInArrears
+          ? ' Fees billed in arrears are invoiced at the end of each period, with its usage.'
+          : ''}
+        {upcomingInvoices.length > 0
+          ? ' Upcoming invoices are estimates, before discounts and tax.'
+          : ''}
       </CardFooter>
     </Card>
   );
