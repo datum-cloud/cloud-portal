@@ -224,6 +224,15 @@ describe('ownerNameForResource', () => {
     expect(ownerNameForResource('*.cdn')).toBe('wildcard-cdn');
     expect(ownerNameForResource('www')).toBe('www');
   });
+
+  it('trims hyphens left by underscores at the start of any label', () => {
+    expect(ownerNameForResource('cemyor766t47wftgjlhniz7zorndcylv._domainkey')).toBe(
+      'cemyor766t47wftgjlhniz7zorndcylv.domainkey'
+    );
+    expect(ownerNameForResource('_sip._tcp')).toBe('sip.tcp');
+    expect(ownerNameForResource('_acme-challenge.www')).toBe('acme-challenge.www');
+    expect(ownerNameForResource('*._domainkey')).toBe('wildcard-domainkey');
+  });
 });
 
 describe('toCreateDnsRecordSetPayload', () => {
@@ -251,6 +260,28 @@ describe('toCreateDnsRecordSetPayload', () => {
       'acme-zone'
     );
     expect(payload.metadata?.name).toBe('acme-zone-a-www');
+  });
+
+  it('builds a DNS-1123 subdomain name for DKIM CNAMEs', () => {
+    const payload = toCreateDnsRecordSetPayload(
+      {
+        dnsZoneRef: { name: 'datum-net-xq088a' },
+        recordType: 'CNAME',
+        records: [
+          {
+            name: 'cemyor766t47wftgjlhniz7zorndcylv._domainkey',
+            cname: {
+              content: 'cemyor766t47wftgjlhniz7zorndcylv.dkim.custom-email-domain.stripe.com.',
+            },
+          },
+        ],
+      } as never,
+      'datum-net-xq088a'
+    );
+    const name = payload.metadata?.name ?? '';
+    expect(name).toBe('datum-net-xq088a-cname-cemyor766t47wftgjlhniz7zorndcylv.domainkey');
+    expect(name).toMatch(/^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/);
+    expect(payload.spec?.records?.[0]?.name).toBe('cemyor766t47wftgjlhniz7zorndcylv._domainkey');
   });
 
   it('defaults empty records to an apex suffix', () => {
