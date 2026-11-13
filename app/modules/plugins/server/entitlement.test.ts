@@ -3,6 +3,7 @@ import {
   ENTITLEMENT_CACHE_TTL_MS,
   assertPluginEntitled,
   createEntitlementChecker,
+  filterEntitledPlugins,
   pluginEntitlementIds,
   type ListEntitlements,
 } from './entitlement';
@@ -303,5 +304,81 @@ describe('entitlement cache', () => {
     expect(list).toHaveBeenCalledTimes(3);
     await checker.isEntitled('p1', plugin); // refetched
     expect(list).toHaveBeenCalledTimes(4);
+  });
+});
+
+describe('filterEntitledPlugins', () => {
+  const comingSoonNav = {
+    type: EXTENSION_NAV_PROJECT,
+    properties: { id: 'soon', title: 'Soon', icon: 'server', path: '', comingSoon: true },
+  };
+  const card = { type: 'portal.card/project-home', properties: { id: 'card' } };
+
+  /** A Required plugin with a live nav item, plus whatever extensions are passed. */
+  function withExtensions(...extra: unknown[]): PluginRegistryEntry {
+    const base = entry({ serviceName: COMPUTE, navServiceRef: COMPUTE });
+    const manifest = base.manifest as PluginManifest;
+    return {
+      ...base,
+      manifest: { ...manifest, extensions: [...manifest.extensions, ...extra] },
+    } as PluginRegistryEntry;
+  }
+
+  test('keeps a Required plugin whole when the project is entitled', async () => {
+    const checker = createEntitlementChecker({ list: async () => [active(COMPUTE)] });
+    const plugin = withExtensions(card);
+
+    expect(await filterEntitledPlugins(PROJECT, [plugin], checker)).toEqual([plugin]);
+  });
+
+  test('leaves out a Required plugin the project is not entitled to', async () => {
+    const checker = createEntitlementChecker({ list: async () => [] });
+
+    expect(await filterEntitledPlugins(PROJECT, [withExtensions(card)], checker)).toEqual([]);
+  });
+
+  test('keeps only the Coming Soon nav items of a plugin the project is not entitled to', async () => {
+    const checker = createEntitlementChecker({ list: async () => [] });
+
+    const [visible] = await filterEntitledPlugins(
+      PROJECT,
+      [withExtensions(comingSoonNav, card)],
+      checker
+    );
+    expect(visible?.manifest?.extensions).toEqual([comingSoonNav]);
+  });
+
+  test('passes plugins without an entitlement gate and dev plugins through unchecked', async () => {
+    const list = vi.fn<ListEntitlements>(async () => []);
+    const checker = createEntitlementChecker({ list });
+    const ungated = entry({ entitlement: 'None' });
+    const dev = entry({ devMode: true });
+
+    expect(await filterEntitledPlugins(PROJECT, [ungated, dev], checker)).toEqual([ungated, dev]);
+    expect(list).not.toHaveBeenCalled();
+  });
+
+  test('treats every Required plugin as not entitled without a project', async () => {
+    const list = vi.fn<ListEntitlements>(async () => [active(COMPUTE)]);
+    const checker = createEntitlementChecker({ list });
+
+    expect(await filterEntitledPlugins(undefined, [withExtensions()], checker)).toEqual([]);
+    expect(list).not.toHaveBeenCalled();
+  });
+
+  test('fails closed on a lookup error and stops looking up after the first one', async () => {
+    const list = vi.fn<ListEntitlements>(async () => {
+      throw new Error('connection reset');
+    });
+    const checker = createEntitlementChecker({ list });
+    const ungated = entry({ entitlement: 'None' });
+
+    const visible = await filterEntitledPlugins(
+      PROJECT,
+      [withExtensions(), withExtensions(), ungated],
+      checker
+    );
+    expect(visible).toEqual([ungated]);
+    expect(list).toHaveBeenCalledTimes(1);
   });
 });
