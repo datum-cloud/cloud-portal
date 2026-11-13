@@ -3,46 +3,28 @@ import {
   type BuildTool,
   CONNECT_AVAILABLE,
   CONNECT_PLUGIN_INSTALL,
-  GUIDED_STARTS,
   deployCommand,
-  freeTextPrompt,
   tunnelCommand,
   tunnelServiceCommands,
-  type GuidedStart,
 } from './home-mode';
 import type { ComDatumapisNetworkingV1AlphaNetwork } from '@/modules/control-plane/networking';
 import { DATUM_DESKTOP_DOWNLOAD_URL } from '@/utils/config/query.config';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { Input } from '@datum-cloud/datum-ui/input';
-import { Text, Title } from '@datum-cloud/datum-ui/typography';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import {
-  ArrowRight,
-  Box,
-  Brain,
   CircleCheck,
-  ExternalLink,
   Globe,
-  Laptop,
   LoaderCircle,
   Plug,
-  Send,
   Server,
   Split,
   TriangleAlert,
-  Wrench,
   type LucideIcon,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
-
-const START_ICONS: Record<GuidedStart['key'], LucideIcon> = {
-  app: Box,
-  machine: Laptop,
-  site: ExternalLink,
-  domain: Globe,
-};
 
 export type { BuildTool } from './home-mode';
 
@@ -52,7 +34,7 @@ type Tool = {
   title: string;
   description: string;
   action: string;
-  /** The action is a CLI command, so it reads as code. */
+  /** The action opens a CLI command to copy, in place. */
   command?: boolean;
 };
 
@@ -62,7 +44,7 @@ const ALL_TOOLS: readonly Tool[] = [
     icon: Plug,
     title: 'Connect a machine',
     description: 'Expose a service from a laptop or your own servers',
-    action: 'datumctl connect',
+    action: 'Show command',
     command: true,
   },
   {
@@ -70,7 +52,7 @@ const ALL_TOOLS: readonly Tool[] = [
     icon: Server,
     title: 'Deploy a workload',
     description: 'Run containers or VMs on the network',
-    action: 'datumctl compute deploy',
+    action: 'Show command',
     command: true,
   },
   {
@@ -99,7 +81,9 @@ const TOOLS = ALL_TOOLS.filter((tool) => CONNECT_AVAILABLE || tool.key !== 'conn
  * It stays until the project has something besides its network: nothing here
  * switches modes. Toolbox rows act in place (the deploy command opens inline,
  * the dialogs open over the page) and Patch opens in its side panel, so the
- * person can try either and come back. Without Patch, only the toolbox shows.
+ * person can try either and come back. The tools are the same compact tiles
+ * the established home page uses for next steps. Patch is the box at the top
+ * of the page, where the search would be; without Patch, only the tools show.
  */
 export function PathChoice({
   projectId,
@@ -109,7 +93,7 @@ export function PathChoice({
   networkHref,
   onCreateNetwork,
   onTool,
-  onAskPatch,
+  hasPatch,
 }: {
   projectId: string;
   /** Undefined when the project has no network, e.g. after skipping that step. */
@@ -123,12 +107,19 @@ export function PathChoice({
   onCreateNetwork: () => void;
   /** A toolbox row's action. The deploy command is shown here; the rest are the page's. */
   onTool: (tool: BuildTool) => void;
-  /** Undefined when Patch isn't installed for this project. */
-  onAskPatch?: (prompt: string) => void;
+  /** Patch is installed, and offered in the box at the top of the page. */
+  hasPatch: boolean;
 }) {
-  const [text, setText] = useState('');
   // The CLI rows open their commands in place; one at a time.
   const [expanded, setExpanded] = useState<BuildTool | null>(null);
+  const rowProps = {
+    projectId,
+    networkName,
+    expanded,
+    onToggle: (tool: BuildTool) => setExpanded((open) => (open === tool ? null : tool)),
+    onTool,
+    onCreateNetwork,
+  };
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="path-choice-heading">
@@ -140,118 +131,96 @@ export function PathChoice({
         onCreateNetwork={onCreateNetwork}
       />
 
-      <div className="flex flex-col gap-1">
-        <Title as="h2" id="path-choice-heading" level={4} weight="normal" className="font-title">
+      {/* The same section heading as the rest of the home page. */}
+      <div className="flex flex-col gap-0.5">
+        <Text as="h2" id="path-choice-heading" size="sm" weight="medium">
           How do you want to build?
-        </Title>
-        <Text size="sm" textColor="muted">
-          Either way you end up with the same resources. Use whichever fits each step.
+        </Text>
+        <Text as="p" size="xs" textColor="muted">
+          {hasPatch
+            ? 'Either way you end up with the same resources. Use whichever fits each step.'
+            : 'Start with whichever piece you need first.'}
         </Text>
       </div>
 
-      <div className={cn('grid gap-5', onAskPatch && '@3xl/main:grid-cols-2')}>
-        <PathCard
-          icon={Wrench}
-          title="I'll build it myself"
-          description="You know what you need. Get the full toolbox, each tool already pointed at your network.">
-          <ul className="flex flex-col">
-            {TOOLS.map((tool) => (
-              <li key={tool.key} className="flex flex-col gap-3 border-t py-3">
-                <span className="flex items-center gap-3">
-                  <Icon icon={tool.icon} size={16} className="text-icon-quaternary shrink-0" />
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <Text size="sm" weight="medium">
-                      {tool.title}
-                    </Text>
-                    <Text size="xs" textColor="muted">
-                      {tool.description}
-                    </Text>
-                  </span>
-                  <Button
-                    type="secondary"
-                    theme="outline"
-                    size="xs"
-                    className={tool.command ? 'shrink-0 font-mono' : 'shrink-0'}
-                    aria-expanded={tool.command ? expanded === tool.key : undefined}
-                    onClick={() => {
-                      if (tool.command)
-                        setExpanded((open) => (open === tool.key ? null : tool.key));
-                      onTool(tool.key);
-                    }}>
-                    {tool.action}
-                  </Button>
-                </span>
-                {expanded === 'deploy' &&
-                  tool.key === 'deploy' &&
-                  (networkName ? (
-                    <CommandBlock command={deployCommand(networkName)} />
-                  ) : (
-                    <NeedsNetwork onCreateNetwork={onCreateNetwork} />
-                  ))}
-                {expanded === 'connect' && tool.key === 'connect' && (
-                  <ConnectCommands projectId={projectId} />
-                )}
-              </li>
-            ))}
-          </ul>
-        </PathCard>
-
-        {onAskPatch && (
-          <PathCard
-            icon={Brain}
-            title="Help me connect something"
-            description="Tell Patch what you want online. It plans each piece, explains it, and waits for your OK before creating anything.">
-            <div className="bg-muted/50 flex flex-col gap-2.5 rounded-lg p-4">
-              <Text size="sm" weight="medium">
-                What do you want to connect first?
-              </Text>
-              {GUIDED_STARTS.map((start) => (
-                <button
-                  key={start.key}
-                  type="button"
-                  onClick={() => onAskPatch(start.prompt(networkName))}
-                  className="bg-card hover:border-btn-primary flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-colors">
-                  <Icon
-                    icon={START_ICONS[start.key]}
-                    size={15}
-                    className="text-btn-primary shrink-0"
-                  />
-                  <Text as="span" size="sm" className="flex-1">
-                    {start.label}
-                  </Text>
-                  <Icon icon={ArrowRight} size={14} className="text-icon-quaternary shrink-0" />
-                </button>
-              ))}
-              <form
-                className="flex items-center gap-2"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  if (!text.trim()) return;
-                  onAskPatch(freeTextPrompt(text, networkName));
-                  setText('');
-                }}>
-                <Input
-                  value={text}
-                  onChange={(event) => setText(event.target.value)}
-                  placeholder="Or describe it in your own words..."
-                  aria-label="Describe what you want to connect"
-                  className="bg-card"
-                />
-                <Button
-                  htmlType="submit"
-                  type="quaternary"
-                  theme="borderless"
-                  size="small"
-                  aria-label="Ask Patch"
-                  disabled={!text.trim()}>
-                  <Icon icon={Send} size={14} className="text-btn-primary" />
-                </Button>
-              </form>
-            </div>
-          </PathCard>
-        )}
-      </div>
+      <ul className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2">
+        {TOOLS.map((tool) => (
+          <li
+            key={tool.key}
+            className={cn(
+              'bg-card flex flex-col gap-3 rounded-xl border px-4 py-3',
+              // An open command needs the full width to stay on one line.
+              expanded === tool.key && '@xl/main:col-span-2'
+            )}>
+            <ToolRow tool={tool} {...rowProps} />
+          </li>
+        ))}
+      </ul>
     </section>
+  );
+}
+
+/**
+ * One tool: its icon, what it does and its button, with a CLI tool's command
+ * opening underneath. The icon sits in a chip, like the next-step tiles.
+ */
+function ToolRow({
+  tool,
+  projectId,
+  networkName,
+  expanded,
+  onToggle,
+  onTool,
+  onCreateNetwork,
+}: {
+  tool: Tool;
+  projectId: string;
+  networkName?: string;
+  expanded: BuildTool | null;
+  onToggle: (tool: BuildTool) => void;
+  onTool: (tool: BuildTool) => void;
+  onCreateNetwork: () => void;
+}) {
+  const open = expanded === tool.key;
+  let command: ReactNode = null;
+  if (open && tool.key === 'deploy') {
+    command = networkName ? (
+      <CommandBlock command={deployCommand(networkName)} />
+    ) : (
+      <NeedsNetwork onCreateNetwork={onCreateNetwork} />
+    );
+  }
+  if (open && tool.key === 'connect') command = <ConnectCommands projectId={projectId} />;
+
+  return (
+    <>
+      <span className="flex items-center gap-3">
+        <span className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
+          <Icon icon={tool.icon} size={15} className="text-icon-primary" />
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col">
+          <Text size="sm" weight="medium">
+            {tool.title}
+          </Text>
+          <Text size="xs" textColor="muted">
+            {tool.description}
+          </Text>
+        </span>
+        <Button
+          type="secondary"
+          theme="outline"
+          size="xs"
+          className="shrink-0"
+          aria-expanded={tool.command ? open : undefined}
+          onClick={() => {
+            if (tool.command) onToggle(tool.key);
+            onTool(tool.key);
+          }}>
+          {tool.command && open ? 'Hide command' : tool.action}
+        </Button>
+      </span>
+      {command}
+    </>
   );
 }
 
@@ -299,7 +268,11 @@ export function ConnectCommands({ projectId }: { projectId: string }) {
   );
 }
 
-/** The line above the cards: the network's details, or a nudge to create one. */
+/**
+ * The strip above the cards: the network's details, or a nudge to create one.
+ * It is the same height and style as the health strip on an established
+ * project's home page, so the page keeps one status row in both states.
+ */
 function NetworkLine({
   networkName,
   networkReady,
@@ -315,12 +288,12 @@ function NetworkLine({
 }) {
   if (!networkName) {
     return (
-      <div className="bg-card flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border px-5 py-3.5">
-        <Icon icon={TriangleAlert} size={18} className="shrink-0 text-amber-500" aria-hidden />
+      <div className="bg-card flex min-h-10 flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border px-4 py-1.5">
+        <Icon icon={TriangleAlert} size={16} className="shrink-0 text-amber-500" aria-hidden />
         <Text size="sm" weight="medium">
           No network yet
         </Text>
-        <Text size="xs" textColor="muted">
+        <Text size="sm" textColor="muted">
           Workloads run on a private network, so create one before deploying.
         </Text>
         <Button
@@ -335,10 +308,10 @@ function NetworkLine({
     );
   }
   return (
-    <div className="bg-card flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border px-5 py-3.5">
+    <div className="bg-card flex min-h-10 flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border px-4 py-1.5">
       <Icon
         icon={networkReady ? CircleCheck : LoaderCircle}
-        size={18}
+        size={16}
         className={cn(
           'shrink-0',
           networkReady ? 'text-green-600' : 'text-muted-foreground animate-spin'
@@ -376,37 +349,6 @@ export function NeedsNetwork({ onCreateNetwork }: { onCreateNetwork: () => void 
       <Button type="secondary" theme="outline" size="xs" onClick={onCreateNetwork}>
         Create network
       </Button>
-    </div>
-  );
-}
-
-function PathCard({
-  icon,
-  title,
-  description,
-  children,
-}: {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-card flex flex-col gap-4 rounded-xl border p-6">
-      <div className="flex items-start gap-3.5">
-        <span className="bg-btn-primary/10 text-btn-primary flex size-10 shrink-0 items-center justify-center rounded-lg">
-          <Icon icon={icon} size={20} aria-hidden />
-        </span>
-        <span className="flex min-w-0 flex-col gap-1">
-          <Text size="base" weight="medium">
-            {title}
-          </Text>
-          <Text size="sm" textColor="muted">
-            {description}
-          </Text>
-        </span>
-      </div>
-      {children}
     </div>
   );
 }
