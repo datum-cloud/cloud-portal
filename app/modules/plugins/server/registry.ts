@@ -55,6 +55,35 @@ export class PluginRegistry {
     return entry;
   }
 
+  /**
+   * Re-fetches the manifest of a plugin that is already Ready and commits it
+   * only when it resolves Ready with a different digest. A host that is down
+   * or serving a bad manifest leaves the working entry in place. Returns the
+   * new entry, or undefined when nothing changed.
+   */
+  async refresh(
+    source: PluginRegistrySource,
+    spec: PortalPluginSpec
+  ): Promise<PluginRegistryEntry | undefined> {
+    const current = this.sourceMap(source).get(spec.slug);
+    if (!current || !isReady(current.status)) return undefined;
+
+    const resolution = await resolveManifest(spec, this.resolveOptions);
+    if (!isReady(resolution.status)) return undefined;
+    if (resolution.manifestDigest === current.manifestDigest) return undefined;
+    // The spec may have changed while the fetch was in flight; keep the newer entry.
+    if (this.sourceMap(source).get(spec.slug) !== current) return undefined;
+
+    const entry: PluginRegistryEntry = {
+      ...current,
+      manifest: resolution.manifest,
+      manifestDigest: resolution.manifestDigest,
+      status: resolution.status,
+    };
+    this.sourceMap(source).set(spec.slug, entry);
+    return entry;
+  }
+
   /** Removes a plugin (e.g. on a watch DELETED event or a static override drop). */
   remove(source: PluginRegistrySource, slug: string): void {
     this.sourceMap(source).delete(slug);
