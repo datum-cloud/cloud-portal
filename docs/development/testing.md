@@ -21,17 +21,17 @@ We use **Cypress** for both end-to-end (E2E) and component testing.
 
 ```bash
 # E2E Tests
-npm run test:e2e          # Run E2E tests (starts dev server)
-npm run test:e2e:prod     # Run E2E tests (production build)
-npm run test:e2e:debug    # Interactive E2E debugging
+pnpm test:e2e          # Run E2E tests (starts dev server)
+pnpm test:e2e:prod     # Run E2E tests (production build)
+pnpm test:e2e:debug    # Interactive E2E debugging
 
 # Component Tests
-npm run test:unit:prod    # Run component tests headless
-npm run test:unit:debug   # Interactive component testing
+pnpm test:unit:prod    # Run component tests headless
+pnpm test:unit:debug   # Interactive component testing
 
 # Cypress UI
-npm run cypress:open      # Open Cypress interactive UI
-npm run cypress:run       # Run all tests headless
+pnpm cypress:open      # Open Cypress interactive UI
+pnpm cypress:run       # Run all tests headless
 ```
 
 ### Test Modes
@@ -39,7 +39,7 @@ npm run cypress:run       # Run all tests headless
 #### Development Mode
 
 ```bash
-npm run test:e2e
+pnpm test:e2e
 ```
 
 - Starts dev server automatically
@@ -49,7 +49,7 @@ npm run test:e2e
 #### Production Mode
 
 ```bash
-npm run test:e2e:prod
+pnpm test:e2e:prod
 ```
 
 - Builds and runs production server
@@ -59,7 +59,7 @@ npm run test:e2e:prod
 #### Interactive Mode
 
 ```bash
-npm run cypress:open
+pnpm cypress:open
 ```
 
 - Opens Cypress UI
@@ -370,10 +370,10 @@ Tests run automatically in GitHub Actions:
 ```yaml
 # .github/workflows/quality-checks.yml
 - name: Run E2E Tests
-  run: npm run test:e2e:prod
+  run: pnpm test:e2e:prod
 
 - name: Run Component Tests
-  run: npm run test:unit:prod
+  run: pnpm test:unit:prod
 ```
 
 ### Test Artifacts
@@ -408,7 +408,7 @@ cy.get('.element').shadow().find('.inner');
 
 ```bash
 # Clear Cypress cache
-npx cypress cache clear
+pnpm exec cypress cache clear
 
 # Or clear in test
 beforeEach(() => {

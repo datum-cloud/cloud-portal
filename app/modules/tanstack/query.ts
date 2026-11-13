@@ -49,7 +49,7 @@ let browserQueryClient: QueryClient | undefined;
 /**
  * The QueryClient for the current environment.
  *
- * Server: a new client on every call. The Bun process serves every user, and
+ * Server: a new client on every call. The server process serves every user, and
  * routes seed the cache with `initialData` during render. A shared client
  * would render one user's cached data into the next user's HTML, and server
  * gcTime is Infinity, so entries would never be collected. root.tsx calls

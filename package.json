@@ -3,6 +3,7 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
+  "packageManager": "pnpm@11.28.9",
   "scripts": {
     "build": "react-router build && vite build --config vite.observability.config.ts && node scripts/precompress-assets.ts",
     "dev": "node --env-file-if-exists=.env --import tsx ./observability/dev-start.js",
@@ -21,9 +22,9 @@
     "cypress:run": "cypress run",
     "test": "vitest run",
     "test:e2e": "start-server-and-test dev http://localhost:3000/_healthz 'cypress run'",
-    "test:e2e:prod": "start-server-and-test 'npm run start' http://localhost:3000/_healthz 'cypress run --config-file cypress.config.ts --quiet'",
+    "test:e2e:prod": "start-server-and-test 'pnpm start' http://localhost:3000/_healthz 'cypress run --config-file cypress.config.ts --quiet'",
     "test:e2e:preview": "cypress run --config-file cypress.config.ts --quiet",
-    "test:e2e:debug": "start-server-and-test 'npm run start' http://localhost:3000/_healthz 'cypress open'",
+    "test:e2e:debug": "start-server-and-test 'pnpm start' http://localhost:3000/_healthz 'cypress open'",
     "test:unit:prod": "cypress run --component --config-file cypress.config.ts --quiet",
     "test:unit:debug": "cypress open --component",
     "test:feature-flags": "vitest run app/modules/feature-flags",
@@ -42,7 +43,7 @@
     "@googlemaps/js-api-loader": "^2.1.1",
     "@gqlts/runtime": "^3.4.2",
     "@grpc/grpc-js": "^1.14.4",
-    "@hono/node-server": "^2.1.5",
+    "@hono/node-server": "catalog:",
     "@hono/prometheus": "^1.0.3",
     "@module-federation/runtime": "^2.8.2",
     "@monaco-editor/react": "^4.7.0",
@@ -91,7 +92,7 @@
     "js-yaml": "^5.4.1",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^1.33.0",
-    "monaco-editor": "^0.56.0",
+    "monaco-editor": "catalog:",
     "motion": "^13.1.1",
     "nprogress": "^0.2.0",
     "nuqs": "^2.10.0",
@@ -139,12 +140,13 @@
     "cypress-split": "^1.25.0",
     "cypress-vite": "1.10.2",
     "dependency-cruiser": "^18.7.0",
-    "eslint": "^10.8.1",
+    "eslint": "catalog:",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-prettier": "^5.5.6",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-unused-imports": "^4.4.1",
+    "graphql-ws": "^6.0.8",
     "lefthook": "^2.1.10",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
@@ -160,31 +162,5 @@
   },
   "engines": {
     "node": ">=26.13.0"
-  },
-  "overrides": {
-    "axios": "^1.19.0",
-    "form-data": "^4.0.4",
-    "dompurify": "^3.4.17",
-    "@hono/node-server": "$@hono/node-server",
-    "picomatch": "^4.0.0",
-    "graphql": "17.0.2",
-    "qs": "^6.17.1",
-    "tinypool": "^2.1.2",
-    "brace-expansion@2": "^2.1.7",
-    "@graphql-tools/utils": "^12.0.2",
-    "@hey-api/json-schema-ref-parser": {
-      "js-yaml": "^4.3.2"
-    },
-    "@datum-cloud/activity-ui": {
-      "monaco-editor": "$monaco-editor"
-    },
-    "eslint-plugin-jsx-a11y": {
-      "eslint": "$eslint"
-    },
-    "eslint-plugin-react": {
-      "eslint": "$eslint"
-    },
-    "minimatch": "11.0.4",
-    "glob": "14.0.3"
   }
 }

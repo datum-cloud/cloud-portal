@@ -305,7 +305,7 @@ export function createOrganizationGqlService() {
 ### Generating the Client
 
 ```bash
-npm run graphql
+pnpm graphql
 ```
 
 This runs `scripts/graphql.ts` which:

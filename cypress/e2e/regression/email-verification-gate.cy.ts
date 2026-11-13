@@ -3,9 +3,9 @@ import { paths } from '@/utils/config/paths.config';
 /**
  * Email verification gate — both positions of one switch, one spec.
  *
- *   npm run test:e2e                                → gate off (default, and
+ *   pnpm test:e2e                                → gate off (default, and
  *                                                     what CI runs)
- *   EMAIL_VERIFICATION_GATE=true npm run test:e2e   → gate on
+ *   EMAIL_VERIFICATION_GATE=true pnpm test:e2e   → gate on
  *
  * The variable reaches BOTH processes: the server reads it from its own
  * environment, and cypress.config.ts forwards it into `Cypress.expose` so the spec
