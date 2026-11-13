@@ -1,4 +1,5 @@
 import type { FeedbackSink } from './feedback-sink';
+import { createMemoryWindowLimiter } from './memory-limiter';
 import type { Variables } from '@/server/types';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
@@ -45,8 +46,8 @@ export function feedbackSchema(allowedOrigins: string[]) {
 }
 
 /**
- * `counter` backs the per-user rate limit: Redis in production, an in-memory
- * Map in tests and when Redis is unavailable (mirrors ttl-cache.ts).
+ * `counter` backs the per-user rate limit: Redis in production, a capped
+ * in-memory map in tests and when Redis is unavailable (mirrors ttl-cache.ts).
  */
 export function createFeedbackRoutes(
   sink: FeedbackSink,
@@ -54,7 +55,10 @@ export function createFeedbackRoutes(
   counter: CounterLike | null
 ) {
   const schema = feedbackSchema(allowedOrigins);
-  const memory = new Map<string, { n: number; resetAt: number }>();
+  const memory = createMemoryWindowLimiter({
+    windowMs: WINDOW_SECONDS * 1000,
+    maxPerWindow: MAX_PER_WINDOW,
+  });
   const feedback = new Hono<{ Variables: Variables }>();
 
   async function overLimit(userId: string): Promise<boolean> {
@@ -82,15 +86,7 @@ export function createFeedbackRoutes(
       }
       return n > MAX_PER_WINDOW;
     }
-    const now = Date.now();
-    const entry = memory.get(key);
-    if (!entry || entry.resetAt <= now) {
-      memory.set(key, { n: 1, resetAt: now + WINDOW_SECONDS * 1000 });
-      return false;
-    }
-    if (entry.n >= MAX_PER_WINDOW) return true;
-    entry.n += 1;
-    return false;
+    return memory.overLimit(key);
   }
 
   feedback.use('*', bodyLimit({ maxSize: MAX_BODY_BYTES }));

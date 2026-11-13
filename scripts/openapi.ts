@@ -16,6 +16,15 @@ const CONTROL_PLANE_DIR = 'app/modules/control-plane';
 const TEMP_SPEC_FILE = 'temp-openapi-spec.json';
 
 /**
+ * API groups whose existing folder is not the first segment of the group name.
+ * Without an entry here the suggested folder differs from the one the app
+ * imports, and accepting the default generates a second, unused copy.
+ */
+const FOLDER_NAME_OVERRIDES: Record<string, string> = {
+  resourcemanager: 'resource-manager',
+};
+
+/**
  * Validates that a URL uses http or https. Rejects file://, data://, etc.
  */
 function assertHttpUrl(url: string): void {
@@ -120,10 +129,12 @@ async function fetchSpec(
  * Extract folder name suggestion from resource path
  * "apis/iam.miloapis.com/v1alpha1" -> "iam"
  * "apis/dns-networking.miloapis.com/v1alpha1" -> "dns-networking"
+ * "apis/resourcemanager.miloapis.com/v1alpha1" -> "resource-manager" (override)
  */
 function extractFolderName(resource: string): string {
   const match = resource.match(/apis\/([^.]+)/);
-  return match?.[1] ?? 'unknown';
+  const group = match?.[1] ?? 'unknown';
+  return FOLDER_NAME_OVERRIDES[group] ?? group;
 }
 
 /**

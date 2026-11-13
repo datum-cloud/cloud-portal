@@ -10,9 +10,9 @@ import type { PluginRemoteRef } from './federation-host';
 import { LazyPluginComponent } from './lazy-plugin-component';
 import { getHeroExtensions } from './match-extension';
 import { PluginErrorBoundary } from './plugin-error-boundary';
-import { useActiveServiceEntitlements } from './use-active-service-entitlements';
 import { useProjectPlugins } from './use-project-plugins';
 import type { HeroProjectHomeExtension, PublicPlugin } from '@/modules/plugins/types';
+import { useActiveServiceEntitlements } from '@/resources/service-entitlements';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { useMemo } from 'react';
 

@@ -204,4 +204,171 @@ describe('DnsRecordManager.bulkImport', () => {
       expect.objectContaining({ name: '@', txt: { content: 'apex-new' } }),
     ]);
   });
+  describe('append strategy', () => {
+    it('skips records the RecordSet already holds and leaves it untouched', async () => {
+      const service = stubService();
+      service.listByTypeAndZone.mockResolvedValue([apexTxt]);
+      const manager = new DnsRecordManager(service);
+
+      const result = await manager.bulkImport('proj', 'acme-zone', [
+        {
+          recordType: 'TXT',
+          records: [
+            { name: '@', txt: { content: 'existing-1' } },
+            { name: '', txt: { content: 'existing-2' } },
+          ],
+        } as never,
+      ]);
+
+      expect(result.summary).toMatchObject({ created: 0, updated: 0, skipped: 2, failed: 0 });
+      expect(result.details.map((detail) => detail.action)).toEqual(['skipped', 'skipped']);
+      expect(service.update).not.toHaveBeenCalled();
+      expect(service.create).not.toHaveBeenCalled();
+    });
+
+    it('appends only the new records after the existing ones', async () => {
+      const service = stubService();
+      service.listByTypeAndZone.mockResolvedValue([apexTxt]);
+      const manager = new DnsRecordManager(service);
+
+      const result = await manager.bulkImport('proj', 'acme-zone', [
+        {
+          recordType: 'TXT',
+          records: [
+            { name: '@', txt: { content: 'existing-1' } },
+            { name: '@', txt: { content: 'apex-new' } },
+          ],
+        } as never,
+      ]);
+
+      expect(result.summary).toMatchObject({ created: 0, updated: 1, skipped: 1, failed: 0 });
+      const [, recordSetName, input] = service.update.mock.calls[0];
+      expect(recordSetName).toBe('acme-zone-txt-apex');
+      expect(input.records).toEqual([
+        { name: '@', txt: { content: 'existing-1' } },
+        { name: '@', txt: { content: 'existing-2' } },
+        { name: '@', txt: { content: 'apex-new' } },
+      ]);
+    });
+
+    it('skips a record repeated inside the incoming batch', async () => {
+      const service = stubService();
+      const manager = new DnsRecordManager(service);
+
+      const result = await manager.bulkImport('proj', 'acme-zone', [
+        {
+          recordType: 'CNAME',
+          records: [
+            { name: 'www', cname: { content: 'example.com.' } },
+            { name: 'www', cname: { content: 'example.com' } },
+          ],
+        } as never,
+      ]);
+
+      expect(result.summary).toMatchObject({ created: 1, updated: 0, skipped: 1, failed: 0 });
+      const [, input] = service.create.mock.calls[0];
+      expect(input.records).toEqual([{ name: 'www', cname: { content: 'example.com.' } }]);
+    });
+
+    it('keeps duplicates when skipDuplicates is off', async () => {
+      const service = stubService();
+      service.listByTypeAndZone.mockResolvedValue([wwwTxt]);
+      const manager = new DnsRecordManager(service);
+
+      const result = await manager.bulkImport(
+        'proj',
+        'acme-zone',
+        [
+          {
+            recordType: 'TXT',
+            records: [{ name: 'www', txt: { content: 'www-verify' } }],
+          } as never,
+        ],
+        { skipDuplicates: false }
+      );
+
+      expect(result.summary).toMatchObject({ updated: 1, skipped: 0 });
+      const [, , input] = service.update.mock.calls[0];
+      expect(input.records).toEqual([
+        { name: 'www', txt: { content: 'www-verify' } },
+        { name: 'www', txt: { content: 'www-verify' } },
+      ]);
+    });
+  });
+
+  describe('replace strategy', () => {
+    it('swaps the records at the owner name and keeps other names on the RecordSet', async () => {
+      const service = stubService();
+      service.listByTypeAndZone.mockResolvedValue([
+        recordSet({
+          name: 'acme-zone-txt-shared',
+          recordType: 'TXT',
+          records: [
+            { name: '@', txt: { content: 'apex-old-1' } },
+            { name: 'www', txt: { content: 'www-keep' } },
+            { name: '@', txt: { content: 'apex-old-2' } },
+          ],
+        }),
+      ]);
+      const manager = new DnsRecordManager(service);
+
+      const result = await manager.bulkImport(
+        'proj',
+        'acme-zone',
+        [{ recordType: 'TXT', records: [{ name: '@', txt: { content: 'apex-new' } }] } as never],
+        { mergeStrategy: 'replace' }
+      );
+
+      expect(result.summary).toMatchObject({ created: 0, updated: 1, skipped: 0, failed: 0 });
+      expect(result.details[0]).toMatchObject({
+        action: 'updated',
+        message: 'Replaced existing record',
+      });
+      const [, recordSetName, input] = service.update.mock.calls[0];
+      expect(recordSetName).toBe('acme-zone-txt-shared');
+      expect(input.records).toEqual([
+        { name: 'www', txt: { content: 'www-keep' } },
+        { name: '@', txt: { content: 'apex-new' } },
+      ]);
+    });
+
+    it('writes an identical record again instead of skipping it', async () => {
+      const service = stubService();
+      service.listByTypeAndZone.mockResolvedValue([wwwTxt]);
+      const manager = new DnsRecordManager(service);
+
+      const result = await manager.bulkImport(
+        'proj',
+        'acme-zone',
+        [
+          {
+            recordType: 'TXT',
+            records: [{ name: 'www', txt: { content: 'www-verify' } }],
+          } as never,
+        ],
+        { mergeStrategy: 'replace' }
+      );
+
+      expect(result.summary).toMatchObject({ updated: 1, skipped: 0 });
+      const [, , input] = service.update.mock.calls[0];
+      expect(input.records).toEqual([{ name: 'www', txt: { content: 'www-verify' } }]);
+    });
+
+    it('creates the RecordSet when no existing set owns the name', async () => {
+      const service = stubService();
+      const manager = new DnsRecordManager(service);
+
+      const result = await manager.bulkImport(
+        'proj',
+        'acme-zone',
+        [{ recordType: 'TXT', records: [{ name: '@', txt: { content: 'apex-new' } }] } as never],
+        { mergeStrategy: 'replace' }
+      );
+
+      expect(result.summary).toMatchObject({ created: 1, updated: 0 });
+      expect(result.details[0]).toMatchObject({ action: 'created', message: 'Created new record' });
+      expect(service.update).not.toHaveBeenCalled();
+      expect(service.create).toHaveBeenCalledTimes(1);
+    });
+  });
 });

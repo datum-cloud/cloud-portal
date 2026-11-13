@@ -1,9 +1,9 @@
 import { usePermission } from '@/modules/rbac';
+import { type HttpProxy } from '@/resources/http-proxies';
 import {
-  type HttpProxy,
   useTrafficProtectionPolicy,
   useTrafficProtectionPolicyWatch,
-} from '@/resources/http-proxies';
+} from '@/resources/traffic-protection-policies';
 import { useMemo } from 'react';
 
 export function useAlbTrafficProtection(projectId: string, proxyId: string, proxy?: HttpProxy) {

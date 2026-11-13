@@ -1,3 +1,4 @@
+import type { Route } from './+types/index';
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { CardList } from '@/components/card-list';
 import { DateTime } from '@/components/date-time';
@@ -47,16 +48,7 @@ import { Text } from '@datum-cloud/datum-ui/typography';
 import { useQueryClient } from '@tanstack/react-query';
 import { FolderRoot, PlusIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import {
-  type ActionFunctionArgs,
-  data,
-  type LoaderFunctionArgs,
-  useFetcher,
-  useNavigate,
-  useParams,
-  useRevalidator,
-  useSearchParams,
-} from 'react-router';
+import { data, useFetcher, useNavigate, useRevalidator, useSearchParams } from 'react-router';
 import z from 'zod';
 
 const ALERT_KEY = 'projects_understanding';
@@ -76,36 +68,33 @@ const route = defineResourceRoute<LoaderData>({
 
 const isPendingProject = (project: Project) => project.name.startsWith(PENDING_NAME_PREFIX);
 
-export const loader = (args: LoaderFunctionArgs) =>
+export const loader = (args: Route.LoaderArgs) =>
   runListLoader<LoaderData>(args, {
     resource: 'projects',
     group: 'resourcemanager.miloapis.com',
     scope: 'org',
-    namespace: buildOrganizationNamespace(args.params.orgId!),
-    fetch: async ({ orgId, args: loaderArgs }) => {
-      const { isClosed: alertClosed } = await getAlertState(loaderArgs.request, ALERT_KEY);
-      const projects = await createProjectService().list(orgId!);
+    namespace: buildOrganizationNamespace(args.params.orgId),
+    fetch: async () => {
+      const { isClosed: alertClosed } = await getAlertState(args.request, ALERT_KEY);
+      const projects = await createProjectService().list(args.params.orgId);
       return { projects, alertClosed };
     },
   });
 export const meta = route.meta;
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = async ({ request }: Route.ActionArgs) => {
   const { headers } = await setAlertClosed(request, ALERT_KEY);
   return data({ success: true }, { headers });
 };
 
-export default route.Page(({ data: loaderData }) => <OrgProjectsInner loaderData={loaderData} />);
+export default route.Page<Route.ComponentProps>(({ data: loaderData }, { params }) => (
+  <OrgProjectsInner loaderData={loaderData} orgId={params.orgId} />
+));
 
-function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
-  const { orgId } = useParams<{ orgId: string }>();
+function OrgProjectsInner({ loaderData, orgId }: { loaderData: LoaderData; orgId: string }) {
   const { data: organization } = useGuardedRouteData<Organization, Record<string, never>>(
     'org-detail'
   );
-
-  if (!orgId) {
-    throw new Error('Organization ID is required');
-  }
 
   const { projects: initialProjects, alertClosed } = loaderData;
 
@@ -200,23 +189,23 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
       cancelable: false,
       metadata: {
         scope: 'org',
-        orgId: orgId as string,
+        orgId,
         orgName: organization?.displayName,
       },
       processor: async (ctx) => {
         try {
           const createdProject = await createProject({
             description: formData.description,
-            organizationId: orgId as string,
+            organizationId: orgId,
           });
 
-          const { promise, cancel } = waitForProjectReady(orgId as string, createdProject.name);
+          const { promise, cancel } = waitForProjectReady(orgId, createdProject.name);
           ctx.onCancel(cancel);
 
           const readyProject = await promise;
 
           await createBillingAccountBindingService().bindProjectToDefaultOrgAccount(
-            orgId as string,
+            orgId,
             readyProject.name
           );
 
@@ -226,7 +215,7 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
           // The task-queue summary only shows a generic failure line — surface the
           // quota recovery toast (view quotas / request increase) for quota denials.
           if (classifyQuotaError(error) === 'denied') {
-            showQuotaExceededToast(error, { scope: 'org', orgId: orgId as string });
+            showQuotaExceededToast(error, { scope: 'org', orgId });
           }
           failureMessage = error instanceof Error ? error.message : 'Project creation failed';
           throw error;
@@ -322,7 +311,7 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
                   data-e2e="project-card">
                   <div className="flex items-center gap-5">
                     <Icon icon={FolderRoot} className="text-icon-primary size-4" />
-                    <RowSyncName syncKey={syncKey(PROJECT_SYNC_KIND, orgId ?? '', project.name)}>
+                    <RowSyncName syncKey={syncKey(PROJECT_SYNC_KIND, orgId, project.name)}>
                       {project.displayName}
                     </RowSyncName>
                     <ProjectStatus project={project} hideActive />

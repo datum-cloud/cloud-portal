@@ -1,3 +1,4 @@
+import type { Route } from './+types/index';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
@@ -33,7 +34,7 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { PlusIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';
-import { LoaderFunctionArgs, useNavigate, useParams } from 'react-router';
+import { useNavigate } from 'react-router';
 
 const route = defineResourceRoute<Secret[]>({
   type: 'list',
@@ -47,12 +48,12 @@ const route = defineResourceRoute<Secret[]>({
   },
 });
 
-export const loader = (args: LoaderFunctionArgs) =>
+export const loader = (args: Route.LoaderArgs) =>
   runListLoader<Secret[]>(args, {
     resource: 'secrets',
     group: '',
     scope: 'project',
-    fetch: ({ projectId }) => createSecretService().list(projectId!),
+    fetch: () => createSecretService().list(args.params.projectId),
   });
 
 export const meta = route.meta;
@@ -63,19 +64,20 @@ export const clientLoader = createProjectListClientLoaderFromQueryKey<Secret[]>(
   secretKeys.list(projectId)
 );
 
-export default route.Page(({ data: initialData }) => <SecretsInner initialData={initialData} />);
+export default route.Page<Route.ComponentProps>(({ data: initialData }, { params }) => (
+  <SecretsInner initialData={initialData} projectId={params.projectId} />
+));
 
-function SecretsInner({ initialData }: { initialData: Secret[] }) {
+function SecretsInner({ initialData, projectId }: { initialData: Secret[]; projectId: string }) {
   const { confirm } = useConfirmationDialog();
   const secretFormDialogRef = useRef<SecretFormDialogRef>(null);
-  const { projectId } = useParams();
   const navigate = useNavigate();
 
   // Subscribe to watch for real-time updates
-  useSecretsWatch(projectId ?? '');
+  useSecretsWatch(projectId);
 
   // Read from React Query cache (seeded synchronously from SSR loader data)
-  const { data: queryData } = useSecrets(projectId ?? '', {
+  const { data: queryData } = useSecrets(projectId, {
     initialData: initialData ?? [],
     initialDataUpdatedAt: Date.now(),
     staleTime: QUERY_STALE_TIME,
@@ -103,7 +105,7 @@ function SecretsInner({ initialData }: { initialData: Secret[] }) {
   // Read-only verdict for the empty-state action (header button carries its own guards).
   const { isReadOnly, reason: readOnlyReason } = useProjectMode();
 
-  const deleteSecretMutation = useDeleteSecret(projectId ?? '', {
+  const deleteSecretMutation = useDeleteSecret(projectId, {
     onError: (error) => {
       toast.error(error.message);
     },
@@ -138,7 +140,7 @@ function SecretsInner({ initialData }: { initialData: Secret[] }) {
         cell: ({ row }) => {
           return (
             <div data-e2e="secret-card">
-              <RowSyncName syncKey={syncKey(SECRET_SYNC_KIND, projectId ?? '', row.original.name)}>
+              <RowSyncName syncKey={syncKey(SECRET_SYNC_KIND, projectId, row.original.name)}>
                 <span className="font-medium" data-e2e="secret-name">
                   {row.original.name}
                 </span>
@@ -197,7 +199,7 @@ function SecretsInner({ initialData }: { initialData: Secret[] }) {
       <Table.Client
         columns={columnsWithActions}
         data={data ?? []}
-        getRowSyncKey={(row) => syncKey(SECRET_SYNC_KIND, projectId ?? '', row.name)}
+        getRowSyncKey={(row) => syncKey(SECRET_SYNC_KIND, projectId, row.name)}
         title="Secrets"
         search="Search"
         onRowClick={(row) => {
