@@ -70,6 +70,12 @@ export const invitationResourceSchema = z.object({
   status: z.any().optional(),
   inviterUser: inviterUserSchema.optional(),
   organization: invitationOrganizationSchema.optional(),
+  /**
+   * Set when nobody sent this invitation: milo offered membership because the
+   * invitee's email address is at this domain, which the organization lets
+   * join (`spec.emailDomainJoining`).
+   */
+  emailDomain: z.string().optional(),
 });
 
 export type Invitation = z.infer<typeof invitationResourceSchema>;

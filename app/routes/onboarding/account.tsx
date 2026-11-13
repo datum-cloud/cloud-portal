@@ -1,6 +1,5 @@
 import { AccountPage } from '@/features/onboarding/account/account-page';
 import { OnboardingLayout } from '@/features/onboarding/components/onboarding-layout';
-import { SKIP_INVITATIONS_PARAM } from '@/features/onboarding/invitations/joinable-invitations';
 import { isOnboardingDevBypassEnabled } from '@/features/onboarding/onboarding-dev-bypass';
 import {
   hasAnyOrganizations,
@@ -36,17 +35,15 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
       return redirect(paths.home);
     }
 
-    // Invitees should join their team, not create (and pay for) an org of their
-    // own. This step is where every no-org path lands, so the check lives here.
-    const skipInvitations = new URL(request.url).searchParams.has(SKIP_INVITATIONS_PARAM);
-    if (!skipInvitations) {
-      const invitations = await listJoinableInvitations(sub, user.email);
-      if (invitations.length > 0) {
-        return redirect(paths.onboarding.invitations);
-      }
-    }
+    // Everyone confirms their country and the terms here first. Then anyone
+    // with an organization to join (an invitation, or an email domain offer)
+    // sees those before creating, and paying for, an org of their own.
+    const invitations = await listJoinableInvitations(sub, user.email);
+    const nextPath =
+      invitations.length > 0 ? paths.onboarding.invitations : paths.onboarding.billing;
 
     return {
+      nextPath,
       userId: sub,
       fullName: user.fullName?.trim() || user.email || 'Your account',
       email: user.email ?? '',
@@ -63,7 +60,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 };
 
 export default function OnboardingAccountRoute() {
-  const { userId, fullName, email, avatarUrl, lastLoginProvider, country } =
+  const { nextPath, userId, fullName, email, avatarUrl, lastLoginProvider, country } =
     useLoaderData<typeof loader>();
 
   return (
@@ -75,6 +72,7 @@ export default function OnboardingAccountRoute() {
         avatarUrl={avatarUrl}
         lastLoginProvider={lastLoginProvider}
         country={country}
+        nextPath={nextPath}
       />
     </OnboardingLayout>
   );

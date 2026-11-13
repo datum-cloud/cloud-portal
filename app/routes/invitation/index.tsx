@@ -33,7 +33,7 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Invitation');
 });
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   try {
     const { invitationId } = params;
 
@@ -41,9 +41,12 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
       throw new BadRequestError('Invitation ID is required');
     }
 
-    // Parse invitation ID to extract organization ID and unique ID
-    const lastDashIndex = invitationId.lastIndexOf('-');
-    const orgId = invitationId.substring(0, lastDashIndex);
+    // The app passes the organization. Links in invitation emails don't, but
+    // a sent invitation's name is "<organization>-<random>", so take it from
+    // there. Email domain offers are never emailed.
+    const orgId =
+      new URL(request.url).searchParams.get('org') ||
+      invitationId.substring(0, invitationId.lastIndexOf('-'));
 
     // Invitation Section
     // Get invitation
@@ -107,27 +110,39 @@ export default function InvitationPage() {
   };
 
   const isLoading = isJoining || rejectMutation.isPending;
+  const orgName = invitation.organization?.displayName || invitation.organizationName;
 
   return (
     <BlankLayout>
       <Card className="w-full max-w-md py-11">
         <CardHeader className="space-y-3 px-9 pb-6">
           <div className="space-y-2 text-center">
-            <CardTitle className="text-xl font-semibold">You&apos;ve been invited!</CardTitle>
-            <CardDescription className="text-sm font-normal">
-              Join your team and start collaborating
-            </CardDescription>
+            <CardTitle className="text-xl font-semibold">
+              {invitation.emailDomain ? `Join ${orgName}` : "You've been invited!"}
+            </CardTitle>
+            {!invitation.emailDomain && (
+              <CardDescription className="text-sm font-normal">
+                Join your team and start collaborating
+              </CardDescription>
+            )}
           </div>
         </CardHeader>
 
         <CardContent className="space-y-6 px-9">
           <Text as="p" size="base" weight="normal" className="text-center break-words">
-            <strong>
-              {invitation.inviterUser?.displayName || invitation.invitedBy || 'Someone'}
-            </strong>{' '}
-            has invited you to join{' '}
-            <strong>{invitation.organization?.displayName || invitation.organizationName}</strong>{' '}
-            organization
+            {invitation.emailDomain ? (
+              <>
+                Your <strong>{invitation.emailDomain}</strong> email address lets you join this
+                organization. No invitation needed.
+              </>
+            ) : (
+              <>
+                <strong>
+                  {invitation.inviterUser?.displayName || invitation.invitedBy || 'Someone'}
+                </strong>{' '}
+                has invited you to join <strong>{orgName}</strong> organization
+              </>
+            )}
           </Text>
         </CardContent>
         <CardFooter className="flex flex-col gap-3 px-9 pt-6">

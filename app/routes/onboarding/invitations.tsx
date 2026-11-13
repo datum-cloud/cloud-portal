@@ -30,6 +30,11 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
       return redirect(paths.onboarding.profile);
     }
 
+    // The account step (country and terms) always comes first.
+    if (!user.country) {
+      return redirect(paths.onboarding.account);
+    }
+
     const hasExistingOrgs = await hasAnyOrganizations();
 
     if (hasExistingOrgs && !isOnboardingDevBypassEnabled()) {

@@ -4,6 +4,7 @@ import { logger } from '@/modules/logger';
 import { createInvitationService, type Invitation } from '@/resources/invitations';
 import { createOrganizationService } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
+import { env } from '@/utils/env';
 import {
   type UserAccessResult,
   type getUserWithAccessRetry,
@@ -63,7 +64,9 @@ export async function listJoinableInvitations(
 ): Promise<Invitation[]> {
   try {
     const invitations = await createInvitationService().userInvitations(userId);
-    return selectJoinableInvitations(invitations, email);
+    return selectJoinableInvitations(invitations, email, new Date(), {
+      includeEmailDomainOffers: env.public.emailDomainJoiningEnabled,
+    });
   } catch (error) {
     logger.warn('Onboarding could not list pending invitations', {
       error: error instanceof Error ? error.message : String(error),

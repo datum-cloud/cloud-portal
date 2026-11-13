@@ -26,6 +26,8 @@ export interface AccountPageProps {
   avatarUrl?: string;
   lastLoginProvider?: LastLoginProviderValue;
   country?: string;
+  /** Where to go once the account is saved: invitations to join, or billing. */
+  nextPath?: string;
 }
 
 export const AccountPage = ({
@@ -35,6 +37,7 @@ export const AccountPage = ({
   avatarUrl,
   lastLoginProvider,
   country = '',
+  nextPath = paths.onboarding.billing,
 }: AccountPageProps) => {
   const { submitAndNavigate, isNavigating } = useTransitionNavigate();
   const { trackAction } = useAnalytics();
@@ -69,7 +72,7 @@ export const AccountPage = ({
   const handleSubmit = (values: OnboardingAccountValues) =>
     submitAndNavigate(
       () => updateProfileMutation.mutateAsync({ country: values.country }),
-      paths.onboarding.billing,
+      nextPath,
       { replace: true }
     );
 
