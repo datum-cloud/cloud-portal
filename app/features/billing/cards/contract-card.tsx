@@ -2,7 +2,6 @@ import { BadgeStatus } from '@/components/badge/badge-status';
 import { DateTime } from '@/components/date-time';
 import { chargeNames, type ContractSummary } from '@/features/billing/contract';
 import { ordinal } from '@/features/billing/payment-terms';
-import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Input } from '@datum-cloud/datum-ui/input';
@@ -16,7 +15,7 @@ import {
 } from '@datum-cloud/datum-ui/table';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { FileSignatureIcon } from 'lucide-react';
+import { FileSignatureIcon, SearchIcon } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 
 // Line the first/last cells up with the card padding, as the other billing
@@ -115,19 +114,29 @@ export const ContractCard = ({ contract }: ContractCardProps) => {
           </Detail>
         </div>
       </CardContent>
-      {long ? (
-        <CardContent className="pt-0 pb-3">
-          <Input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder={`Search ${fees.length} fees`}
-            aria-label="Search fees"
-            className="h-9 w-full sm:w-64"
-          />
-        </CardContent>
-      ) : null}
       {fees.length > 0 ? (
         <CardContent padding="none">
+          {long ? (
+            // Part of the table: a slim toolbar above its headers.
+            <div className="bg-background flex items-center justify-between gap-3 border-y px-5 py-2">
+              <div className="relative w-full sm:w-64">
+                <Icon
+                  icon={SearchIcon}
+                  className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2"
+                />
+                <Input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search fees"
+                  aria-label="Search fees"
+                  className="h-8 pl-8 text-sm"
+                />
+              </div>
+              <Text as="span" size="xs" textColor="muted" className="shrink-0">
+                {query ? `${matching.length} of ${fees.length} fees` : `${fees.length} fees`}
+              </Text>
+            </div>
+          ) : null}
           <Table className={cn(ROW_INSET, HEADER_DIVIDERS)} data-e2e="contract-fees">
             <TableHeader>
               <TableRow className="bg-background hover:bg-background">
@@ -184,16 +193,13 @@ export const ContractCard = ({ contract }: ContractCardProps) => {
             </TableBody>
           </Table>
           {long && !query ? (
-            <div className="border-t px-5 py-2">
-              <Button
-                htmlType="button"
-                type="quaternary"
-                theme="borderless"
-                size="xs"
-                className="-ml-2"
+            <div className="border-t px-5 py-3">
+              <button
+                type="button"
+                className="text-muted-foreground hover:text-foreground text-sm underline underline-offset-4 transition-colors"
                 onClick={() => setShowAll((value) => !value)}>
                 {showAll ? 'Show fewer' : `Show all ${fees.length} fees`}
-              </Button>
+              </button>
             </div>
           ) : null}
         </CardContent>
