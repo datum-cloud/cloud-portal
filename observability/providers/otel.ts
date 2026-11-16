@@ -188,7 +188,15 @@ export class OtelProvider extends BaseProvider {
     console.log('🔍 Testing OTLP endpoint connectivity...');
     console.log('📊 Endpoint to test:', env.server.otelExporterEndpoint);
 
-    const isConnected = await this.testOtlpConnectivity(env.server.otelExporterEndpoint);
+    const endpoint = env.server.otelExporterEndpoint;
+    let isConnected = await this.testOtlpConnectivity(endpoint);
+    // The first attempt runs while the server bundle is still loading, which
+    // blocks the event loop past the 3s deadline, so it can fail against a
+    // healthy collector. By the time it returns, startup is done, so a second
+    // attempt shows whether the collector is really down.
+    if (!isConnected) {
+      isConnected = await this.testOtlpConnectivity(endpoint);
+    }
 
     if (!isConnected) {
       console.warn(
