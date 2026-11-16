@@ -17,6 +17,7 @@ import type {
 import type { BillingAccount } from '@/features/billing/types';
 import {
   buildBillingCycleWindows,
+  cycleTerms,
   selectBillingCycleWindow,
 } from '@/modules/billing/billing-cycle';
 import { client } from '@/modules/control-plane/shared/client.gen';
@@ -352,7 +353,7 @@ export async function loadOrgUsageDashboard(
     selectedProject
   );
 
-  const cycleWindows = buildBillingCycleWindows(billingAccount?.spec?.paymentTerms);
+  const cycleWindows = buildBillingCycleWindows(cycleTerms(billingAccount));
   const selectedCycleWindow = selectBillingCycleWindow(cycleWindows, cycleParam);
   const selectedBillingCycle = selectedCycleWindow.value;
   const billingCycles = cycleWindows.map((window) => ({

@@ -199,6 +199,28 @@ export function albRpsQuery(scope: AlbQueryScope, timeWindow: string): string {
   });
 }
 
+/** Label that identifies an ALB in Envoy's per-vhost series. */
+export const GATEWAY_NAME_LABEL = 'gateway_name';
+
+/**
+ * Request rate for every ALB in the project, one series per ALB.
+ *
+ * The same expression `albRpsQuery` runs for a single ALB with
+ * `requireRegion: false`, minus the `gateway_name` matcher and grouped by it,
+ * so a list page can ask once and hand each row its own series.
+ */
+export function albRpsByProxyQuery(projectId: string, timeWindow: string): string {
+  return buildRateQuery({
+    metric: ENVOY_RQ_METRIC,
+    timeWindow,
+    baseLabels: {
+      resourcemanager_datumapis_com_project_name: projectId,
+      gateway_namespace: 'default',
+    },
+    groupBy: [GATEWAY_NAME_LABEL],
+  });
+}
+
 /**
  * Total requests handled over `window`. Used to tell an ALB that has never
  * seen traffic (empty states) apart from one that is merely quiet right now.

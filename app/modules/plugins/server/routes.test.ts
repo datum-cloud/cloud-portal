@@ -17,6 +17,12 @@ vi.mock('./index', () => ({
   getPlugins: () => [],
 }));
 
+// Stands in for the entitlement filter; the list route must pass it the project.
+const filterEntitledPlugins = vi.fn(
+  async (_projectId: string | undefined, entries: unknown[]) => entries
+);
+vi.mock('./entitlement', () => ({ filterEntitledPlugins }));
+
 const { createPluginRoutes, isHashedAsset } = await import('./routes');
 
 describe('isHashedAsset', () => {
@@ -143,6 +149,16 @@ describe('plugin routes', () => {
     const res = await appFor().request('/api/plugins', { headers: signedIn });
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual([]);
+  });
+
+  test('filters the plugin list by the requested project', async () => {
+    filterEntitledPlugins.mockClear();
+    await appFor().request('/api/plugins?projectId=acme-web', { headers: signedIn });
+    await appFor().request('/api/plugins', { headers: signedIn });
+    expect(filterEntitledPlugins.mock.calls.map(([projectId]) => projectId)).toEqual([
+      'acme-web',
+      undefined,
+    ]);
   });
 
   test('rate limits asset requests per user', async () => {

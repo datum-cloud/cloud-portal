@@ -2,8 +2,10 @@
  * React Query hook for the project-scoped plugin list — CLIENT-SAFE.
  *
  * Sources the plugins whose nav/cards should appear for a project from the
- * portal server's read API (`GET /api/plugins`), which returns only `Ready`
- * plugins the project is entitled to (dev plugins skip entitlement). Sourced
+ * portal server's read API (`GET /api/plugins?projectId=`), which returns only
+ * plugins with a resolved manifest, filtered by the project's entitlements: a
+ * Required plugin the project is not entitled to is left out, or reduced to its
+ * `comingSoon` nav items (dev plugins skip entitlement). Sourced
  * client-side rather than through the project-detail layout loader, whose RBAC
  * DSL envelope is deliberately closed; this keeps the plugin list decoupled
  * from that contract.
@@ -21,7 +23,7 @@ export const pluginKeys = {
 /**
  * Normalize the read API response into `PublicPlugin[]`. Tolerates a bare array
  * or a `{ data }` / `{ plugins }` envelope so the hook is resilient to the
- * server's exact wrapper (see portal-core's `/api/plugins` handler).
+ * server's exact wrapper (see `createPluginRoutes` in `server/routes.ts`).
  */
 function normalizePluginList(body: unknown): PublicPlugin[] {
   if (Array.isArray(body)) return body as PublicPlugin[];

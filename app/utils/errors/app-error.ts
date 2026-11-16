@@ -1,3 +1,4 @@
+import { PERMISSION_DENIED_MESSAGE, toPlainAuthorizationMessage } from './authorization-message';
 import * as Sentry from '@sentry/react-router';
 
 /**
@@ -87,13 +88,22 @@ export class AppError extends Error {
       sentryEventId?: string;
     } = {}
   ) {
-    super(message, { cause: options.cause });
+    // A 403's raw text (RBAC denials naming users, verbs and API groups) never
+    // becomes the headline: every toast and error boundary reads `message`, so
+    // swapping it here covers all of them. The raw text stays in
+    // `originalMessage` for logs and debugging.
+    const status = options.status ?? 500;
+    const display =
+      status === 403
+        ? toPlainAuthorizationMessage(message, options.originalMessage)
+        : { message, originalMessage: options.originalMessage };
+    super(display.message, { cause: options.cause });
     this.name = 'AppError';
     this.code = options.code ?? 'INTERNAL_ERROR';
-    this.status = options.status ?? 500;
+    this.status = status;
     this.details = options.details;
     this.requestId = options.requestId;
-    this.originalMessage = options.originalMessage;
+    this.originalMessage = display.originalMessage;
     this.k8sReason = options.k8sReason;
     this.k8sDetails = options.k8sDetails;
     this.upstreamStatus = options.upstreamStatus;
@@ -173,7 +183,7 @@ export class AuthenticationError extends AppError {
 
 export class AuthorizationError extends AppError {
   constructor(
-    message = 'Permission denied',
+    message = PERMISSION_DENIED_MESSAGE,
     requestId?: string,
     options: {
       code?: string;

@@ -5,6 +5,7 @@ export {
   BillingAddressForm,
   type BillingAddressValues,
 } from './billing-address-card';
+export { ContractCard } from './contract-card';
 export { CreditsCard } from './credits-card';
 export { DiscountsCard } from './discounts-card';
 export {

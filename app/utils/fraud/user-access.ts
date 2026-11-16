@@ -34,11 +34,8 @@ function buildDevStubUser(userId: string): User {
 /**
  * The collaborators this module reaches out of process for.
  *
- * Injectable because `mock.module` is process-global in bun and cannot reach
- * here reliably. Any suite that imports a fraud middleware loads this module
- * first, binding it to the real modules. A later suite's `mock.module` then
- * rebuilds only its own copy, so the stubs sit on an object this code never
- * calls and the real collaborators run against fake fixtures instead.
+ * Injectable so tests pass stubs straight in rather than mocking the auth
+ * barrel and user service the module imports.
  */
 export type UserAccessDeps = {
   auth: Pick<typeof AuthService, 'getRefreshToken' | 'getSession' | 'refreshTokens'>;

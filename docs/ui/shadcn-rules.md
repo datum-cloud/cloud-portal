@@ -171,7 +171,7 @@ When you need a shadcn component that isn't in the codebase:
 ### Step 1: Install via CLI
 
 ```bash
-npx shadcn@latest add accordion
+pnpm dlx shadcn@latest add accordion
 ```
 
 ### Step 2: Files Are Created

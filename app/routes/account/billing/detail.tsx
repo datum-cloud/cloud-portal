@@ -7,6 +7,7 @@ import {
   BILLING_ACCOUNT_DISPLAY_NAME_ANNOTATION,
   BillingAddressFieldsCard,
   BillingAddressForm,
+  ContractCard,
   DiscountsCard,
   DisplayNameFormCard,
   InvoiceEmailCard,
@@ -17,6 +18,7 @@ import {
   getBillingAccountDisplayName,
   isStaleInvoice,
   accountDiscounts,
+  contractSummary,
   summarizeDiscounts,
   toPastInvoiceRow,
   type BillingAccount,
@@ -48,8 +50,8 @@ import {
 } from '@/resources/billing-account-bindings';
 import {
   createBillingAccountService,
+  useBillingAccountDetailQueries,
   useBillingAccountWatch,
-  useBillingAccountsForOrgs,
   useDeleteBillingAccount,
   useUpdateBillingAccount,
 } from '@/resources/billing-accounts';
@@ -368,16 +370,15 @@ function AccountBillingAccountDetailPageInner() {
   // against future loader changes.
   const orgIds = useMemo(() => initialOrgIds, [initialOrgIds]);
 
-  // Drive the page off live React Query caches seeded by the loader.
-  // The cross-org cache is fanned out per-org because the IAM proxy
-  // doesn't allow cluster-scoped billing reads; the namespaced reads
-  // route through the org control-plane directly and the watch hub
-  // multiplexes those subscriptions.
-  const accountsQuery = useBillingAccountsForOrgs(orgIds, {
-    initialData: [initialAccount],
-    initialDataUpdatedAt: Date.now(),
-    staleTime: QUERY_STALE_TIME,
-  });
+  // Drive the page off live React Query caches seeded by the loader. The
+  // detail-page hook seeds only the single-account detail cache and reads
+  // the per-org list separately for the last-account floor; seeding the
+  // cross-org list here would hide every other account on the listing.
+  const { accountQuery, orgAccountsQuery } = useBillingAccountDetailQueries(
+    orgId,
+    accountName,
+    initialAccount
+  );
   const bindingsQuery = useBillingAccountBindingsForOrgs(orgIds, {
     initialData: initialAllBindings,
     initialDataUpdatedAt: Date.now(),
@@ -404,8 +405,7 @@ function AccountBillingAccountDetailPageInner() {
   usePaymentMethodsWatch(orgId);
   useInvoicesWatch(orgId);
 
-  const account =
-    accountsQuery.data?.find((a) => a.metadata?.name === accountName) ?? initialAccount;
+  const account = accountQuery.data ?? initialAccount;
   const paymentMethods = useMemo(
     () =>
       (paymentMethodsQuery.data ?? initialPaymentMethods).filter(
@@ -559,9 +559,9 @@ function AccountBillingAccountDetailPageInner() {
   // list page shares the same single-account rule.
   const ownOrgAccountCount = useMemo(() => {
     if (!orgId) return 0;
-    const list = accountsQuery.data ?? [];
+    const list = orgAccountsQuery.data ?? [];
     return list.filter((a) => orgIdFromNamespace(a.metadata?.namespace) === orgId).length;
-  }, [accountsQuery.data, orgId]);
+  }, [orgAccountsQuery.data, orgId]);
   const isLastAccountInOrg = ownOrgAccountCount <= 1;
 
   const { confirm } = useConfirmationDialog();
@@ -773,7 +773,8 @@ function AccountBillingAccountDetailPageInner() {
     [invoiceEmailMutation, orgId, accountName, contactInfo]
   );
 
-  const paymentTerms = paymentTermsSummary(account);
+  const paymentTerms = paymentTermsSummary(account, renderedAt);
+  const contract = contractSummary(account, renderedAt);
   // Only org owners apply, and only while PAYMENT_TERMS_ENABLED is on.
   // Otherwise the payment methods section only reports terms or an
   // application that already exist.
@@ -809,6 +810,14 @@ function AccountBillingAccountDetailPageInner() {
           description="Every project funded by this billing account, grouped by the organization that owns it. The binding is set from each project's own billing settings — open a row to change or remove it.">
           <AssignmentsCard assignments={assignments} />
         </Section>
+
+        {contract ? (
+          <Section
+            title="Contract"
+            description="The contract this account is billed under, set up with our team. To change it, contact support.">
+            <ContractCard contract={contract} />
+          </Section>
+        ) : null}
 
         <Section
           title="Payment methods"

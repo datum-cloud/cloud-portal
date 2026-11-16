@@ -2,11 +2,11 @@ import BlankLayout from '@/layouts/blank.layout';
 import { createUserService } from '@/resources/users';
 import { requireSessionSub } from '@/utils/auth/require-session.server';
 import { paths } from '@/utils/config/paths.config';
+import { fetchFraudStatus, startStatusPoll } from '@/utils/fraud/status-poll';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import {
   isAwaitingEmailVerification,
   resolveVerifyEmailPageRedirect,
-  type FraudPollResult,
 } from '@/utils/middlewares/fraud-redirect';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
@@ -61,23 +61,13 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 };
 
 export default function VerifyEmailPage() {
-  useEffect(() => {
-    let stopped = false;
-    let timerId: ReturnType<typeof setTimeout> | undefined;
-    const startedAt = Date.now();
-
-    // Self-scheduling rather than setInterval: the next tick is only queued
-    // once the previous one has settled, so a slow response cannot stack
-    // requests on top of each other.
-    const poll = async () => {
-      if (stopped) return;
-
-      try {
-        const response = await fetch(STATUS_URL, { credentials: 'include' });
-
-        if (response.ok) {
-          const result = (await response.json()) as FraudPollResult;
-
+  useEffect(
+    () =>
+      // Same guarded loop as /verifying: the next tick is only queued once the
+      // previous one has settled, so a slow response cannot stack requests.
+      startStatusPoll({
+        fetchStatus: (signal) => fetchFraudStatus(signal, STATUS_URL),
+        onResult: (result) => {
           // Anything other than "still waiting on the address" means it is
           // proven. Where to go next is deliberately NOT decided here:
           // /verifying re-derives its destination client-side because its poll
@@ -86,27 +76,14 @@ export default function VerifyEmailPage() {
           // drift. One hop through the server re-runs the redirect cascade and
           // lands the user wherever it says — /verifying if staff review is
           // still pending, onboarding if approved.
-          if (!isAwaitingEmailVerification(result)) {
-            window.location.replace(paths.home);
-            return; // navigating away — do not reschedule
-          }
-        }
-      } catch {
-        // Network error — say nothing and let the next tick retry.
-      }
-
-      if (!stopped) {
-        timerId = setTimeout(() => void poll(), pollDelayFor(Date.now() - startedAt));
-      }
-    };
-
-    void poll(); // fire immediately — don't wait if the link was already clicked
-
-    return () => {
-      stopped = true;
-      clearTimeout(timerId);
-    };
-  }, []);
+          if (isAwaitingEmailVerification(result)) return false;
+          window.location.replace(paths.home);
+          return true;
+        },
+        delayMs: pollDelayFor,
+      }),
+    []
+  );
 
   return (
     <BlankLayout>

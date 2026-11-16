@@ -1,6 +1,5 @@
-import { albRpsQuery } from '@/features/edge/proxy/metrics/queries';
-import { usePrometheusAPIQuery } from '@/modules/metrics/hooks';
-import { transformForRecharts, type FormattedMetricData } from '@/modules/prometheus';
+import { useProxyRequestRate } from '@/features/edge/proxy/metrics/proxy-request-rates';
+import { transformForRecharts } from '@/modules/prometheus';
 import { ChartContainer, ChartTooltip, type ChartConfig } from '@datum-cloud/datum-ui/chart';
 import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
@@ -10,7 +9,6 @@ import { useMemo } from 'react';
 import { Area, AreaChart } from 'recharts';
 
 interface ProxySparklineProps {
-  projectId: string;
   proxyId: string;
   /** Width override. Defaults to the ALB table's 200px minimum. */
   className?: string;
@@ -23,43 +21,15 @@ const chartConfig: ChartConfig = {
   },
 };
 
-export function ProxySparkline({ projectId, proxyId, className }: ProxySparklineProps) {
+export function ProxySparkline({ proxyId, className }: ProxySparklineProps) {
   const wrapperClassName = cn(
     'flex h-8 w-full min-w-[200px] items-center justify-center px-1.5',
     className
   );
 
-  // Fetch metrics for the last hour
-  const endTime = useMemo(() => new Date(), []);
-  const startTime = useMemo(() => {
-    const date = new Date();
-    date.setHours(date.getHours() - 1);
-    return date;
-  }, []);
-
-  // Build query for requests rate
-  const query = useMemo(
-    () => albRpsQuery({ projectId, proxyId, requireRegion: false }, '1m'),
-    [projectId, proxyId]
-  );
-
-  const { data, isLoading, error } = usePrometheusAPIQuery<FormattedMetricData>(
-    ['proxy-sparkline', projectId, proxyId],
-    {
-      type: 'chart',
-      projectId,
-      query,
-      timeRange: {
-        start: startTime,
-        end: endTime,
-      },
-      step: '1m', // 1 minute step for last hour
-    },
-    {
-      enabled: !!projectId && !!proxyId,
-      refetchInterval: 30000, // Refresh every 30 seconds
-    }
-  );
+  // The page asks once for every ALB; this row reads its own series.
+  const proxyNames = useMemo(() => (proxyId ? [proxyId] : []), [proxyId]);
+  const { data, isLoading, error } = useProxyRequestRate(proxyNames);
 
   const chartData = useMemo(() => {
     if (!data || error) {

@@ -2,6 +2,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DangerCard } from '@/components/danger-card/danger-card';
 import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
 import { DescriptionFormCard } from '@/features/edge/dns-zone/overview/description-form-card';
+import { DnssecCard } from '@/features/edge/dns-zone/overview/dnssec-card';
 import { useGuardedRouteData, useResourcePermissions } from '@/modules/rbac';
 import { useDeleteDnsZone, type DnsZone } from '@/resources/dns-zones';
 import type { Domain } from '@/resources/domains';
@@ -71,6 +72,13 @@ export default function DnsZoneSettingsPage() {
             Zone Description
           </Title>
           <DescriptionFormCard projectId={projectId} defaultValue={dnsZone} />
+        </Col>
+
+        <Col span={24}>
+          <Title as="h3" level={6} weight="medium" className="mb-4">
+            DNSSEC
+          </Title>
+          <DnssecCard />
         </Col>
 
         <Col span={24}>

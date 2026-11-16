@@ -3,7 +3,7 @@ import { PrometheusError } from '@/modules/prometheus';
 import { describe, expect, it } from 'vitest';
 
 describe('formatMetricError', () => {
-  it('never surfaces the Bun/OTEL captureStackTrace leak', () => {
+  it('maps a raw runtime error to the generic message', () => {
     expect(formatMetricError(new Error('First argument must be an Error object'))).toBe(
       "Couldn't load this chart. Try refreshing or changing the time range."
     );

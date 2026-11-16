@@ -5,6 +5,7 @@ import { StatusPulseDot } from '@/components/status-pulse-dot';
 import { type ColumnDef, RowSyncName, Table } from '@/components/table';
 import { ConnectorDownloadCard } from '@/features/connectors/connector-download-card';
 import { ConnectorSparkline } from '@/features/edge/proxy/metrics/connector-sparkline';
+import { ProxyRequestRatesProvider } from '@/features/edge/proxy/metrics/proxy-request-rates';
 import { useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
@@ -151,6 +152,9 @@ export default route.Page(({ data: loaderData }) => {
     return connectorsData.map((c) => ({ ...c, proxies: byConnector.get(c.name) ?? [] }));
   }, [connectorsData, proxies]);
 
+  // Rows without an ALB chart nothing, so only ask once one of them has one.
+  const hasFrontedProxies = tableData.some((connector) => connector.proxies.length > 0);
+
   // Track dismissal in local state. This route sets
   // shouldRevalidate = skipRevalidateWithinSameProject, so the loader does NOT
   // re-run after the dismiss POST (projectId is unchanged). Relying on
@@ -207,7 +211,6 @@ export default route.Page(({ data: loaderData }) => {
         },
         cell: ({ row }) => (
           <ConnectorSparkline
-            projectId={projectId}
             proxyNames={row.original.proxies.map((p) => p.name)}
             connectorId={row.original.name}
           />
@@ -367,16 +370,20 @@ export default route.Page(({ data: loaderData }) => {
   );
 
   return (
-    <Table.Client
-      columns={columns}
-      data={tableData}
-      getRowSyncKey={(row) => syncKey(CONNECTOR_SYNC_KIND, projectId, row.name)}
-      title="Connectors"
-      search="Search"
-      empty="no connectors found"
-      headerExtra={
-        isDownloadVisible ? <ConnectorDownloadCard onDismiss={handleDismissDownload} /> : undefined
-      }
-    />
+    <ProxyRequestRatesProvider projectId={projectId} enabled={hasFrontedProxies}>
+      <Table.Client
+        columns={columns}
+        data={tableData}
+        getRowSyncKey={(row) => syncKey(CONNECTOR_SYNC_KIND, projectId, row.name)}
+        title="Connectors"
+        search="Search"
+        empty="no connectors found"
+        headerExtra={
+          isDownloadVisible ? (
+            <ConnectorDownloadCard onDismiss={handleDismissDownload} />
+          ) : undefined
+        }
+      />
+    </ProxyRequestRatesProvider>
   );
 });

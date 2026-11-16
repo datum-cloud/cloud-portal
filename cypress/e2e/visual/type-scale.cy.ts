@@ -7,7 +7,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
  * Not part of any suite — the default specPattern excludes this folder. Run it
  * once per build, pointing the two runs at different folders:
  *
- *   npx cypress run --spec cypress/e2e/visual/type-scale.cy.ts \
+ *   pnpm exec cypress run --spec cypress/e2e/visual/type-scale.cy.ts \
  *     --config "specPattern=cypress/e2e/visual/**\/*.cy.ts,retries=0,video=false,\
  *   screenshotsFolder=cypress/screenshots/before"
  *

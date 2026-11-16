@@ -1,6 +1,5 @@
-import { buildRateQuery } from '@/modules/metrics';
-import { usePrometheusAPIQuery } from '@/modules/metrics/hooks';
-import { transformForRecharts, type FormattedMetricData } from '@/modules/prometheus';
+import { useProxyRequestRate } from '@/features/edge/proxy/metrics/proxy-request-rates';
+import { transformForRecharts } from '@/modules/prometheus';
 import { ChartContainer, ChartTooltip, type ChartConfig } from '@datum-cloud/datum-ui/chart';
 import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Text } from '@datum-cloud/datum-ui/typography';
@@ -8,7 +7,6 @@ import { useMemo } from 'react';
 import { Area, AreaChart } from 'recharts';
 
 interface ConnectorSparklineProps {
-  projectId: string;
   /** Proxy names (gateway_name) that use this connector; request rate is summed across these */
   proxyNames: string[];
   /** Optional stable id for chart elements (e.g. connector name); avoids long or invalid SVG ids */
@@ -23,44 +21,11 @@ const chartConfig: ChartConfig = {
 };
 
 export function ConnectorSparkline({
-  projectId,
   proxyNames,
   connectorId = 'connector',
 }: ConnectorSparklineProps) {
-  const endTime = new Date();
-  const startTime = new Date(endTime.getTime() - 60 * 60 * 1000);
-
-  const proxyNamesKey = useMemo(() => [...proxyNames].sort().join(','), [proxyNames]);
-
-  const query = useMemo(() => {
-    if (!proxyNamesKey) return '';
-    const names = proxyNamesKey.split(',');
-    return buildRateQuery({
-      metric: 'envoy_vhost_vcluster_upstream_rq',
-      timeWindow: '1m',
-      baseLabels: {
-        resourcemanager_datumapis_com_project_name: projectId,
-        gateway_namespace: 'default',
-      },
-      filters: [{ label: 'gateway_name', value: names }],
-      groupBy: [],
-    });
-  }, [projectId, proxyNamesKey]);
-
-  const { data, isLoading, error } = usePrometheusAPIQuery<FormattedMetricData>(
-    ['connector-sparkline', projectId, proxyNamesKey],
-    {
-      type: 'chart',
-      projectId,
-      query,
-      timeRange: { start: startTime, end: endTime },
-      step: '1m',
-    },
-    {
-      enabled: !!projectId && proxyNames.length > 0 && !!query,
-      refetchInterval: 30000,
-    }
-  );
+  // The page asks once for every ALB; this row sums the ones it fronts.
+  const { data, isLoading, error } = useProxyRequestRate(proxyNames);
 
   const chartData = useMemo(() => {
     if (!data || error) return [];

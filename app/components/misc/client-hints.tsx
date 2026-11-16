@@ -2,7 +2,12 @@
  * This file contains utilities for using client hints for user preference which
  * are needed by the server, but are only known by the browser.
  */
-import { DESKTOP_MIN, TABLET_MIN, isBreakpoint, type Breakpoint } from '@/hooks/use-breakpoint';
+import {
+  DESKTOP_MIN,
+  TABLET_MIN,
+  isBreakpoint,
+  type Breakpoint,
+} from '@/utils/helpers/breakpoint.helper';
 import { getHintUtils } from '@epic-web/client-hints';
 import {
   clientHint as colorSchemeHint,

@@ -1,4 +1,4 @@
-import { breakpointForWidth, isBreakpoint } from './use-breakpoint';
+import { breakpointForWidth, isBreakpoint } from './breakpoint.helper';
 import { describe, expect, it } from 'vitest';
 
 describe('breakpointForWidth', () => {

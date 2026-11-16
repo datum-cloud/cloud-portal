@@ -22,7 +22,12 @@ import type {
   PrometheusQueryOptions,
 } from '@/modules/prometheus';
 import { createO11yMetricsService } from '@/resources/o11y-metrics';
-import { useQuery, type QueryKey, type UseQueryResult } from '@tanstack/react-query';
+import {
+  useQuery,
+  type QueryKey,
+  type UseQueryOptions,
+  type UseQueryResult,
+} from '@tanstack/react-query';
 import { useQueryState } from 'nuqs';
 import React from 'react';
 
@@ -68,7 +73,11 @@ const metricsService = createO11yMetricsService();
 export function usePrometheusAPIQuery<T>(
   queryKey: QueryKey,
   request: PrometheusAPIRequest,
-  options: { enabled?: boolean; refetchInterval?: number | false }
+  options: {
+    enabled?: boolean;
+    refetchInterval?: number | false;
+    placeholderData?: UseQueryOptions<T, PrometheusError>['placeholderData'];
+  }
 ): UseQueryResult<T, PrometheusError> {
   return useQuery<T, PrometheusError>({
     // queryapi scopes results to the project, so the cache must too.
@@ -76,6 +85,7 @@ export function usePrometheusAPIQuery<T>(
     queryFn: () => executePrometheusRequest<T>(request, metricsService),
     enabled: options.enabled,
     refetchInterval: options.refetchInterval,
+    placeholderData: options.placeholderData,
     staleTime: 30000, // 30 seconds
     gcTime: 300000, // 5 minutes
     retry: shouldRetryMetricsQuery,

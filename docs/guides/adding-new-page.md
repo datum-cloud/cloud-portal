@@ -121,21 +121,65 @@ export default function WidgetsPage() {
 }
 ```
 
-### Prefetching in Loader
+### Loading Data on the Server and Seeding the Cache
+
+Loaders do not get a `QueryClient` from the server context. A resource route
+fetches through the resource's service in its server `loader`, returns the
+data, and the page seeds React Query with it. Use the RBAC route helpers so
+permission checks, not-found handling and cache seeding stay consistent. See
+`app/routes/project/detail/secrets/index.tsx` for a complete list route.
 
 ```tsx
-import { QueryClient } from '@tanstack/react-query';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runListLoader } from '@/modules/rbac/run-resource-loader';
+import { createWidgetService, widgetKeys, useWidgets, type Widget } from '@/resources/widgets';
+import { createProjectListClientLoaderFromQueryKey } from '@/utils/helpers/project-list-client-loader';
+import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
+import { type LoaderFunctionArgs, useParams } from 'react-router';
 
-export async function loader({ params, request, context }: LoaderFunctionArgs) {
-  const queryClient = context.queryClient as QueryClient;
-  const { orgId, projectId } = params;
+const route = defineResourceRoute<Widget[]>({
+  type: 'list',
+  resource: 'widgets',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to view widgets.",
+  metaTitle: 'Widgets',
+  // Writes the loader data into the React Query cache under this key
+  seedCache: ({ data, projectId }) => [[widgetKeys.list(projectId), data as Widget[]]] as never,
+});
 
-  // Prefetch data for faster hydration
-  await queryClient.prefetchQuery(widgetQueries.list({ orgId, projectId }));
+// Server loader: permission check plus a fetch through the service
+export const loader = (args: LoaderFunctionArgs) =>
+  runListLoader<Widget[]>(args, {
+    resource: 'widgets',
+    group: 'example.datumapis.com',
+    scope: 'project',
+    fetch: ({ projectId }) => createWidgetService().list(projectId!),
+  });
 
-  return { orgId, projectId };
-}
+export const meta = route.meta;
+export const shouldRevalidate = skipRevalidateWithinSameProject;
+
+// On client navigation, serve the cached list instead of calling the server loader again
+export const clientLoader = createProjectListClientLoaderFromQueryKey<Widget[]>((projectId) =>
+  widgetKeys.list(projectId)
+);
+
+export default route.Page(({ data: initialData }) => {
+  const { projectId } = useParams();
+  const { data: widgets } = useWidgets(projectId ?? '', {
+    initialData: initialData ?? [],
+    initialDataUpdatedAt: Date.now(),
+  });
+
+  return <WidgetList widgets={widgets ?? []} />;
+});
 ```
+
+Detail routes follow the same shape with `type: 'detail'`, `paramName` and
+`runDetailLoader` (see `app/routes/project/detail/secrets/detail/layout.tsx`).
+To warm other queries from the client, call `queryClient.prefetchQuery` from a
+component through `useQueryClient()`, as `app/routes/org/detail/layout.tsx`
+does.
 
 ---
 

@@ -1,3 +1,4 @@
+import { BadgeStatus } from '@/components/badge/badge-status';
 import {
   PAYMENT_OPTION_LABELS,
   applicationPhase,
@@ -111,9 +112,7 @@ export const PaymentTermsCard = ({
                 </Text>
               ) : null}
             </div>
-            <Badge type="success" theme="light" className="rounded-full">
-              Active
-            </Badge>
+            <BadgeStatus status="active" label="Active" />
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Detail label="Billing cycle">{terms.billingCycle}</Detail>

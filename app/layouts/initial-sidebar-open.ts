@@ -1,4 +1,4 @@
-import type { Breakpoint } from '@/hooks/use-breakpoint';
+import type { Breakpoint } from '@/utils/helpers/breakpoint.helper';
 
 export interface InitialSidebarOpenInput {
   /** Breakpoint the page renders for; on the server, the viewport client hint. */

@@ -1,4 +1,4 @@
-import { DropzoneStateContent, ImportResultTable } from './components';
+import { DropzoneStateContent, ImportResultTable, UnsupportedRecordsAlert } from './components';
 import { useDnsRecordExport, useDnsRecordImport } from './hooks';
 import { DnsRecordTable } from '@/features/edge/dns-records';
 import { useProjectMode } from '@/features/project/read-only';
@@ -12,7 +12,7 @@ import { Dropzone, DropzoneEmptyState } from '@datum-cloud/datum-ui/dropzone';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { ResponsiveDropdown } from '@datum-cloud/datum-ui/responsive-dropdown';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
-import { AlertCircle, DownloadIcon, FileTextIcon, Import, Info, PlusIcon } from 'lucide-react';
+import { DownloadIcon, FileTextIcon, Import, Info, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
 // =============================================================================
@@ -242,27 +242,10 @@ export const DnsRecordImportAction = ({
                 )}
 
                 {unsupportedRecords && unsupportedRecords.totalRecords > 0 && (
-                  <Alert variant="destructive" className="mt-4">
-                    <Icon icon={AlertCircle} className="size-4" />
-                    <AlertTitle className="text-destructive text-sm">Error</AlertTitle>
-                    <AlertDescription>
-                      It&apos;s not possible to import {unsupportedRecords.totalRecords} other
-                      record
-                      {unsupportedRecords.totalRecords > 1 ? 's' : ''} we found as we don&apos;t
-                      support the following record type
-                      {unsupportedRecords.types.length > 1 ? 's' : ''}:{' '}
-                      {unsupportedRecords.types.length > 1
-                        ? `${unsupportedRecords.types.slice(0, -1).join(', ')}, and ${unsupportedRecords.types.slice(-1)}`
-                        : unsupportedRecords.types[0]}
-                      .{' '}
-                      <span className="cursor-pointer underline" onClick={handleContactSupport}>
-                        Contact us
-                      </span>{' '}
-                      to request support for{' '}
-                      {unsupportedRecords.types.length > 1 ? 'these' : 'this'} to be added to the
-                      product backlog.
-                    </AlertDescription>
-                  </Alert>
+                  <UnsupportedRecordsAlert
+                    unsupportedRecords={unsupportedRecords}
+                    onContactSupport={handleContactSupport}
+                  />
                 )}
               </Dialog.Body>
               <Dialog.Footer className="border-t-0">

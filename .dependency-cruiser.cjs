@@ -2,10 +2,10 @@
 //
 // Layering rules for app/. Routes compose everything below them; features,
 // modules and resources must not reach back up. Existing violations live in
-// .dependency-cruiser-known-violations.json and are skipped by `npm run
+// .dependency-cruiser-known-violations.json and are skipped by `pnpm
 // depcruise` (--ignore-known); anything new fails CI. Regenerate the baseline
 // only when burning violations down:
-//   npx depcruise app --output-type baseline > .dependency-cruiser-known-violations.json
+//   pnpm exec depcruise app --output-type baseline > .dependency-cruiser-known-violations.json
 const TESTS = '(^|/)(__tests__|test)/|\\.(test|spec)\\.(ts|tsx)$';
 
 module.exports = {

@@ -172,7 +172,7 @@ export class SentryProvider extends BaseProvider {
       enableLogs: true,
       skipOpenTelemetrySetup: true,
       tracesSampleRate: this.getTracesSampleRate(),
-      profilesSampleRate: 0, // Not supported in Bun
+      profilesSampleRate: 0, // Profiling needs @sentry/profiling-node, not installed
       release: env.public.version || 'dev',
 
       // Server-side integrations

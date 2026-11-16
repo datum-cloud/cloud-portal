@@ -7,8 +7,9 @@
  * `import()`, which carries the session cookie, and plugins only render inside
  * the authenticated project shell.
  *
- * - `GET /api/plugins`         → sanitized plugin list
- * - `ALL /api/plugins/:slug/*` → asset proxy
+ * - `GET /api/plugins?projectId=` → sanitized plugin list, filtered to what
+ *   the project is entitled to (see `filterEntitledPlugins`)
+ * - `ALL /api/plugins/:slug/*`    → asset proxy
  *
  * Plugin API calls are NOT mediated here — every call a plugin issues goes
  * through the portal's existing Milo control-plane proxy (`/api/proxy/…`,
@@ -17,6 +18,7 @@
  */
 import { toPublicPlugin } from '../sanitize';
 import type { PublicPlugin } from '../types';
+import { filterEntitledPlugins } from './entitlement';
 import { getPlugin, getPlugins } from './index';
 import { withCaBundle } from './plugin-fetch';
 import { logger } from '@/modules/logger';
@@ -84,8 +86,11 @@ export function createPluginRoutes(options: PluginRoutesOptions = {}) {
   routes.use('*', authGuardMiddleware(), options.rateLimiter ?? trafficClassLimiter());
 
   // ── Sanitized list ───────────────────────────────────────────────────────
-  routes.get('/', (c) => {
-    const plugins = getPlugins()
+  routes.get('/', async (c) => {
+    // Without a project there is no entitlement to check, so Required plugins
+    // are treated as not entitled rather than shown to everyone.
+    const projectId = c.req.query('projectId')?.trim() || undefined;
+    const plugins = (await filterEntitledPlugins(projectId, getPlugins()))
       .map(toPublicPlugin)
       .filter((p): p is PublicPlugin => p !== null);
     return c.json(plugins);

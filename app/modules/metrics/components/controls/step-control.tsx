@@ -1,7 +1,7 @@
 import { METRICS_CONTROL_HEIGHT_CLASS, STEP_OPTIONS } from '@/modules/metrics/constants';
 import { useMetrics } from '@/modules/metrics/context';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
-import { Button } from '@datum-cloud/datum-ui/button';
+import { ButtonGroup, ButtonGroupText } from '@datum-cloud/datum-ui/button-group';
 import {
   Select,
   SelectContent,
@@ -46,22 +46,21 @@ export const StepControl = ({ filterKey = 'step', defaultValue = 'auto' }: StepC
     updateUrlStateEntry(filterKey, step, setStep);
   }, [updateUrlStateEntry, filterKey, step]);
 
+  // ButtonGroup joins the label and the select into one control; both use
+  // datum-ui's field padding and type, so no size overrides beyond height.
+  const currentStep = step || defaultValue;
+  const stepLabel =
+    STEP_OPTIONS.find((option) => option.value === currentStep)?.label ?? currentStep;
+
   return (
-    <div
-      className={cn(
-        'border-input bg-card flex items-stretch overflow-hidden rounded-lg border shadow-none',
-        METRICS_CONTROL_HEIGHT_CLASS
-      )}>
-      <Button
-        type="quaternary"
-        theme="borderless"
-        size="small"
-        className="pointer-events-none h-full w-auto cursor-default rounded-r-none border-r font-medium">
-        Step
-      </Button>
+    <ButtonGroup className={cn('w-full sm:w-fit', METRICS_CONTROL_HEIGHT_CLASS)}>
+      <ButtonGroupText>Step</ButtonGroupText>
       <Select value={step || defaultValue} onValueChange={setStep}>
-        <SelectTrigger className="h-full min-h-0 min-w-10 rounded-l-none border-0 bg-transparent px-2 py-0 shadow-none focus:ring-0">
-          <SelectValue placeholder="Select step" />
+        <SelectTrigger
+          aria-label="Step"
+          className={cn('bg-card flex-1 sm:w-auto sm:flex-initial', METRICS_CONTROL_HEIGHT_CLASS)}>
+          {/* Explicit label so the server render shows it too; Radix fills SelectValue only on the client. */}
+          <SelectValue placeholder="Select step">{stepLabel}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           {STEP_OPTIONS.map((option) => (
@@ -71,6 +70,6 @@ export const StepControl = ({ filterKey = 'step', defaultValue = 'auto' }: StepC
           ))}
         </SelectContent>
       </Select>
-    </div>
+    </ButtonGroup>
   );
 };

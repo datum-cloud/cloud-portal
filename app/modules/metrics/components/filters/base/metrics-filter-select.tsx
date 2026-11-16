@@ -1,16 +1,16 @@
 /**
  * MetricsFilterSelect - Select filter component for metrics with URL state support
- * Delegates UI to shared components:
- * - Multi-select: '@/components/multi-select/multi-select'
+ * Delegates UI to datum-ui so it lines up with the other toolbar controls:
+ * - Multi-select: '@datum-cloud/datum-ui/multi-select'
  * - Single-select: '@datum-cloud/datum-ui/autocomplete'
  */
-import { MultiSelect, type MultiSelectOption } from '@/components/multi-select/multi-select';
 import { METRICS_CONTROL_HEIGHT_CLASS } from '@/modules/metrics/constants';
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import type { FilterOption } from '@/modules/metrics/types/metrics.type';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { Autocomplete, type AutocompleteOption } from '@datum-cloud/datum-ui/autocomplete';
 import { Label } from '@datum-cloud/datum-ui/label';
+import { MultiSelect, type MultiSelectOption } from '@datum-cloud/datum-ui/multi-select';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryState } from 'nuqs';
