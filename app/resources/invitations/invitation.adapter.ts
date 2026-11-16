@@ -3,7 +3,6 @@ import type {
   Invitation,
   InvitationList,
   CreateInvitationInput,
-  InvitationState,
   InvitationOrganization,
   InviterUser,
 } from './invitation.schema';
@@ -56,7 +55,7 @@ export function toInvitation(raw: ComMiloapisIamV1Alpha1UserInvitation): Invitat
     organizationName: spec?.organizationRef?.name ?? '',
     role: spec?.roles?.[0]?.name,
     roleNamespace: spec?.roles?.[0]?.namespace ?? MILO_SYSTEM_ROLE_NAMESPACE,
-    state: (spec?.state ?? 'Pending') as InvitationState,
+    state: spec?.state ?? 'Pending',
     status: status ?? {},
     inviterUser: mapInviterUser(status?.inviterUser),
     organization: mapInvitationOrganization(status?.organization),

@@ -72,7 +72,7 @@ describe('toCreateInvitationPayload', () => {
     const payload = toCreateInvitationPayload('acme', {
       email: 'invitee@acme.com',
       role: 'viewer',
-    } as never);
+    });
 
     expect(payload.kind).toBe('UserInvitation');
     expect(payload.metadata.name).toMatch(/^acme-/);
@@ -87,13 +87,13 @@ describe('toCreateInvitationPayload', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-11-16T12:00:00Z'));
 
-    const payload = toCreateInvitationPayload('acme', { email: 'e@x.com' } as never);
+    const payload = toCreateInvitationPayload('acme', { email: 'e@x.com' });
 
     expect(new Date(payload.spec.expirationDate).toISOString()).toBe('2026-11-23T12:00:00.000Z');
   });
 
   it('adds no annotations to a new invitation', () => {
-    const payload = toCreateInvitationPayload('acme', { email: 'e@x.com' } as never);
+    const payload = toCreateInvitationPayload('acme', { email: 'e@x.com' });
     expect(payload.metadata.annotations).toBeUndefined();
   });
 
@@ -108,7 +108,7 @@ describe('toCreateInvitationPayload', () => {
   });
 
   it('emits an empty roles array when no role is given', () => {
-    const payload = toCreateInvitationPayload('acme', { email: 'e@x.com' } as never);
+    const payload = toCreateInvitationPayload('acme', { email: 'e@x.com' });
     expect(payload.spec.roles).toEqual([]);
   });
 });
