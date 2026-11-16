@@ -1,7 +1,7 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { showDomainInUseToast } from '@/features/edge/domain/domain-in-use-toast';
 import { showMutationErrorToast } from '@/modules/quota';
-import { useResourcePermissions } from '@/modules/rbac';
+import { PermissionGate } from '@/modules/rbac';
 import { type DnsZone } from '@/resources/dns-zones';
 import {
   type Domain,
@@ -76,22 +76,6 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
     },
   });
 
-  const { canUpdate, canDelete, canViewDnsZones, canCreateDnsZones } = useResourcePermissions({
-    resource: 'domains',
-    group: 'networking.datumapis.com',
-    scope: 'project',
-    verbs: ['update', 'delete'],
-    subResources: [
-      {
-        resource: 'dnszones',
-        group: 'dns.networking.miloapis.com',
-        scope: 'project',
-        alias: 'dnsZones',
-        verbs: ['list', 'create'],
-      },
-    ],
-  });
-
   const handleRefreshDomain = () => {
     if (!effectiveDomain?.name) return;
     refreshDomainMutation.mutate(effectiveDomain.name);
@@ -149,7 +133,12 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
 
   return (
     <div className="flex w-full items-center gap-2 sm:w-auto">
-      {canUpdate && (
+      <PermissionGate
+        resource="domains"
+        group="networking.datumapis.com"
+        scope="project"
+        verb="update"
+        mode="hide">
         <Tooltip message={getRefreshCooldownMessage(remainingSeconds)} hidden={!isOnCooldown}>
           <span
             aria-disabled={isOnCooldown}
@@ -170,8 +159,14 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
             </Button>
           </span>
         </Tooltip>
-      )}
-      {(dnsZone ? canViewDnsZones : canCreateDnsZones) && (
+      </PermissionGate>
+      {/* An existing zone only needs to be viewable; setting one up needs create. */}
+      <PermissionGate
+        resource="dnszones"
+        group="dns.networking.miloapis.com"
+        scope="project"
+        verb={dnsZone ? 'list' : 'create'}
+        mode="hide">
         <Button
           type="secondary"
           theme="outline"
@@ -181,8 +176,13 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
           <Icon icon={GlobeIcon} size={14} />
           {dnsZone ? 'Manage DNS Zone' : 'Set up DNS Zone'}
         </Button>
-      )}
-      {canDelete && (
+      </PermissionGate>
+      <PermissionGate
+        resource="domains"
+        group="networking.datumapis.com"
+        scope="project"
+        verb="delete"
+        mode="hide">
         <Button
           type="danger"
           theme="outline"
@@ -194,7 +194,7 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
           <Icon icon={TrashIcon} size={14} />
           <span className="hidden sm:inline">Delete</span>
         </Button>
-      )}
+      </PermissionGate>
     </div>
   );
 }

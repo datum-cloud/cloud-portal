@@ -33,6 +33,7 @@ import {
   type PaymentMethod,
   type ProjectBillingBinding,
 } from '@/features/billing';
+import { listProjectLabelsByOrg } from '@/features/billing/account-billing-data.server';
 import type {
   AddPaymentMethodValues,
   CreatePaymentMethodResult,
@@ -67,7 +68,6 @@ import {
   usePaymentMethodsWatch,
   type CreatePaymentMethodInput,
 } from '@/resources/payment-methods';
-import { createProjectService } from '@/resources/projects/project.service';
 import { waitForStripePaymentMethodSetup } from '@/resources/stripe-payment-methods';
 import {
   createStripeProviderConfigService,
@@ -199,20 +199,7 @@ export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData
     const oid = orgIdFromNamespace(binding.metadata?.namespace);
     if (oid) bindingOrgIds.add(oid);
   }
-  const projectsByOrg: Record<string, Array<{ name: string; displayName: string }>> = {};
-  await Promise.all(
-    Array.from(bindingOrgIds).map(async (oid) => {
-      try {
-        const list = await createProjectService().list(oid);
-        projectsByOrg[oid] = list.items.map((p) => ({
-          name: p.name,
-          displayName: p.displayName ?? p.name,
-        }));
-      } catch {
-        projectsByOrg[oid] = [];
-      }
-    })
-  );
+  const projectsByOrg = await listProjectLabelsByOrg(bindingOrgIds);
 
   const orgs = orgsResult.items.map((o) => ({
     name: o.name,

@@ -1,5 +1,6 @@
 import { getRequestContext } from './request-context';
 import { createUpstreamErrorHandler } from './upstream-error.server';
+import { UPSTREAM_TIMEOUT_MS } from './upstream-timeout';
 import { logger } from '@/modules/logger';
 import { generateCurl } from '@/modules/logger/curl.generator';
 import { LOGGER_CONFIG } from '@/modules/logger/logger.config';
@@ -21,7 +22,7 @@ import Axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'ax
  */
 export const http = Axios.create({
   baseURL: env.public.apiUrl,
-  timeout: 60_000, // 60 seconds
+  timeout: UPSTREAM_TIMEOUT_MS,
 });
 
 const onRequest = (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
