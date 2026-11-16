@@ -6,11 +6,16 @@ import { paths } from '@/utils/config/paths.config';
  * The pending invitations a new user can accept right now: unexpired and
  * addressed to their email. Mirrors the checks the invitation accept page
  * makes, so onboarding never offers a Join button that would then fail.
+ *
+ * Email domain offers (organizations open to everyone at the user's domain)
+ * count only when `includeEmailDomainOffers` is set, which follows
+ * `EMAIL_DOMAIN_JOINING_ENABLED`.
  */
 export function selectJoinableInvitations(
   invitations: Invitation[],
   email: string | undefined,
-  now: Date = new Date()
+  now: Date = new Date(),
+  { includeEmailDomainOffers = false }: { includeEmailDomainOffers?: boolean } = {}
 ): Invitation[] {
   const normalizedEmail = email?.trim().toLowerCase();
   if (!normalizedEmail) return [];
@@ -18,14 +23,13 @@ export function selectJoinableInvitations(
   return invitations.filter(
     (invitation) =>
       invitation.email.trim().toLowerCase() === normalizedEmail &&
-      getUnusableInvitationReason(invitation, now) === null
+      getUnusableInvitationReason(invitation, now) === null &&
+      (includeEmailDomainOffers || !invitation.emailDomain)
   );
 }
 
 /**
- * Set on the account step when the user picks "create my own organization"
- * over their invitations, so the step does not send them straight back.
+ * Where "create my own organization" goes from the invitations step. The
+ * account step comes before invitations, so this skips straight past it.
  */
-export const SKIP_INVITATIONS_PARAM = 'skipInvitations';
-
-export const CREATE_OWN_ORGANIZATION_PATH = `${paths.onboarding.account}?${SKIP_INVITATIONS_PARAM}=1`;
+export const CREATE_OWN_ORGANIZATION_PATH = paths.onboarding.billing;

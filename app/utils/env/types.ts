@@ -42,6 +42,11 @@ export interface PublicEnv {
   // Optional: Feature toggles
   /** Offer customers "Apply for payment terms" (`PAYMENT_TERMS_ENABLED`). Off by default. */
   paymentTermsEnabled: boolean;
+  /**
+   * Let owners offer membership by email domain (`EMAIL_DOMAIN_JOINING_ENABLED`).
+   * Needs milo's EmailDomainJoining feature gate. Off by default.
+   */
+  emailDomainJoiningEnabled: boolean;
 
   // Logging (always has defaults)
   logLevel: 'debug' | 'info' | 'warn' | 'error';

@@ -574,7 +574,8 @@ Cypress.Commands.add('deleteOrganizationIfExists', (orgId: string) => {
 
   cy.visit(getPathWithParams(paths.org.detail.settings.general, { orgId }));
   cy.get('body').then(($body) => {
-    if (!$body.find('[data-e2e="delete-organization-button"]').length) {
+    // Non-owners see the button disabled; only an enabled one can delete.
+    if (!$body.find('[data-e2e="delete-organization-button"]:not([disabled])').length) {
       cy.task('releaseTestOrg', orgId, { log: false });
       return;
     }

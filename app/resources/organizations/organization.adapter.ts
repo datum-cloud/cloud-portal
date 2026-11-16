@@ -17,7 +17,21 @@ type Condition = {
   type: string;
   status: 'True' | 'False' | 'Unknown';
   reason: string;
+  message?: string;
 };
+
+/**
+ * Fields milo added after the control-plane types were last generated. Read
+ * them through this shape until `pnpm openapi` picks them up.
+ */
+type EmailDomainJoiningSpec = {
+  emailDomainJoining?: {
+    domains?: string[];
+    roles?: { name: string; namespace?: string }[];
+  };
+};
+
+const EMAIL_DOMAINS_VERIFIED_CONDITION = 'EmailDomainsVerified';
 
 /** Legacy org types only — unified orgs omit type or send empty values. */
 function normalizeOrganizationType(type: unknown): Organization['type'] | undefined {
@@ -40,6 +54,10 @@ export function toOrganization(raw: ComMiloapisResourcemanagerV1Alpha1Organizati
     memberCount: undefined,
     projectCount: undefined,
     contactInfo: raw.spec?.contactInfo,
+    emailDomainJoining: (raw.spec as EmailDomainJoiningSpec | undefined)?.emailDomainJoining,
+    emailDomainsVerified: (raw.status?.conditions as Condition[] | undefined)?.find(
+      (condition) => condition.type === EMAIL_DOMAINS_VERIFIED_CONDITION
+    ),
   };
 
   return organizationSchema.parse(transformed);
@@ -72,7 +90,7 @@ export function toOrganizationFromMembership(
     createdAt: metadata?.creationTimestamp ?? new Date(),
     updatedAt: metadata?.creationTimestamp,
     type: normalizeOrganizationType(status?.organization?.type),
-    status: mapStatusFromConditions(status?.conditions as Condition[]),
+    status: mapStatusFromConditions(status?.conditions),
     memberCount: undefined,
     projectCount: undefined,
   };

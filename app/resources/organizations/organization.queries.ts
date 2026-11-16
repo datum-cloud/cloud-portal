@@ -1,5 +1,6 @@
 import type {
   Organization,
+  OrganizationEmailDomainJoining,
   OrganizationList,
   CreateOrganizationInput,
   UpdateOrganizationInput,
@@ -111,6 +112,26 @@ export function useUpdateOrganizationContactInfo(
       const [data] = args;
       queryClient.setQueryData(organizationKeys.detail(name), data);
       void queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
+
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+/** Sets or (with null) removes the organization's email domain joining. */
+export function useUpdateOrganizationEmailDomainJoining(
+  name: string,
+  options?: UseMutationOptions<Organization, Error, OrganizationEmailDomainJoining | null>
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (joining: OrganizationEmailDomainJoining | null) =>
+      createOrganizationService().updateEmailDomainJoining(name, joining),
+    ...options,
+    onSuccess: (...args) => {
+      const [data] = args;
+      queryClient.setQueryData(organizationKeys.detail(name), data);
 
       options?.onSuccess?.(...args);
     },

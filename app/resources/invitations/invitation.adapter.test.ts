@@ -1,4 +1,5 @@
 import {
+  isEmailDomainOffer,
   toCreateInvitationPayload,
   toInvitation,
   toInvitationList,
@@ -49,6 +50,28 @@ describe('toInvitation', () => {
       status: { inviterUser: { displayName: '   ' } },
     } as never);
     expect(neither.inviterUser).toBeUndefined();
+  });
+
+  it('marks email domain offers with their domain', () => {
+    const offer = toInvitation({
+      metadata: {
+        name: 'email-domain-user-1',
+        labels: {
+          'iam.miloapis.com/join-method': 'EmailDomain',
+          'iam.miloapis.com/email-domain': 'acme.com',
+        },
+      },
+      spec: { email: 'jane@acme.com', organizationRef: { name: 'acme' } },
+    } as never);
+    expect(offer.emailDomain).toBe('acme.com');
+    expect(isEmailDomainOffer(offer)).toBe(true);
+
+    const sent = toInvitation({
+      metadata: { name: 'acme-abc', labels: { 'iam.miloapis.com/email-domain': 'acme.com' } },
+      spec: { email: 'jane@acme.com' },
+    } as never);
+    expect(sent.emailDomain).toBeUndefined();
+    expect(isEmailDomainOffer(sent)).toBe(false);
   });
 });
 

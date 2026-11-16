@@ -73,9 +73,12 @@ export function InvitationNotificationItem({ notification }: ResourceNotificatio
     }
   };
 
-  // Handle navigation to invitation accept page
+  // Handle navigation to invitation accept page. Pass the organization, since
+  // an email domain offer's name doesn't start with it the way a sent one does.
   const handleNavigate = () => {
-    void navigate(getPathWithParams(paths.invitationAccept, { invitationId: invitation.name }));
+    void navigate(
+      `${getPathWithParams(paths.invitationAccept, { invitationId: invitation.name })}?org=${encodeURIComponent(invitation.organizationName)}`
+    );
   };
 
   const isLoading = acceptMutation.isPending || rejectMutation.isPending;
@@ -83,6 +86,12 @@ export function InvitationNotificationItem({ notification }: ResourceNotificatio
   // Generate title from invitation data
   const inviterName = invitation.inviterUser?.displayName || invitation.invitedBy || 'Someone';
   const orgName = invitation.organization?.displayName || invitation.organizationName;
+  const roleSuffix = invitation.role ? (
+    <>
+      {' '}
+      as <strong>{invitation.role}</strong>
+    </>
+  ) : null;
 
   return (
     <NotificationItemWrapper onNavigate={handleNavigate}>
@@ -90,19 +99,26 @@ export function InvitationNotificationItem({ notification }: ResourceNotificatio
         {/* Avatar */}
         <Avatar className="size-10 shrink-0">
           <AvatarImage src={invitation.inviterUser?.avatar} alt="User" />
-          <AvatarFallback className="bg-muted">{getInitials(inviterName)}</AvatarFallback>
+          <AvatarFallback className="bg-muted">
+            {getInitials(invitation.emailDomain ? orgName : inviterName)}
+          </AvatarFallback>
         </Avatar>
 
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <Text as="div" textColor="default" className="leading-snug">
-            <strong>{inviterName}</strong> has invited you to join <strong>{orgName}</strong>{' '}
-            organization
-            {invitation.role ? (
+            {invitation.emailDomain ? (
               <>
-                {' '}
-                as <strong>{invitation.role}</strong>
+                Your <strong>{invitation.emailDomain}</strong> email address lets you join{' '}
+                <strong>{orgName}</strong> organization
+                {roleSuffix}
               </>
-            ) : null}
+            ) : (
+              <>
+                <strong>{inviterName}</strong> has invited you to join <strong>{orgName}</strong>{' '}
+                organization
+                {roleSuffix}
+              </>
+            )}
           </Text>
 
           {/* Time + Expiry */}

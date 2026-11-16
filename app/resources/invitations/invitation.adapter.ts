@@ -11,6 +11,25 @@ import { MILO_SYSTEM_ROLE_NAMESPACE } from '@/resources/roles/role.constants';
 import { generateRandomString } from '@/utils/helpers/text.helper';
 import { addDays, formatRFC3339 } from 'date-fns';
 
+/** Label milo puts on a UserInvitation its email domain joining controller made. */
+export const JOIN_METHOD_LABEL = 'iam.miloapis.com/join-method';
+/** JOIN_METHOD_LABEL value of an email domain offer. */
+export const JOIN_METHOD_EMAIL_DOMAIN = 'EmailDomain';
+/** Label recording the email domain an offer was made for. */
+export const EMAIL_DOMAIN_LABEL = 'iam.miloapis.com/email-domain';
+
+function mapEmailDomain(labels?: Record<string, string>): string | undefined {
+  if (labels?.[JOIN_METHOD_LABEL] !== JOIN_METHOD_EMAIL_DOMAIN) {
+    return undefined;
+  }
+  return labels[EMAIL_DOMAIN_LABEL] || undefined;
+}
+
+/** Whether milo offered this invitation by email domain, rather than an owner sending it. */
+export function isEmailDomainOffer(invitation: Pick<Invitation, 'emailDomain'>): boolean {
+  return !!invitation.emailDomain;
+}
+
 function mapInviterUser(raw?: {
   displayName?: string;
   emailAddress?: string;
@@ -59,6 +78,7 @@ export function toInvitation(raw: ComMiloapisIamV1Alpha1UserInvitation): Invitat
     status: status ?? {},
     inviterUser: mapInviterUser(status?.inviterUser),
     organization: mapInvitationOrganization(status?.organization),
+    emailDomain: mapEmailDomain(metadata?.labels),
   };
 }
 
