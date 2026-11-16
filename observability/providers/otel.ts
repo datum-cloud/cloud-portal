@@ -147,7 +147,10 @@ export class OtelProvider extends BaseProvider {
   private async initializeSdk(): Promise<boolean> {
     try {
       this.setupLogging();
-      await this.testConnectivity();
+      // Only logs whether the collector answers. Not awaited: the exporter
+      // copes with an unreachable collector, and waiting here held up server
+      // startup for up to 3s whenever the collector was slow or down.
+      void this.testConnectivity();
       await this.createAndStartSdk();
 
       this.isInitialized = true;
