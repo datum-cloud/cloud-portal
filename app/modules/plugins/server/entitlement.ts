@@ -178,7 +178,61 @@ export function createEntitlementChecker(
   };
 }
 
-/** Process-wide checker used by the mount loader. */
+/**
+ * What a project not entitled to `entry` may still see of it: only the
+ * soft-launch nav items (`comingSoon: true`), which exist to advertise the
+ * service before the project has it. Null when the plugin declares none, so
+ * the plugin is left out entirely.
+ */
+function softLaunchOnly(entry: PluginRegistryEntry): PluginRegistryEntry | null {
+  if (!entry.manifest) return null;
+  const comingSoon = entry.manifest.extensions.filter(
+    (ext) =>
+      ext.type === EXTENSION_NAV_PROJECT &&
+      (ext as NavProjectExtension).properties?.comingSoon === true
+  );
+  if (comingSoon.length === 0) return null;
+  return { ...entry, manifest: { ...entry.manifest, extensions: comingSoon } };
+}
+
+/**
+ * The plugin list `GET /api/plugins` serves a project. Plugins that need no
+ * entitlement, and dev-sourced ones, pass through. A Required plugin passes
+ * whole when the project holds a matching Active entitlement; otherwise only
+ * its soft-launch nav items survive (see {@link softLaunchOnly}).
+ *
+ * Fails closed: with no project, or when the lookup fails, every Required
+ * plugin is treated as not entitled. After one failure the rest of the list
+ * skips the lookup, since it would fail the same way.
+ */
+export async function filterEntitledPlugins(
+  projectId: string | undefined,
+  entries: PluginRegistryEntry[],
+  checker: EntitlementChecker = pluginEntitlements
+): Promise<PluginRegistryEntry[]> {
+  let lookupFailed = false;
+  const out: PluginRegistryEntry[] = [];
+  for (const entry of entries) {
+    if (entry.devMode || entry.spec.visibility.entitlement !== 'Required') {
+      out.push(entry);
+      continue;
+    }
+    let entitled = false;
+    if (projectId && !lookupFailed) {
+      try {
+        entitled = await checker.isEntitled(projectId, entry);
+      } catch {
+        // The checker has already logged the failure.
+        lookupFailed = true;
+      }
+    }
+    const visible = entitled ? entry : softLaunchOnly(entry);
+    if (visible) out.push(visible);
+  }
+  return out;
+}
+
+/** Process-wide checker used by the mount loader and the plugin list. */
 export const pluginEntitlements: EntitlementChecker = createEntitlementChecker();
 
 /**

@@ -214,11 +214,24 @@ export function ownerNameForResource(name: string | undefined | null): string {
   if (normalized === '@') return 'apex';
   if (normalized === '*') return 'wildcard';
   if (normalized.startsWith('*.')) {
-    const rest = sanitizeForK8s(normalized.slice(2)).replace(/^\.+|\.+$/g, '');
+    const rest = sanitizeOwnerLabels(normalized.slice(2));
     return rest ? `wildcard-${rest}` : 'wildcard';
   }
-  const sanitized = sanitizeForK8s(normalized).replace(/^\.+|\.+$/g, '');
-  return sanitized || 'apex';
+  return sanitizeOwnerLabels(normalized) || 'apex';
+}
+
+/**
+ * Sanitize each dot-separated label on its own. `sanitizeForK8s` turns `_`
+ * into `-` and only trims hyphens at the ends of the whole string, so a
+ * service label in the middle of a name (`selector._domainkey`) would become
+ * `selector.-domainkey`, which is not a valid DNS-1123 subdomain.
+ */
+function sanitizeOwnerLabels(name: string): string {
+  return sanitizeForK8s(name)
+    .split('.')
+    .map((label) => label.replace(/^-+|-+$/g, ''))
+    .filter(Boolean)
+    .join('.');
 }
 
 /**

@@ -2,6 +2,7 @@ import { ChipsOverflow } from '@/components/chips-overflow';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { ProfileIdentity } from '@/components/profile-identity';
 import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
+import { InvitationExpiry } from '@/features/organization/team/invitation-expiry';
 import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
@@ -13,6 +14,7 @@ import {
   useCancelInvitation,
   useResendInvitation,
   useInvitations,
+  isInvitationExpired,
 } from '@/resources/invitations';
 import {
   createMemberService,
@@ -46,6 +48,7 @@ interface ITeamMember {
     description?: string;
   }[];
   invitationState?: 'Pending' | 'Accepted' | 'Declined';
+  invitationExpiresAt?: string;
   type: 'member' | 'invitation';
   name?: string;
   avatarUrl?: string;
@@ -144,6 +147,7 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
         email: invitation.email ?? '',
         roles: invitation.role ? [{ name: invitation.role, namespace: DATUM_ROLE_NAMESPACE }] : [],
         invitationState: invitation.state,
+        invitationExpiresAt: invitation.expirationDate,
         type: 'invitation' as const,
         name: invitation.name,
       }));
@@ -325,7 +329,13 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
                     className="min-w-48"
                     fallbackIcon={row.original.type === 'invitation' ? UserIcon : undefined}
                     name={name}
-                    subtitle={row.original.type === 'member' ? subtitle : undefined}
+                    subtitle={
+                      row.original.type === 'member' ? (
+                        subtitle
+                      ) : row.original.invitationExpiresAt ? (
+                        <InvitationExpiry expirationDate={row.original.invitationExpiresAt} />
+                      ) : undefined
+                    }
                     size="xs"
                   />
                 </RowSyncName>
@@ -339,15 +349,20 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
                 )}
               </div>
 
-              {row.original.type === 'invitation' && (
-                <Badge
-                  type={row.original.invitationState === 'Pending' ? 'warning' : 'primary'}
-                  theme={row.original.invitationState === 'Pending' ? 'light' : 'solid'}>
-                  {row.original.invitationState === 'Pending'
-                    ? 'Invited'
-                    : row.original.invitationState}
-                </Badge>
-              )}
+              {row.original.type === 'invitation' &&
+                (isInvitationExpired(row.original.invitationExpiresAt) ? (
+                  <Badge type="danger" theme="light">
+                    Expired
+                  </Badge>
+                ) : (
+                  <Badge
+                    type={row.original.invitationState === 'Pending' ? 'warning' : 'primary'}
+                    theme={row.original.invitationState === 'Pending' ? 'light' : 'solid'}>
+                    {row.original.invitationState === 'Pending'
+                      ? 'Invited'
+                      : row.original.invitationState}
+                  </Badge>
+                ))}
             </div>
           );
         },

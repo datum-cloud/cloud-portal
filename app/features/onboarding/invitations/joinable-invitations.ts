@@ -1,3 +1,4 @@
+import { getUnusableInvitationReason } from './invitation-link-status';
 import type { Invitation } from '@/resources/invitations/invitation.schema';
 import { paths } from '@/utils/config/paths.config';
 
@@ -21,9 +22,8 @@ export function selectJoinableInvitations(
 
   return invitations.filter(
     (invitation) =>
-      invitation.state === 'Pending' &&
       invitation.email.trim().toLowerCase() === normalizedEmail &&
-      !(invitation.expirationDate && new Date(invitation.expirationDate) < now) &&
+      getUnusableInvitationReason(invitation, now) === null &&
       (includeEmailDomainOffers || !invitation.emailDomain)
   );
 }

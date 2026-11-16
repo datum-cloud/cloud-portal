@@ -1,6 +1,6 @@
 import { MinimalLayout } from '@/layouts';
 import { requireOwnedBillingOrgs } from '@/modules/billing/billing-access.server';
-import { createOrganizationService } from '@/resources/organizations';
+import { listOrganizationsForRequest } from '@/resources/organizations/organization-request-cache.server';
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { type MetaFunction, Outlet } from 'react-router';
@@ -17,7 +17,7 @@ export const meta: MetaFunction = mergeMeta(() => metaObject('Billing Accounts')
  * billing. A user who owns none of their orgs has nothing to see here.
  */
 export const loader = async () => {
-  const organizations = await createOrganizationService().list();
+  const organizations = await listOrganizationsForRequest();
   await requireOwnedBillingOrgs(organizations.items.map((o) => o.name));
   return null;
 };

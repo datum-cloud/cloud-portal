@@ -1,3 +1,4 @@
+import { INVITATION_LIFETIME_DAYS, INVITATION_RESENT_FROM_ANNOTATION } from './invitation.expiry';
 import type {
   Invitation,
   InvitationList,
@@ -8,7 +9,7 @@ import type {
 import type { ComMiloapisIamV1Alpha1UserInvitation } from '@/modules/control-plane/iam';
 import { MILO_SYSTEM_ROLE_NAMESPACE } from '@/resources/roles/role.constants';
 import { generateRandomString } from '@/utils/helpers/text.helper';
-import { addHours, formatRFC3339 } from 'date-fns';
+import { addDays, formatRFC3339 } from 'date-fns';
 
 /** Label milo puts on a UserInvitation its email domain joining controller made. */
 export const JOIN_METHOD_LABEL = 'iam.miloapis.com/join-method';
@@ -101,7 +102,12 @@ export function toInvitationList(
 export function toCreateInvitationPayload(
   organizationId: string,
   input: CreateInvitationInput
-): { apiVersion: string; kind: string; metadata: { name: string }; spec: any } {
+): {
+  apiVersion: string;
+  kind: string;
+  metadata: { name: string; annotations?: Record<string, string> };
+  spec: any;
+} {
   const roles = input.role
     ? [{ name: input.role, namespace: input.roleNamespace ?? MILO_SYSTEM_ROLE_NAMESPACE }]
     : [];
@@ -111,10 +117,13 @@ export function toCreateInvitationPayload(
     kind: 'UserInvitation',
     metadata: {
       name: `${organizationId}-${generateRandomString(8)}`,
+      ...(input.resentFrom
+        ? { annotations: { [INVITATION_RESENT_FROM_ANNOTATION]: input.resentFrom } }
+        : {}),
     },
     spec: {
       email: input.email,
-      expirationDate: formatRFC3339(addHours(new Date(), 24)), // 24 hours (RFC3339 format)
+      expirationDate: formatRFC3339(addDays(new Date(), INVITATION_LIFETIME_DAYS)),
       organizationRef: { name: organizationId },
       roles,
       state: 'Pending',

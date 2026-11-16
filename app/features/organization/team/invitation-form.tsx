@@ -1,5 +1,9 @@
 import { SelectRole } from '@/components/select-role/select-role';
-import { invitationFormSchema, type InvitationFormSchema } from '@/resources/invitations';
+import {
+  INVITATION_LIFETIME_DAYS,
+  invitationFormSchema,
+  type InvitationFormSchema,
+} from '@/resources/invitations';
 import { toStringArray } from '@/utils/helpers/form-value.helper';
 import {
   Card,
@@ -49,7 +53,10 @@ export const InvitationForm = ({ onSubmit, isSubmitting }: InvitationFormProps) 
     <Card>
       <CardHeader>
         <CardTitle>Invite Member</CardTitle>
-        <CardDescription>Invite a member to your organization.</CardDescription>
+        <CardDescription>
+          Invite a member to your organization. Invitations expire after {INVITATION_LIFETIME_DAYS}{' '}
+          days.
+        </CardDescription>
       </CardHeader>
       <Form.Root
         id="invitation-form"

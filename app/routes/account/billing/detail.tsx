@@ -58,7 +58,7 @@ import {
 import { createBillingArrangementApplicationService } from '@/resources/billing-arrangement-applications';
 import { createInvoiceService, useInvoices, useInvoicesWatch } from '@/resources/invoices';
 import { isUserOrgOwner } from '@/resources/members/member-owner';
-import { createOrganizationService } from '@/resources/organizations/organization.service';
+import { listOrganizationsForRequest } from '@/resources/organizations/organization-request-cache.server';
 import {
   createPaymentMethodService,
   useCreatePaymentMethod,
@@ -137,9 +137,11 @@ export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData
     throw data('Billing account id is required', { status: 400 });
   }
 
-  const orgsResult = await createOrganizationService()
-    .list()
-    .catch(() => ({ items: [], nextCursor: null, hasMore: false }));
+  const orgsResult = await listOrganizationsForRequest().catch(() => ({
+    items: [],
+    nextCursor: null,
+    hasMore: false,
+  }));
   // Only accounts in orgs the user owns: anyone else gets a 404.
   const orgIds = await requireOwnedBillingOrgs(orgsResult.items.map((o) => o.name));
 

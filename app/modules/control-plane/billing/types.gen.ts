@@ -231,6 +231,12 @@ export type ComMiloapisBillingV1Alpha1BillingAccount = {
          */
         amount: string;
         /**
+         * BillingTiming is when a Recurring fee is invoiced: InAdvance at the
+         * start of each period, or InArrears at its end, with that period's
+         * usage. Empty for a OneTime fee, which is invoiced when it's charged.
+         */
+        billingTiming?: 'InAdvance' | 'InArrears';
+        /**
          * ChargeType is OneTime for a fee charged once, when the contract
          * starts, or Recurring for one charged every interval.
          */
@@ -245,14 +251,25 @@ export type ComMiloapisBillingV1Alpha1BillingAccount = {
          */
         displayName?: string;
         /**
-         * Interval is how often a Recurring fee is charged. Empty for a OneTime
-         * fee.
+         * EndsAt is when a Recurring fee with periods stops: the end of its
+         * last period, on the contract's billing day. Empty when the fee has
+         * no end.
          */
-        interval?: 'monthly';
+        endsAt?: string;
+        /**
+         * Interval is how often a Recurring fee is charged (monthly, quarterly
+         * or annual), so amount is per interval. Empty for a OneTime fee.
+         */
+        interval?: 'monthly' | 'quarterly' | 'annual';
         /**
          * Name is the metadata.name of the fee's ServicePricing.
          */
         name: string;
+        /**
+         * Periods is how many intervals a Recurring fee is charged for,
+         * counted from startsAt. Empty when the fee has no end.
+         */
+        periods?: number;
         /**
          * PricingUnit is what amount is per (e.g. "port"), so the fee reads
          * "4 port × $300.00". Empty when the quantity is a count of the fee.
@@ -352,11 +369,12 @@ export type ComMiloapisBillingV1Alpha1BillingAccount = {
          */
         agreementReference?: string;
         /**
-         * CreditLimit is the maximum spend per billing cycle, as a decimal
-         * string in the billing account's currency (e.g. "10000"). Staff are
-         * alerted as the account nears it; it is not a hard cap.
+         * CreditLimit is the most the account should spend per billing cycle,
+         * as a decimal string in the billing account's currency (e.g. "10000").
+         * It is not a hard cap. Optional: nothing enforces it yet, so staff
+         * only set one when finance wants it recorded.
          */
-        creditLimit: string;
+        creditLimit?: string;
         /**
          * NetDays is the number of days after the invoice date that payment
          * is due.
@@ -609,11 +627,12 @@ export type ComMiloapisBillingV1Alpha1BillingArrangement = {
        */
       agreementReference?: string;
       /**
-       * CreditLimit is the maximum spend per billing cycle, as a decimal
-       * string in the billing account's currency (e.g. "10000"). Staff are
-       * alerted as the account nears it; it is not a hard cap.
+       * CreditLimit is the most the account should spend per billing cycle,
+       * as a decimal string in the billing account's currency (e.g. "10000").
+       * It is not a hard cap. Optional: nothing enforces it yet, so staff
+       * only set one when finance wants it recorded.
        */
-      creditLimit: string;
+      creditLimit?: string;
       /**
        * NetDays is the number of days after the invoice date that payment
        * is due.
@@ -2095,6 +2114,17 @@ export type ComMiloapisBillingV1Alpha1Offer = {
      */
     servicePricingRefs?: Array<{
       /**
+       * BillingTiming is when a Recurring fee is invoiced: InArrears at the
+       * end of each period with that period's usage, or InAdvance at its
+       * start. Unset, the fee is billed in advance, as every fee was before
+       * this field existed; the staff portal sets InArrears on new contract
+       * fees unless staff choose in advance. Only allowed on a Recurring
+       * pricing: a OneTime fee is always invoiced when it's charged and usage
+       * at the end of the period, and the Offer controller won't publish an
+       * Offer that sets it on either.
+       */
+      billingTiming?: 'InAdvance' | 'InArrears';
+      /**
        * Discount specifies an optional discount override for this service pricing.
        */
       discount?: {
@@ -2113,6 +2143,15 @@ export type ComMiloapisBillingV1Alpha1Offer = {
        */
       namespace?: string;
       /**
+       * Periods is how many of its intervals a Recurring fee is charged for,
+       * counted from the contract's start: 36 on a monthly fee is three
+       * years, and 4 on an annual fee is four. The fee stops after its last
+       * period. Unset, it's charged for as long as the account is on the
+       * Offer. Only allowed on a Recurring pricing: the Offer controller
+       * won't publish an Offer that sets it on any other.
+       */
+      periods?: number;
+      /**
        * Quantity is how many of a OneTime or Recurring fee the Offer charges:
        * the fee's amount times its quantity, such as three servers at the
        * same monthly price. Defaults to 1. Not allowed on a Usage pricing,
@@ -2128,6 +2167,13 @@ export type ComMiloapisBillingV1Alpha1Offer = {
      */
     servicePricings?: Array<{
       /**
+       * BillingTiming is when a Recurring fee is invoiced, captured from the
+       * reference when the Offer becomes GA, and only when the reference sets
+       * it. Providers bill a Recurring snapshot without it in advance. Unset
+       * for OneTime and Usage pricings.
+       */
+      billingTiming?: 'InAdvance' | 'InArrears';
+      /**
        * Discount is the resolved discount for this service pricing snapshot,
        * captured when the Offer becomes GA.
        */
@@ -2141,6 +2187,12 @@ export type ComMiloapisBillingV1Alpha1Offer = {
        * Name is the metadata.name of the source ServicePricing.
        */
       name: string;
+      /**
+       * Periods is how many of its intervals a Recurring fee is charged for,
+       * counted from the contract's start, captured from the reference when
+       * the Offer becomes GA. Unset when the fee has no end.
+       */
+      periods?: number;
       /**
        * Quantity is how many of a OneTime or Recurring fee the Offer charges,
        * captured from the reference when the Offer becomes GA: 1 unless the
@@ -2186,9 +2238,11 @@ export type ComMiloapisBillingV1Alpha1Offer = {
          */
         displayName?: string;
         /**
-         * Interval is the cadence for a Recurring charge.
+         * Interval is the cadence for a Recurring charge: monthly, quarterly
+         * or annual. It's the fee's own, so an Offer billed monthly can charge
+         * an annual fee once a year, on the account's billing day.
          */
-        interval?: 'monthly';
+        interval?: 'monthly' | 'quarterly' | 'annual';
         /**
          * Metric is the meterName of the MeterDefinition a Usage pricing
          * selects (e.g. "compute.datumapis.com/instance/cpu-allocated").
@@ -2847,9 +2901,11 @@ export type ComMiloapisBillingV1Alpha1ServicePricing = {
      */
     displayName?: string;
     /**
-     * Interval is the cadence for a Recurring charge.
+     * Interval is the cadence for a Recurring charge: monthly, quarterly
+     * or annual. It's the fee's own, so an Offer billed monthly can charge
+     * an annual fee once a year, on the account's billing day.
      */
-    interval?: 'monthly';
+    interval?: 'monthly' | 'quarterly' | 'annual';
     /**
      * Metric is the meterName of the MeterDefinition a Usage pricing
      * selects (e.g. "compute.datumapis.com/instance/cpu-allocated").
