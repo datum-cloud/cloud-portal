@@ -1,5 +1,7 @@
+import { AskPatchBar, firstRunPatchPrompts } from './ask-patch-card';
 import { HomeColumns } from './home-columns';
-import { findNetworksPlugin } from './home-mode';
+import { findNetworksPlugin, freeTextPrompt } from './home-mode';
+import { HomeBodySkeleton } from './home-skeleton';
 import { InlinePatch } from './inline-patch';
 import { NetworkSummary } from './network-summary';
 import { NextSuggestions } from './next-suggestions';
@@ -92,6 +94,15 @@ export function ProjectHomeBody({ projectId }: { projectId: string }) {
         setInlinePatch({ prompt: { id: crypto.randomUUID(), text: prompt } });
       }
     : undefined;
+  // A project with nothing built has nothing to search, so Patch takes the
+  // search box's place. It opens in the side dock there, leaving the setup
+  // steps in view while the conversation runs.
+  const askPatchInDock = patch.widget
+    ? (prompt: string) => {
+        trackAction(AnalyticsAction.FirstRunAskPatch);
+        patch.openInDock({ prompt });
+      }
+    : undefined;
   const inline =
     inlinePatch && patch.widget ? (
       <InlinePatch
@@ -136,10 +147,7 @@ export function ProjectHomeBody({ projectId }: { projectId: string }) {
   // columns) depends on what the project has, so hold a neutral placeholder
   // until that's known rather than showing one layout and snapping to another.
   const body = loading ? (
-    <div className="flex flex-col gap-4" role="status" aria-label="Loading project">
-      <Skeleton className="h-10 w-full rounded-xl" />
-      <Skeleton className="h-64 w-full rounded-xl" />
-    </div>
+    <HomeBodySkeleton />
   ) : showHero && hero ? (
     <div className="flex flex-col gap-4">
       <ProjectHomePluginHero hero={hero} />
@@ -178,7 +186,7 @@ export function ProjectHomeBody({ projectId }: { projectId: string }) {
             }
             onCreateNetwork={createNetwork}
             onTool={onTool}
-            onAskPatch={askPatch}
+            hasPatch={!!patch.widget}
           />
         )
       ) : (
@@ -208,25 +216,40 @@ export function ProjectHomeBody({ projectId }: { projectId: string }) {
     // With Patch in the page the conversation is the focus: the search steps
     // aside and the sections sit closer together.
     <div className={cn('flex flex-col', inline ? 'gap-5' : 'gap-6')}>
-      {!inline && <ProjectSearchBar variant="hero" />}
+      {inline ? null : loading ? (
+        // Search or Patch goes here once it's known which; hold the place.
+        <Skeleton className="h-10 w-full rounded-xl" aria-hidden />
+      ) : setup.isFresh && askPatchInDock ? (
+        <AskPatchBar
+          placeholder="Ask Patch what you want to build..."
+          // The ready questions wait until the network step is done or skipped.
+          prompts={showPathChoice ? firstRunPatchPrompts(networkName) : undefined}
+          onAsk={askPatchInDock}
+          onAskText={(text) => askPatchInDock(freeTextPrompt(text, networkName))}
+        />
+      ) : (
+        <ProjectSearchBar variant="hero" />
+      )}
       {showHealth && (
-        <div className="flex items-center gap-4">
-          <ProjectHealth projectId={projectId} className="min-w-0 flex-1" />
-          {networks && (
-            <NetworkSummary
-              networks={networks}
-              networkHref={
-                networksSlug
-                  ? (name) => pluginHref(projectId, networksSlug, `networks/${name}`)
-                  : undefined
-              }
-              networksHref={
-                networksSlug ? pluginHref(projectId, networksSlug, 'networks') : undefined
-              }
-              onCreateNetwork={createNetwork}
-            />
-          )}
-        </div>
+        <ProjectHealth
+          projectId={projectId}
+          trailing={
+            networks &&
+            networks.length > 0 && (
+              <NetworkSummary
+                networks={networks}
+                networkHref={
+                  networksSlug
+                    ? (name) => pluginHref(projectId, networksSlug, `networks/${name}`)
+                    : undefined
+                }
+                networksHref={
+                  networksSlug ? pluginHref(projectId, networksSlug, 'networks') : undefined
+                }
+              />
+            )
+          }
+        />
       )}
       {body}
       <HttpProxyFormDialog
