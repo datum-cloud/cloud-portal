@@ -20,6 +20,7 @@ import { logger } from '@/modules/logger';
 import { createBillingAccountService } from '@/resources/billing-accounts';
 import { createBillingArrangementApplicationService } from '@/resources/billing-arrangement-applications';
 import { isUserOrgOwner } from '@/resources/members/member-owner';
+import { listOrganizationsForRequest } from '@/resources/organizations/organization-request-cache.server';
 import { createOrganizationService } from '@/resources/organizations/organization.service';
 import { createPaymentMethodService } from '@/resources/payment-methods';
 import { createStripeProviderConfigService } from '@/resources/stripe-provider-configs';
@@ -56,7 +57,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
     const url = new URL(request.url);
     const requestedOrgId = url.searchParams.get('orgId')?.trim() || undefined;
 
-    const organizations = await createOrganizationService().list();
+    const organizations = await listOrganizationsForRequest();
     const org = requestedOrgId
       ? (organizations.items.find((item) => item.name === requestedOrgId) ??
         (await createOrganizationService()

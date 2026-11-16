@@ -282,6 +282,12 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
                     type: 'string',
                     pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
                   },
+                  billingTiming: {
+                    description:
+                      "BillingTiming is when a Recurring fee is invoiced: InAdvance at the\nstart of each period, or InArrears at its end, with that period's\nusage. Empty for a OneTime fee, which is invoiced when it's charged.",
+                    type: 'string',
+                    enum: ['InAdvance', 'InArrears'],
+                  },
                   chargeType: {
                     description:
                       'ChargeType is OneTime for a fee charged once, when the contract\nstarts, or Recurring for one charged every interval.',
@@ -305,17 +311,30 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
                     type: 'string',
                     maxLength: 128,
                   },
+                  endsAt: {
+                    description:
+                      "EndsAt is when a Recurring fee with periods stops: the end of its\nlast period, on the contract's billing day. Empty when the fee has\nno end.",
+                    type: 'string',
+                    format: 'date-time',
+                  },
                   interval: {
                     description:
-                      'Interval is how often a Recurring fee is charged. Empty for a OneTime\nfee.',
+                      'Interval is how often a Recurring fee is charged (monthly, quarterly\nor annual), so amount is per interval. Empty for a OneTime fee.',
                     type: 'string',
-                    enum: ['monthly'],
+                    enum: ['monthly', 'quarterly', 'annual'],
                   },
                   name: {
                     description: "Name is the metadata.name of the fee's ServicePricing.",
                     type: 'string',
                     maxLength: 253,
                     minLength: 1,
+                  },
+                  periods: {
+                    description:
+                      'Periods is how many intervals a Recurring fee is charged for,\ncounted from startsAt. Empty when the fee has no end.',
+                    type: 'integer',
+                    format: 'int32',
+                    minimum: 1,
                   },
                   pricingUnit: {
                     description:
@@ -433,7 +452,6 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
             invoice: {
               description: 'Invoice carries the invoice terms when type is Invoice.',
               type: 'object',
-              required: ['creditLimit'],
               properties: {
                 accountsPayableEmail: {
                   description:
@@ -449,7 +467,7 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
                 },
                 creditLimit: {
                   description:
-                    'CreditLimit is the maximum spend per billing cycle, as a decimal\nstring in the billing account\'s currency (e.g. "10000"). Staff are\nalerted as the account nears it; it is not a hard cap.',
+                    'CreditLimit is the most the account should spend per billing cycle,\nas a decimal string in the billing account\'s currency (e.g. "10000").\nIt is not a hard cap. Optional: nothing enforces it yet, so staff\nonly set one when finance wants it recorded.',
                   type: 'string',
                   pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
                 },
@@ -823,7 +841,6 @@ export const com_miloapis_billing_v1alpha1_BillingArrangementSchema = {
         invoice: {
           description: 'Invoice carries the invoice terms. Required when type is Invoice.',
           type: 'object',
-          required: ['creditLimit'],
           properties: {
             accountsPayableEmail: {
               description:
@@ -839,7 +856,7 @@ export const com_miloapis_billing_v1alpha1_BillingArrangementSchema = {
             },
             creditLimit: {
               description:
-                'CreditLimit is the maximum spend per billing cycle, as a decimal\nstring in the billing account\'s currency (e.g. "10000"). Staff are\nalerted as the account nears it; it is not a hard cap.',
+                'CreditLimit is the most the account should spend per billing cycle,\nas a decimal string in the billing account\'s currency (e.g. "10000").\nIt is not a hard cap. Optional: nothing enforces it yet, so staff\nonly set one when finance wants it recorded.',
               type: 'string',
               pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
             },
@@ -3062,6 +3079,12 @@ export const com_miloapis_billing_v1alpha1_OfferSchema = {
             type: 'object',
             required: ['name'],
             properties: {
+              billingTiming: {
+                description:
+                  "BillingTiming is when a Recurring fee is invoiced: InArrears at the\nend of each period with that period's usage, or InAdvance at its\nstart. Unset, the fee is billed in advance, as every fee was before\nthis field existed; the staff portal sets InArrears on new contract\nfees unless staff choose in advance. Only allowed on a Recurring\npricing: a OneTime fee is always invoiced when it's charged and usage\nat the end of the period, and the Offer controller won't publish an\nOffer that sets it on either.",
+                type: 'string',
+                enum: ['InAdvance', 'InArrears'],
+              },
               discount: {
                 description:
                   'Discount specifies an optional discount override for this service pricing.',
@@ -3089,6 +3112,14 @@ export const com_miloapis_billing_v1alpha1_OfferSchema = {
                 type: 'string',
                 maxLength: 63,
               },
+              periods: {
+                description:
+                  "Periods is how many of its intervals a Recurring fee is charged for,\ncounted from the contract's start: 36 on a monthly fee is three\nyears, and 4 on an annual fee is four. The fee stops after its last\nperiod. Unset, it's charged for as long as the account is on the\nOffer. Only allowed on a Recurring pricing: the Offer controller\nwon't publish an Offer that sets it on any other.",
+                type: 'integer',
+                format: 'int32',
+                maximum: 1200,
+                minimum: 1,
+              },
               quantity: {
                 description:
                   "Quantity is how many of a OneTime or Recurring fee the Offer charges:\nthe fee's amount times its quantity, such as three servers at the\nsame monthly price. Defaults to 1. Not allowed on a Usage pricing,\nwhose quantity is what was used: the Offer controller won't publish\nan Offer that sets it there.",
@@ -3112,6 +3143,12 @@ export const com_miloapis_billing_v1alpha1_OfferSchema = {
             type: 'object',
             required: ['name', 'spec'],
             properties: {
+              billingTiming: {
+                description:
+                  'BillingTiming is when a Recurring fee is invoiced, captured from the\nreference when the Offer becomes GA, and only when the reference sets\nit. Providers bill a Recurring snapshot without it in advance. Unset\nfor OneTime and Usage pricings.',
+                type: 'string',
+                enum: ['InAdvance', 'InArrears'],
+              },
               discount: {
                 description:
                   'Discount is the resolved discount for this service pricing snapshot,\ncaptured when the Offer becomes GA.',
@@ -3132,6 +3169,14 @@ export const com_miloapis_billing_v1alpha1_OfferSchema = {
                 type: 'string',
                 maxLength: 253,
                 minLength: 1,
+              },
+              periods: {
+                description:
+                  "Periods is how many of its intervals a Recurring fee is charged for,\ncounted from the contract's start, captured from the reference when\nthe Offer becomes GA. Unset when the fee has no end.",
+                type: 'integer',
+                format: 'int32',
+                maximum: 1200,
+                minimum: 1,
               },
               quantity: {
                 description:
@@ -3177,9 +3222,10 @@ export const com_miloapis_billing_v1alpha1_OfferSchema = {
                     maxLength: 128,
                   },
                   interval: {
-                    description: 'Interval is the cadence for a Recurring charge.',
+                    description:
+                      "Interval is the cadence for a Recurring charge: monthly, quarterly\nor annual. It's the fee's own, so an Offer billed monthly can charge\nan annual fee once a year, on the account's billing day.",
                     type: 'string',
-                    enum: ['monthly'],
+                    enum: ['monthly', 'quarterly', 'annual'],
                   },
                   metric: {
                     description:
@@ -4050,9 +4096,10 @@ export const com_miloapis_billing_v1alpha1_ServicePricingSchema = {
           maxLength: 128,
         },
         interval: {
-          description: 'Interval is the cadence for a Recurring charge.',
+          description:
+            "Interval is the cadence for a Recurring charge: monthly, quarterly\nor annual. It's the fee's own, so an Offer billed monthly can charge\nan annual fee once a year, on the account's billing day.",
           type: 'string',
-          enum: ['monthly'],
+          enum: ['monthly', 'quarterly', 'annual'],
         },
         metric: {
           description:

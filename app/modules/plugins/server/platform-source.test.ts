@@ -381,3 +381,66 @@ describe('PlatformSource not-ready retry', () => {
     expect(timers.pending).toHaveLength(1);
   });
 });
+
+describe('PlatformSource.refreshManifests', () => {
+  /** A registry whose plugin host serves whatever `serve` currently returns. */
+  function makeSwappableRegistry() {
+    let serve = () => new Response(JSON.stringify(VALID_MANIFEST), { status: 200 });
+    const fetchImpl = vi.fn(async () => serve());
+    const registry = new PluginRegistry({ fetchImpl: fetchImpl as unknown as typeof fetch });
+    return {
+      registry,
+      fetchImpl,
+      setServe: (next: () => Response) => {
+        serve = next;
+      },
+    };
+  }
+
+  const NEW_MANIFEST = { ...VALID_MANIFEST, version: '1.5.0' };
+
+  test('picks up a manifest-only change without a spec change or re-list', async () => {
+    const { registry, setServe } = makeSwappableRegistry();
+    const { client } = makeClient();
+    const source = new PlatformSource(registry, client, { logger: silentLogger });
+    await source.applyWatchEvent({ type: 'ADDED', object: consumerPortalPluginResource() });
+    expect(registry.getPlugin('compute')?.manifest?.version).toBe('1.4.0');
+
+    setServe(() => new Response(JSON.stringify(NEW_MANIFEST), { status: 200 }));
+    await source.refreshManifests();
+
+    expect(registry.getPlugin('compute')?.manifest?.version).toBe('1.5.0');
+  });
+
+  test('keeps the working manifest while the host is down', async () => {
+    const { registry, setServe } = makeSwappableRegistry();
+    const { client, calls } = makeClient();
+    const source = new PlatformSource(registry, client, { logger: silentLogger });
+    await source.applyWatchEvent({ type: 'ADDED', object: consumerPortalPluginResource() });
+    const patches = calls.length;
+
+    setServe(() => new Response('unavailable', { status: 503 }));
+    await source.refreshManifests();
+
+    expect(registry.getPlugin('compute')?.manifest?.version).toBe('1.4.0');
+    expect(calls).toHaveLength(patches);
+  });
+
+  test('leaves plugins that are not Ready to the not-Ready retry', async () => {
+    const { registry, fetchImpl, setServe } = makeSwappableRegistry();
+    setServe(() => new Response('unavailable', { status: 503 }));
+    const { client } = makeClient();
+    const source = new PlatformSource(registry, client, {
+      logger: silentLogger,
+      retry: manualTimers(),
+    });
+    await source.applyWatchEvent({ type: 'ADDED', object: consumerPortalPluginResource() });
+    const fetches = fetchImpl.mock.calls.length;
+
+    setServe(() => new Response(JSON.stringify(VALID_MANIFEST), { status: 200 }));
+    await source.refreshManifests();
+
+    expect(fetchImpl).toHaveBeenCalledTimes(fetches);
+    expect(registry.getPlugin('compute')).toBeUndefined();
+  });
+});

@@ -53,6 +53,13 @@ const RESOURCE_PATH = `/apis/${CONSUMER_PORTAL_PLUGIN_GROUP}/${CONSUMER_PORTAL_P
 const INITIAL_BACKOFF_MS = 1_000;
 const MAX_BACKOFF_MS = 30_000;
 
+/**
+ * How often Ready plugins' manifests are re-fetched. The watch only reports
+ * resource changes, so a plugin host that ships a new manifest under an
+ * unchanged spec would otherwise stay stale until the next re-list.
+ */
+const DEFAULT_MANIFEST_REFRESH_MS = 5 * 60_000;
+
 export interface PlatformSourceOptions {
   /** Best-effort status writes; disable if the client lacks status permission. */
   patchStatus?: boolean;
@@ -61,6 +68,8 @@ export interface PlatformSourceOptions {
   delay?: (ms: number) => Promise<void>;
   /** Backoff and timers for retrying plugins that resolved as not Ready. */
   retry?: NotReadyRetryOptions;
+  /** Interval for re-fetching Ready plugins' manifests; 0 disables it. */
+  manifestRefreshMs?: number;
 }
 
 function nonEmptyString(value: unknown): string | undefined {
@@ -150,6 +159,8 @@ export class PlatformSource {
   /** Resource name → the latest copy seen, so a retry reconciles current state. */
   private readonly lastResource = new Map<string, ConsumerPortalPluginResource>();
   private readonly notReadyRetry: NotReadyRetry;
+  private readonly manifestRefreshMs: number;
+  private refreshTimer: ReturnType<typeof setInterval> | undefined;
   private stopped = false;
 
   constructor(registry: PluginRegistry, client: KubeClient, options: PlatformSourceOptions = {}) {
@@ -163,17 +174,53 @@ export class PlatformSource {
       this.logger,
       options.retry
     );
+    this.manifestRefreshMs = options.manifestRefreshMs ?? DEFAULT_MANIFEST_REFRESH_MS;
   }
 
   /** Starts the list+watch loop in the background (does not block boot). */
   start(): void {
     void this.listAndWatchLoop();
+    if (this.manifestRefreshMs > 0) {
+      this.refreshTimer = setInterval(() => void this.refreshManifests(), this.manifestRefreshMs);
+      // Don't keep the process alive solely for manifest refreshes.
+      this.refreshTimer.unref?.();
+    }
   }
 
   stop(): void {
     this.stopped = true;
     this.abort.abort();
     this.notReadyRetry.stop();
+    if (this.refreshTimer !== undefined) clearInterval(this.refreshTimer);
+  }
+
+  /**
+   * Re-fetches every Ready plugin's manifest and swaps in the ones whose
+   * digest changed. Plugins that are not Ready are left to the not-Ready
+   * retry. Only fetches manifests; never calls the control plane, except for
+   * the status patch of a plugin whose manifest changed. Exposed for tests.
+   */
+  async refreshManifests(): Promise<void> {
+    for (const [name, resource] of [...this.lastResource]) {
+      if (this.stopped) return;
+      const spec = specFromConsumerPortalPlugin(resource, this.logger);
+      if (!spec) continue;
+      try {
+        const entry = await this.registry.refresh('platform', spec);
+        if (!entry) continue;
+        this.logger.info(`[plugins] picked up a new manifest for "${spec.slug}"`);
+        if (this.patchStatusEnabled) {
+          await this.patchStatus(
+            name,
+            resource.metadata?.generation,
+            entry.status,
+            resource.status?.conditions
+          );
+        }
+      } catch (err) {
+        this.logger.warn(`[plugins] manifest refresh for "${name}" failed: ${String(err)}`);
+      }
+    }
   }
 
   private async listAndWatchLoop(): Promise<void> {

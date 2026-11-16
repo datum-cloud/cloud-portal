@@ -21,7 +21,8 @@ export function ProjectHomePluginColumn({
       href={href}
       testId={`project-home-plugin-${plugin.slug}`}
       // Plugin bodies set their own height, so they scroll inside the fixed-height body.
-      bodyClassName="overflow-y-auto">
+      bodyClassName="overflow-y-auto"
+      card>
       <PluginErrorBoundary
         slug={plugin.slug}
         displayName={plugin.displayName}
@@ -29,7 +30,7 @@ export function ProjectHomePluginColumn({
         <LazyPluginComponent
           pluginRef={pluginRef}
           codeRef={component.$codeRef}
-          fallback={<ResourceColumnSkeleton label={title} />}
+          fallback={<ResourceColumnSkeleton label={title} rows={3} />}
         />
       </PluginErrorBoundary>
     </ResourceColumnFrame>

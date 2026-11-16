@@ -1,7 +1,7 @@
 import type { Member } from './member.schema';
 import { createMemberService } from './member.service';
 import type { ComMiloapisResourcemanagerV1Alpha1OrganizationMembership } from '@/modules/control-plane/resource-manager';
-import { createOrganizationService } from '@/resources/organizations';
+import { listMembershipsForRequest } from '@/resources/organizations/organization-request-cache.server';
 
 /** Role names that grant organization ownership. Mirrors the team page check. */
 export const ORG_OWNER_ROLE_NAMES = ['owner', 'datum-cloud-owner'];
@@ -39,16 +39,21 @@ export function selectOrgOwners(members: Member[]): OrgOwnerContact[] {
     }));
 }
 
-/** Whether the signed-in user owns the given organization. */
+/**
+ * Whether the signed-in user owns the given organization. Server-only: reads
+ * the per-request membership list, which the layouts already fetch.
+ */
 export async function isUserOrgOwner(orgId: string): Promise<boolean> {
-  const membership = await createOrganizationService().fetchMembershipForOrganization(orgId);
-  return membershipHasOwnerRole(membership);
+  const { items } = await listMembershipsForRequest();
+  return membershipHasOwnerRole(
+    items.find((membership) => membership.spec?.organizationRef?.name === orgId)
+  );
 }
 
-/** Names of the organizations the signed-in user owns. */
+/** Names of the organizations the signed-in user owns. Server-only, as above. */
 export async function listOwnedOrgIds(): Promise<string[]> {
-  const memberships = await createOrganizationService().fetchMemberships();
-  return memberships
+  const { items } = await listMembershipsForRequest();
+  return items
     .filter(membershipHasOwnerRole)
     .map((membership) => membership.spec?.organizationRef?.name)
     .filter((name): name is string => Boolean(name));

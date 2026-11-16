@@ -91,7 +91,7 @@ describe('authMiddleware > concurrent readers', () => {
     // already running by the time `cachedUser` / `hasOrganizations` get written,
     // and fetched the identical pair. Joining the same `oncePerRequest` keys is
     // what collapses them. A regression here shows up as a doubled
-    // UserService.get and a doubled `list({ limit: 1 })` per request.
+    // UserService.get and a doubled membership list per request.
     await withRequestContext({ requestId: 'r1', token: 't' }, async () => {
       const middleware = authMiddleware(
         ctx('http://localhost/account/organizations'),
@@ -103,7 +103,7 @@ describe('authMiddleware > concurrent readers', () => {
       // has written anything back to the context.
       const loader = Promise.all([
         oncePerRequest(requestCacheKeys.userAccess('u1'), loadUser),
-        oncePerRequest(requestCacheKeys.anyOrganizations, listOrganizations),
+        oncePerRequest(requestCacheKeys.allOrganizations, listOrganizations),
       ]);
 
       await Promise.all([middleware, loader]);

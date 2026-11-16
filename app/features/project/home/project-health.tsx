@@ -9,7 +9,7 @@ import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ChevronDown, CircleCheck, CircleX, TriangleAlert } from 'lucide-react';
-import { useId, useState } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 
 const LIST_OPTIONS = { staleTime: QUERY_STALE_TIME } as const;
@@ -25,13 +25,26 @@ function severityIcon(severity: AttentionItem['severity']) {
 /**
  * One line that says whether anything in the project needs a person: an
  * unverified domain, a failing DNS zone or load balancer, a quota that's
- * nearly used up. The bar is always drawn at the same height, so it never
+ * nearly used up. The strip is always drawn at the same height, so it never
  * pushes the page down when the answer arrives; the full list only opens
  * when someone asks for it.
  *
+ * It is one neutral strip in every state: the icon's colour carries the
+ * severity, and `trailing` (the network summary) shares the line after a
+ * divider, so the page has a single status row.
+ *
  * It reads the same queries as the columns below, so it costs no extra requests.
  */
-export function ProjectHealth({ projectId, className }: { projectId: string; className?: string }) {
+export function ProjectHealth({
+  projectId,
+  className,
+  trailing,
+}: {
+  projectId: string;
+  className?: string;
+  /** Shown at the right end of the strip, after a divider. */
+  trailing?: ReactNode;
+}) {
   const listId = useId();
   const [expanded, setExpanded] = useState(false);
 
@@ -56,19 +69,10 @@ export function ProjectHealth({ projectId, className }: { projectId: string; cla
     <section
       aria-label="Project health"
       aria-busy={isLoading}
-      // A healthy project gets a plain status line, so it doesn't read as a
-      // second box under the search; only problems get a tinted container.
-      className={cn(
-        'overflow-hidden rounded-xl',
-        className,
-        first &&
-          (hasErrors
-            ? 'border-destructive/30 bg-destructive/5 border'
-            : 'border border-amber-500/30 bg-amber-500/5')
-      )}
+      className={cn('bg-card overflow-hidden rounded-xl border', className)}
       data-testid="project-home-health">
       {/* One height in every state, so the page never shifts when the answer arrives. */}
-      <div className={cn('flex h-9 items-center gap-3', first ? 'px-4' : 'px-1')}>
+      <div className="flex h-10 items-center gap-3 px-4">
         {isLoading ? (
           <>
             <Skeleton className="size-4 shrink-0 rounded-full" />
@@ -104,7 +108,7 @@ export function ProjectHealth({ projectId, className }: { projectId: string; cla
                 aria-expanded={expanded}
                 aria-controls={listId}
                 onClick={() => setExpanded((open) => !open)}
-                className="text-muted-foreground hover:text-foreground ml-auto flex shrink-0 items-center gap-1 text-xs">
+                className="text-muted-foreground hover:text-foreground flex shrink-0 items-center gap-1 text-xs">
                 {expanded ? 'Hide' : 'Show all'}
                 <Icon
                   icon={ChevronDown}
@@ -116,9 +120,14 @@ export function ProjectHealth({ projectId, className }: { projectId: string; cla
             )}
           </>
         )}
+        {trailing && (
+          <span className="ml-auto flex min-w-0 shrink-0 items-center gap-3 border-l pl-4">
+            {trailing}
+          </span>
+        )}
       </div>
       {expanded && items.length > 1 && (
-        <ul id={listId} className="flex flex-col border-t border-inherit p-1.5">
+        <ul id={listId} className="flex flex-col border-t p-1.5">
           {items.map((item) => (
             <li key={item.key}>
               <Link
