@@ -1,15 +1,15 @@
+import { INVITATION_LIFETIME_DAYS, INVITATION_RESENT_FROM_ANNOTATION } from './invitation.expiry';
 import type {
   Invitation,
   InvitationList,
   CreateInvitationInput,
-  InvitationState,
   InvitationOrganization,
   InviterUser,
 } from './invitation.schema';
 import type { ComMiloapisIamV1Alpha1UserInvitation } from '@/modules/control-plane/iam';
 import { MILO_SYSTEM_ROLE_NAMESPACE } from '@/resources/roles/role.constants';
 import { generateRandomString } from '@/utils/helpers/text.helper';
-import { addHours, formatRFC3339 } from 'date-fns';
+import { addDays, formatRFC3339 } from 'date-fns';
 
 function mapInviterUser(raw?: {
   displayName?: string;
@@ -55,7 +55,7 @@ export function toInvitation(raw: ComMiloapisIamV1Alpha1UserInvitation): Invitat
     organizationName: spec?.organizationRef?.name ?? '',
     role: spec?.roles?.[0]?.name,
     roleNamespace: spec?.roles?.[0]?.namespace ?? MILO_SYSTEM_ROLE_NAMESPACE,
-    state: (spec?.state ?? 'Pending') as InvitationState,
+    state: spec?.state ?? 'Pending',
     status: status ?? {},
     inviterUser: mapInviterUser(status?.inviterUser),
     organization: mapInvitationOrganization(status?.organization),
@@ -82,7 +82,12 @@ export function toInvitationList(
 export function toCreateInvitationPayload(
   organizationId: string,
   input: CreateInvitationInput
-): { apiVersion: string; kind: string; metadata: { name: string }; spec: any } {
+): {
+  apiVersion: string;
+  kind: string;
+  metadata: { name: string; annotations?: Record<string, string> };
+  spec: any;
+} {
   const roles = input.role
     ? [{ name: input.role, namespace: input.roleNamespace ?? MILO_SYSTEM_ROLE_NAMESPACE }]
     : [];
@@ -92,10 +97,13 @@ export function toCreateInvitationPayload(
     kind: 'UserInvitation',
     metadata: {
       name: `${organizationId}-${generateRandomString(8)}`,
+      ...(input.resentFrom
+        ? { annotations: { [INVITATION_RESENT_FROM_ANNOTATION]: input.resentFrom } }
+        : {}),
     },
     spec: {
       email: input.email,
-      expirationDate: formatRFC3339(addHours(new Date(), 24)), // 24 hours (RFC3339 format)
+      expirationDate: formatRFC3339(addDays(new Date(), INVITATION_LIFETIME_DAYS)),
       organizationRef: { name: organizationId },
       roles,
       state: 'Pending',
