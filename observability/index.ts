@@ -330,8 +330,26 @@ export class ObservabilityManager {
 // SINGLETON MANAGEMENT
 // ============================================================================
 
-let singletonManager: ObservabilityManager | null = null;
-let initializationPromise: Promise<InitializationResult> | null = null;
+interface ObservabilityState {
+  manager: ObservabilityManager | null;
+  initialization: Promise<InitializationResult> | null;
+}
+
+/**
+ * The singleton lives on `globalThis`, not in module scope. In production
+ * observability/start.js initializes observability from build/observability,
+ * then loads the server bundle, which carries its own copy of this module.
+ * Module-scoped state gave each copy its own singleton, so the server started
+ * a second OpenTelemetry SDK during boot and @opentelemetry/api reported
+ * duplicate registrations.
+ */
+const STATE_KEY = Symbol.for('datum.cloud-portal.observability');
+
+function getState(): ObservabilityState {
+  const holder = globalThis as typeof globalThis & { [STATE_KEY]?: ObservabilityState };
+  holder[STATE_KEY] ??= { manager: null, initialization: null };
+  return holder[STATE_KEY];
+}
 
 // ============================================================================
 // PUBLIC API
@@ -341,32 +359,33 @@ export function createObservabilityManager(config?: ObservabilityConfig): Observ
   return new ObservabilityManager(config);
 }
 
+/**
+ * Initializes observability once per process. Later calls, from this copy of
+ * the module or another, get the first call's result instead of starting the
+ * providers again.
+ */
 export const initializeObservability = async (
   config?: ObservabilityConfig
 ): Promise<InitializationResult> => {
-  if (initializationPromise) {
-    console.log('📊 Observability initialization already in progress, waiting...');
-    return await initializationPromise;
+  const state = getState();
+
+  if (!state.initialization) {
+    const manager = createObservabilityManager(config);
+    state.manager = manager;
+    state.initialization = manager.initialize();
+  } else {
+    console.log('📊 Observability already initialized in this process, reusing it');
   }
 
-  if (!singletonManager) {
-    initializationPromise = (async () => {
-      try {
-        singletonManager = createObservabilityManager(config);
-        return await singletonManager.initialize();
-      } finally {
-        initializationPromise = null;
-      }
-    })();
-  }
-
-  return await initializationPromise!;
+  return await state.initialization;
 };
 
 export const shutdownObservability = (): void => {
-  if (singletonManager) {
-    singletonManager.shutdown();
-    singletonManager = null;
+  const state = getState();
+  if (state.manager) {
+    state.manager.shutdown();
+    state.manager = null;
+    state.initialization = null;
   }
 };
 
@@ -376,9 +395,7 @@ export const shutdownObservability = (): void => {
  * @param hint - Optional hint object for additional context
  */
 export const captureObservabilityException = (error: Error | any, hint?: any): void => {
-  if (singletonManager) {
-    singletonManager.captureException(error, hint);
-  }
+  getState().manager?.captureException(error, hint);
 };
 
 // ============================================================================

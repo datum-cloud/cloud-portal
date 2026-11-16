@@ -6,6 +6,7 @@ import {
   type UpdateBillingAccountInput,
 } from './billing-account.service';
 import type { BillingAccount } from '@/features/billing/types';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import {
   useMutation,
   useQuery,
@@ -63,6 +64,30 @@ export function useBillingAccount(
     enabled: !!orgId && !!name,
     ...options,
   });
+}
+
+/**
+ * Account queries the billing detail page needs, kept together so the page
+ * cannot accidentally seed the cross-org listing with its single account.
+ *
+ * `accountQuery` seeds only the `(orgId, name)` detail cache. The per-org
+ * `orgAccountsQuery` backs the detail page's "last account in this org"
+ * delete floor and uses a different cache key from the cross-org listing.
+ */
+export function useBillingAccountDetailQueries(
+  orgId: string | undefined,
+  accountName: string | undefined,
+  initialAccount: BillingAccount
+) {
+  const accountQuery = useBillingAccount(orgId, accountName, {
+    initialData: initialAccount,
+    initialDataUpdatedAt: Date.now(),
+    staleTime: QUERY_STALE_TIME,
+  });
+  const orgAccountsQuery = useBillingAccounts(orgId, {
+    staleTime: QUERY_STALE_TIME,
+  });
+  return { accountQuery, orgAccountsQuery };
 }
 
 /** Also writes the cross-org lists (`/account/billing`), which no watch covers directly. */

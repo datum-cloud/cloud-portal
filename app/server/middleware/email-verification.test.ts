@@ -4,8 +4,7 @@ import type { UserAccessResult } from '@/utils/fraud/user-access';
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-// The user loader is the seam — injected rather than mock.module'd, which is
-// process-global in bun and would leak this stub into user-access.test.ts.
+// The user loader is the seam: injected rather than module-mocked.
 let access: UserAccessResult = { user: { sub: 'u1', emailVerified: true } as never };
 
 const loadUser = async (): Promise<UserAccessResult> => access;

@@ -193,7 +193,7 @@ const args = [
   '--disable-storage-reset', // Don't clear cookies between navigations
 ];
 
-const lhChild = spawn('npx', args, { stdio: 'inherit' });
+const lhChild = spawn('pnpm', ['dlx', ...args], { stdio: 'inherit' });
 
 lhChild.on('exit', (code) => {
   chromeProc.kill();

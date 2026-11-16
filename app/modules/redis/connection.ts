@@ -5,12 +5,12 @@ import Redis, { type RedisOptions } from 'ioredis';
 
 // Log Redis configuration on startup
 if (redisConfig.enabled) {
-  logger.info('🔴 Redis: Initializing connection', {
+  logger.info('[redis] Initializing connection', {
     url: redisConfig.url?.replace(/:[^:@]+@/, ':****@'), // Hide password
     keyPrefix: redisConfig.keyPrefix,
   });
 } else {
-  logger.info('🔴 Redis: Disabled (using in-memory rate limiting)', {
+  logger.info('[redis] Disabled, using in-memory rate limiting', {
     reason: 'REDIS_URL not configured',
   });
 }
@@ -29,14 +29,14 @@ export const redisClient: Redis | null = redisConfig.enabled
 
       retryStrategy(times) {
         if (times > redisConfig.maxRetries) {
-          logger.error('🔴 Redis: Max retries reached, giving up', {
+          logger.error('[redis] Max retries reached, giving up', {
             times,
             maxRetries: redisConfig.maxRetries,
           });
           return null; // Stop retrying
         }
         const delay = Math.min(times * 50, 2000);
-        logger.warn('🔴 Redis: Retrying connection', {
+        logger.warn('[redis] Retrying connection', {
           attempt: times,
           maxRetries: redisConfig.maxRetries,
           delayMs: delay,
@@ -49,18 +49,18 @@ export const redisClient: Redis | null = redisConfig.enabled
 // Setup event listeners for observability
 if (redisClient) {
   redisClient.on('connect', () => {
-    logger.info('🔴 Redis: Connected successfully');
+    logger.info('[redis] Connected');
   });
 
   redisClient.on('ready', () => {
-    logger.info('🔴 Redis: Ready to accept commands');
+    logger.info('[redis] Ready to accept commands');
   });
 
   redisClient.on('error', (err) => {
     // Only log meaningful errors (not empty connection errors during retry)
     const errorMessage = err.message || err.toString();
     if (errorMessage && errorMessage !== 'Connection is closed.') {
-      logger.error('🔴 Redis: Connection error', {
+      logger.error('[redis] Connection error', {
         error: errorMessage,
         code: (err as any).code,
         syscall: (err as any).syscall,
@@ -69,15 +69,15 @@ if (redisClient) {
   });
 
   redisClient.on('close', () => {
-    logger.warn('🔴 Redis: Connection closed');
+    logger.warn('[redis] Connection closed');
   });
 
   redisClient.on('reconnecting', () => {
-    logger.info('🔴 Redis: Reconnecting...');
+    logger.info('[redis] Reconnecting');
   });
 
   redisClient.on('end', () => {
-    logger.warn('🔴 Redis: Connection ended');
+    logger.warn('[redis] Connection ended');
   });
 }
 
@@ -86,7 +86,7 @@ function logRelayErrors(connection: Redis, label: string): Redis {
   connection.on('error', (err) => {
     const errorMessage = err.message || err.toString();
     if (errorMessage && errorMessage !== 'Connection is closed.') {
-      logger.error(`🔴 Redis: ${label} connection error`, { error: errorMessage });
+      logger.error(`[redis] ${label} connection error`, { error: errorMessage });
     }
   });
   return connection;
@@ -147,14 +147,14 @@ export async function checkRedisHealth(): Promise<{
     ]);
     const latency = Date.now() - start;
 
-    logger.info('🔴 Redis: Health check passed', { latencyMs: latency });
+    logger.info('[redis] Health check passed', { latencyMs: latency });
     return { available: true, latency };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
     // Only log health check failures if it's not just "connection closed" during startup
     if (errorMessage !== 'Connection is closed.') {
-      logger.error('🔴 Redis: Health check failed', { error: errorMessage });
+      logger.error('[redis] Health check failed', { error: errorMessage });
     }
 
     return { available: false, error: errorMessage };
@@ -163,8 +163,8 @@ export async function checkRedisHealth(): Promise<{
 
 export async function closeRedis(): Promise<void> {
   if (redisClient) {
-    logger.info('🔴 Redis: Closing connection...');
+    logger.info('[redis] Closing connection');
     await redisClient.quit();
-    logger.info('🔴 Redis: Connection closed');
+    logger.info('[redis] Connection closed');
   }
 }

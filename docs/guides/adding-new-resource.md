@@ -32,7 +32,7 @@ app/resources/{resource-name}/
 Use the interactive OpenAPI generator to create type-safe clients:
 
 ```bash
-npm run openapi
+pnpm openapi
 ```
 
 This will:
@@ -50,7 +50,7 @@ This will:
 export API_URL=https://api.datum.net
 export API_TOKEN=your-bearer-token
 
-npm run openapi
+pnpm openapi
 ```
 
 ### Getting a Bearer Token
@@ -452,7 +452,7 @@ app/resources/widgets/
 
 ## Checklist
 
-- [ ] Types generated with `npm run openapi`
+- [ ] Types generated with `pnpm openapi`
 - [ ] Schema created with Zod validation
 - [ ] Adapter transforms API response to domain model
 - [ ] Service implements CRUD operations

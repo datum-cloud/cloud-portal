@@ -9,7 +9,7 @@
  */
 import { invoiceEmail } from './invoice-email';
 import type { BillingAccount, BillingArrangementApplication } from './types';
-import { cycleTerms } from '@/modules/billing/billing-cycle';
+import { cycleTerms, nextCycleStart } from '@/modules/billing/billing-cycle';
 
 export type ApplicationSpec = NonNullable<BillingArrangementApplication['spec']>;
 export type ApplicationPhase = NonNullable<
@@ -162,15 +162,38 @@ export function ordinal(day: number): string {
   }
 }
 
+/** A contract's start day, in UTC as contracts start at midnight UTC: "November 10, 2026". */
+const contractStartDate = (startsAt: number) =>
+  new Intl.DateTimeFormat('en-US', {
+    timeZone: 'UTC',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(startsAt);
+
 /**
  * "Monthly, on the 1st". Follows the contract's billing day once it has
- * started, as the usage cycles do.
+ * started, as the usage cycles do. Before a contract starts it says when the
+ * contract's day takes over: "Monthly, on the 10th from November 10, 2026",
+ * or, when the payment terms still invoice before then, "Monthly, on the 1st
+ * until November 10, 2026, then on the 10th".
  */
 export function billingCycleLabel(account: BillingAccount | undefined, now = Date.now()): string {
   const terms = cycleTerms(account, new Date(now));
   const frequency = terms?.invoiceFrequency ?? 'Monthly';
   const day = terms?.invoiceDayOfMonth ?? 1;
-  return `${frequency}, on the ${ordinal(day)}`;
+  const label = `${frequency}, on the ${ordinal(day)}`;
+
+  const contract = account?.status?.contract;
+  const startsAt = contract ? Date.parse(contract.startsAt) : NaN;
+  if (!contract || Number.isNaN(startsAt) || startsAt <= now) return label;
+
+  const contractDay = ordinal(contract.billingDayOfMonth);
+  const from = contractStartDate(startsAt);
+  if (nextCycleStart(terms, new Date(now)).getTime() >= startsAt) {
+    return `Monthly, on the ${contractDay} from ${from}`;
+  }
+  return `${label} until ${from}, then on the ${contractDay}`;
 }
 
 /**

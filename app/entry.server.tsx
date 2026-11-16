@@ -5,10 +5,9 @@ import { createReadableStreamFromReadable } from '@react-router/node';
 import * as Sentry from '@sentry/react-router';
 import { isbot } from 'isbot';
 import { PassThrough } from 'node:stream';
-// Pinned to the Node build rather than the bare `react-dom/server` specifier.
-// react-router-hono-server v4 has React Router select its server entry from the
-// runtime, and under the Bun adapter `react-dom/server` resolves to
-// `server.browser.js`, which only ships the Web Streams renderer — importing
+// Pinned to the Node build rather than the bare `react-dom/server` specifier,
+// which resolves by runtime condition and on a non-Node runtime lands on
+// `server.browser.js`: only the Web Streams renderer, so importing
 // `renderToPipeableStream` from it fails at load time, not build time.
 // The Node renderer is required here because Sentry's `getMetaTagTransformer`
 // takes a `PassThrough`, so the distributed-tracing meta tags can only be

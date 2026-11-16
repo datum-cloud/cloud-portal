@@ -90,7 +90,7 @@ Understand how data flows through the application.
 With the Network request selected:
 
 1. Note the request path (e.g., `/api/organizations`)
-2. Check your terminal where `npm run dev` is running
+2. Check your terminal where `pnpm dev` is running
 3. Find the matching log entry
 
 **You should see:**
@@ -182,7 +182,7 @@ cat app/modules/datum-ui/components/data-table/README.md | head -100
 ### Task 5.1: Run TypeScript Check
 
 ```bash
-npm run typecheck
+pnpm typecheck
 ```
 
 **Expected:** No errors
@@ -190,7 +190,7 @@ npm run typecheck
 ### Task 5.2: Run Linting
 
 ```bash
-npm run lint
+pnpm lint
 ```
 
 **Expected:** No errors (or auto-fixed)
@@ -198,7 +198,7 @@ npm run lint
 ### Task 5.3: Open Cypress (Optional)
 
 ```bash
-npm run cypress:open
+pnpm cypress:open
 ```
 
 Explore the test structure without running them.

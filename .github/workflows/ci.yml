@@ -14,7 +14,9 @@ permissions:
 
 env:
   CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
-  NPM_CACHE: ~/.npm
+  # Jobs run against the node_modules the install job cached. Fail if it is
+  # missing or stale instead of letting pnpm reinstall before every script.
+  pnpm_config_verify_deps_before_run: error
 
 jobs:
   # ─── Quality ────────────────────────────────────────────────
@@ -28,6 +30,7 @@ jobs:
       app: ${{ steps.changes.outputs.app }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version-file: '.nvmrc'
@@ -35,16 +38,15 @@ jobs:
         id: cache-deps
         with:
           path: |
-            ${{ env.NPM_CACHE }}
             ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/package.json') }}
+          key: ${{ runner.os }}-deps-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', '**/package.json') }}
       - if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts --no-audit --no-fund
+        run: pnpm install --frozen-lockfile --ignore-scripts
       # The cache is saved by this job only, so the Cypress binary has to be
       # fetched here or every Cypress job downloads it again on every run.
       - if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: npx cypress install
+        run: pnpm exec cypress install
       - name: Detect app changes
         id: changes
         env:
@@ -75,17 +77,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version-file: '.nvmrc'
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
-            ${{ env.NPM_CACHE }}
             ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/package.json') }}
-      - run: npm run lint:check && npm run format:check && npm run depcruise
+          key: ${{ runner.os }}-deps-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', '**/package.json') }}
+      - run: pnpm lint:check && pnpm format:check && pnpm depcruise
 
   typecheck:
     name: Type Check
@@ -93,17 +95,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version-file: '.nvmrc'
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
-            ${{ env.NPM_CACHE }}
             ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/package.json') }}
-      - run: npm run typecheck
+          key: ${{ runner.os }}-deps-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', '**/package.json') }}
+      - run: pnpm typecheck
 
   build:
     name: Build
@@ -112,17 +114,17 @@ jobs:
     if: ${{ !failure() && !cancelled() }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version-file: '.nvmrc'
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
-            ${{ env.NPM_CACHE }}
             ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/package.json') }}
-      - run: npm run build
+          key: ${{ runner.os }}-deps-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', '**/package.json') }}
+      - run: pnpm build
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: build-${{ github.sha }}
@@ -136,20 +138,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version-file: '.nvmrc'
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
-            ${{ env.NPM_CACHE }}
             ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/package.json') }}
+          key: ${{ runner.os }}-deps-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', '**/package.json') }}
       # Coverage is reported (text in the log + lcov artifact) but not gated yet.
       # Only files imported by tests are instrumented, so the % reflects the
       # unit-tested surface, not the whole repo.
-      - run: npm run test:coverage
+      - run: pnpm test:coverage
         env:
           NODE_ENV: test
           AUTH_OIDC_ISSUER: ${{ secrets.AUTH_OIDC_ISSUER }}
@@ -168,18 +170,18 @@ jobs:
     if: ${{ !failure() && !cancelled() && needs.install.outputs.app == 'true' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version-file: '.nvmrc'
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
-            ${{ env.NPM_CACHE }}
             ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/package.json') }}
-      - run: npx cypress install && npx cypress verify
-      - run: npm run test:unit:prod
+          key: ${{ runner.os }}-deps-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', '**/package.json') }}
+      - run: pnpm exec cypress install && pnpm exec cypress verify
+      - run: pnpm test:unit:prod
         env:
           NODE_ENV: test
           CYPRESS: 'true'
@@ -200,16 +202,16 @@ jobs:
       SUB: ${{ secrets.SUB }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version-file: '.nvmrc'
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
-            ${{ env.NPM_CACHE }}
             ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/package.json') }}
+          key: ${{ runner.os }}-deps-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', '**/package.json') }}
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: build-${{ github.sha }}
@@ -233,7 +235,7 @@ jobs:
           LOG_LEVEL=warn
           CYPRESS_BASE_URL=http://localhost:3000
           EOF
-      - run: npx cypress install && npx cypress verify
+      - run: pnpm exec cypress install && pnpm exec cypress verify
       # First attempt records no video: green runs are the common case and
       # encoding plus upload is a real share of the job. A failure here does
       # not fail the job yet; the retry below decides.
@@ -243,9 +245,9 @@ jobs:
         env:
           CYPRESS_video: 'false'
         run: >-
-          npx start-server-and-test
-          'npm run start' http://localhost:3000/_healthz
-          'npx cypress run --spec "cypress/e2e/smoke/**" --config-file cypress.config.ts'
+          pnpm exec start-server-and-test
+          'pnpm start' http://localhost:3000/_healthz
+          'pnpm exec cypress run --spec "cypress/e2e/smoke/**" --config-file cypress.config.ts'
       # One retry of the whole job, with video on, replaces the habit of
       # re-running the entire workflow (~26 job-minutes) to clear a flake.
       - name: Retry Smoke Tests
@@ -254,9 +256,9 @@ jobs:
         env:
           CYPRESS_video: 'true'
         run: >-
-          npx start-server-and-test
-          'npm run start' http://localhost:3000/_healthz
-          'npx cypress run --spec "cypress/e2e/smoke/**" --config-file cypress.config.ts'
+          pnpm exec start-server-and-test
+          'pnpm start' http://localhost:3000/_healthz
+          'pnpm exec cypress run --spec "cypress/e2e/smoke/**" --config-file cypress.config.ts'
       - if: steps.e2e.outcome == 'failure' && steps.e2e-retry.outcome == 'success'
         run: echo "::warning title=E2E passed on retry::Smoke failed once and passed on retry. Treat as flaky, not green."
       - if: failure() || steps.e2e.outcome == 'failure'
@@ -291,16 +293,16 @@ jobs:
       CYPRESS_specPattern: 'cypress/e2e/regression/**/*.{cy,spec}.{js,jsx,ts,tsx}'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version-file: '.nvmrc'
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
-            ${{ env.NPM_CACHE }}
             ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/package.json') }}
+          key: ${{ runner.os }}-deps-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', '**/package.json') }}
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: build-${{ github.sha }}
@@ -324,7 +326,7 @@ jobs:
           LOG_LEVEL=warn
           CYPRESS_BASE_URL=http://localhost:3000
           EOF
-      - run: npx cypress install && npx cypress verify
+      - run: pnpm exec cypress install && pnpm exec cypress verify
       # First attempt records no video; see the smoke job for the reasoning.
       - name: Run Regression Tests
         id: e2e
@@ -332,9 +334,9 @@ jobs:
         env:
           CYPRESS_video: 'false'
         run: >-
-          npx start-server-and-test
-          'npm run start' http://localhost:3000/_healthz
-          'npx cypress run --config-file cypress.config.ts'
+          pnpm exec start-server-and-test
+          'pnpm start' http://localhost:3000/_healthz
+          'pnpm exec cypress run --config-file cypress.config.ts'
       # The retry runs the same shard once more, with video on. A shard that
       # fails twice fails the job; one that passes here is reported as flaky
       # by the PR summary, not silently counted as green.
@@ -344,9 +346,9 @@ jobs:
         env:
           CYPRESS_video: 'true'
         run: >-
-          npx start-server-and-test
-          'npm run start' http://localhost:3000/_healthz
-          'npx cypress run --config-file cypress.config.ts'
+          pnpm exec start-server-and-test
+          'pnpm start' http://localhost:3000/_healthz
+          'pnpm exec cypress run --config-file cypress.config.ts'
       - if: steps.e2e.outcome == 'failure' && steps.e2e-retry.outcome == 'success'
         run: echo "::warning title=E2E passed on retry::Regression shard ${{ matrix.shard }} failed once and passed on retry. Treat as flaky, not green."
       - if: failure() || steps.e2e.outcome == 'failure'

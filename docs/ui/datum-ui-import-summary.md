@@ -70,8 +70,6 @@
 | `confirmation-dialog/confirmation-dialog.tsx` | Alert, AlertDescription, AlertTitle, Button, Input, Label, Dialog, Icon |
 | `error/auth.tsx`                              | Card, CardContent, SpinnerIcon                                          |
 | `error/generic.tsx`                           | Button, Card, CardContent, Icon                                         |
-| `waiting-page/waiting-page.tsx`               | Card, CardContent, CardFooter, SpinnerIcon                              |
-| `coming-soon/coming-soon-feature-card.tsx`    | Button, Card, CardContent                                               |
 
 ---
 
@@ -103,7 +101,6 @@
 | `text-copy/text-copy-box.tsx`      | Button, toast                                   |
 | `date-time/date-time.tsx`          | Tooltip                                         |
 | `metadata/metadata-form.tsx`       | Form                                            |
-| `metadata/metadata-preview.tsx`    | Badge                                           |
 | `code-editor/code-editor-tabs.tsx` | Tabs, TabsContent, TabsList, TabsTrigger, toast |
 
 ---
@@ -193,7 +190,6 @@
 | `proxy/overview/active-pops-card.tsx`     | Button, Card, CardContent, Skeleton, SpinnerIcon, Icon   |
 | `proxy/overview/config-card.tsx`          | Badge, Card, CardContent, Skeleton, Tooltip, toast, Icon |
 | `proxy/overview/general-card.tsx`         | Card, CardContent, Skeleton, Tooltip, Icon               |
-| `proxy/overview/grafana-setup-card.tsx`   | Button, Card, CardContent, Icon                          |
 | `proxy/overview/hostnames-card.tsx`       | Button, Card, CardContent, Tooltip, Icon                 |
 | `proxy/overview/origins-card.tsx`         | Button, Card, CardContent, Icon                          |
 
@@ -217,7 +213,6 @@
 | `export-policies/card/general-card.tsx`                | Card, CardContent, CardHeader, CardTitle, LinkButton                       |
 | `export-policies/card/grafana-card.tsx`                | Button, Card, CardContent                                                  |
 | `export-policies/card/activity-card.tsx`               | Card, CardContent, CardHeader, CardTitle                                   |
-| `export-policies/form/stepper-form.tsx`                | Button, Card, Form, StepConfig, Icon, LoaderOverlay                        |
 | `export-policies/form/update-form.tsx`                 | Button, toast, Form, Icon                                                  |
 | `export-policies/form/sink/*.tsx`                      | Form, Badge, Tooltip, Icon                                                 |
 | `export-policies/form/source/*.tsx`                    | Button, Form, Badge, Tooltip, Icon                                         |
@@ -238,7 +233,6 @@
 | `organization/team/group-header.tsx`              | Icon                                                                   |
 | `organization/team/invitation-form.tsx`           | TagsInput, Form, FormFieldRenderProps                                  |
 | `organization/team/manage-members-dialog.tsx`     | Button, Dialog, Input, toast, Icon                                     |
-| `organization/team/manage-role.tsx`               | toast, Form                                                            |
 | `organization/team/groups/group-form.tsx`         | Button, Form                                                           |
 | `organization/team/roles/action-bar.tsx`          | Button                                                                 |
 | `organization/team/roles/add-role-screen.tsx`     | Icon                                                                   |
@@ -254,7 +248,6 @@
 | `account/cards/2fa-card.tsx`            | Icon                                                      |
 | `account/cards/danger-card.tsx`         | toast                                                     |
 | `account/cards/identity-card.tsx`       | Icon                                                      |
-| `account/cards/newsletter-card.tsx`     | Card, CardContent, CardHeader, CardTitle, Label, Switch   |
 | `account/cards/notification-card.tsx`   | toast                                                     |
 | `account/cards/profile-card.tsx`        | Button, Card, toast, Form                                 |
 | `account/cards/sign-in-method-card.tsx` | Icon                                                      |

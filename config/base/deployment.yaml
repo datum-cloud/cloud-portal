@@ -78,6 +78,18 @@ spec:
             limits:
               cpu: 1
               memory: 1Gi
+          # A cold start can take 15-20s before the port opens, mostly loading
+          # the server bundle on one CPU, which is longer than liveness allows.
+          # Liveness and readiness only start once this passes, and it waits up
+          # to 2 minutes, so a slow first start is no longer killed mid-boot.
+          startupProbe:
+            failureThreshold: 24
+            periodSeconds: 5
+            timeoutSeconds: 5
+            httpGet:
+              path: /_healthz
+              port: 3000
+              scheme: HTTP
           livenessProbe:
             failureThreshold: 3
             initialDelaySeconds: 5

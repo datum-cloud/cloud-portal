@@ -37,9 +37,8 @@ export interface AuthMiddlewareDeps {
 export async function authMiddleware(
   ctx: MiddlewareContext,
   next: NextFunction,
-  // Optional seam, mirroring fraudStatusMiddleware: the upstream reads are
-  // injected rather than mock.module'd, which is process-global in bun and
-  // would leak these stubs into every later suite.
+  // Optional seam, mirroring fraudStatusMiddleware: tests inject the
+  // upstream reads rather than mocking their modules.
   deps: AuthMiddlewareDeps = {}
 ): Promise<Response> {
   const { request, context } = ctx;

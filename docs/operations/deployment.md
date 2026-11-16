@@ -20,7 +20,7 @@ The cloud portal can be deployed via:
 
 ```bash
 # Build the application
-npm run build
+pnpm build
 
 # Output structure
 build/
@@ -84,11 +84,12 @@ HOST=0.0.0.0
 FROM node:26.12.1-alpine3.24 AS builder
 
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --include=dev --ignore-scripts
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN npm install -g "$(node -p 'require("./package.json").packageManager')" && \
+    pnpm install --frozen-lockfile --prod=false --ignore-scripts
 
 COPY . .
-RUN npm run build && npm prune --omit=dev --ignore-scripts
+RUN pnpm build && pnpm prune --prod --ignore-scripts
 
 FROM node:26.12.1-alpine3.24 AS runner
 
@@ -392,18 +393,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v6
+
       - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Run tests
-        run: npm run test
+        run: pnpm test
 
       - name: Build
-        run: npm run build
+        run: pnpm build
 
       - name: Build Docker image
         run: docker build -t gcr.io/datum/cloud-portal:${{ github.sha }} .

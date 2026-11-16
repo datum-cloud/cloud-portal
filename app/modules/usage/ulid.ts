@@ -44,7 +44,7 @@ function encodeRandom(rand: Uint8Array): string {
 
 /**
  * Generate a 26-character ULID. Uses `crypto.getRandomValues` when
- * available (Node 19+, Bun, browsers); falls back to `Math.random`.
+ * available (Node 19+, browsers); falls back to `Math.random`.
  */
 export function ulid(now: number = Date.now()): string {
   const rand = new Uint8Array(10);

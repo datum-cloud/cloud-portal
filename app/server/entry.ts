@@ -11,6 +11,7 @@ import { forwardedProtoMiddleware } from './middleware/forwarded-proto';
 import { loggerMiddleware } from './middleware/logger';
 import { requestContextMiddleware } from './middleware/request-context';
 import { secureHeadersMiddleware } from './middleware/secure-headers';
+import { nativeRequestMiddleware } from './native-request';
 import { ensureRuntimeMetrics } from './observability/runtime-metrics';
 import { createApiApp } from './routes/api';
 import { createWebsiteRoutes } from './routes/website';
@@ -188,6 +189,7 @@ if (env.public.otelEnabled) {
 }
 
 // Global middleware chain
+app.use('*', nativeRequestMiddleware()); // Native Request for everything downstream (Node 26 can't copy the lightweight one)
 app.use('*', forwardedProtoMiddleware()); // Restores https:// behind the TLS-terminating gateway
 app.use('*', sentryTracingMiddleware());
 app.use(requestId());

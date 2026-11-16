@@ -20,10 +20,10 @@ curl http://localhost:3000/api/v1/user
 
 ```bash
 # View server logs
-npm run dev
+pnpm dev
 
 # Filter errors
-npm run dev 2>&1 | grep -i error
+pnpm dev 2>&1 | grep -i error
 ```
 
 ---
@@ -46,7 +46,7 @@ Error: Cannot find module '@/components/...'
 
 1. Check `tsconfig.json` paths configuration
 2. Verify the file exists at the path
-3. Run `npm install` to ensure dependencies are installed
+3. Run `pnpm install` to ensure dependencies are installed
 
 ---
 
@@ -64,7 +64,7 @@ Type 'X' is not assignable to type 'Y'
 
 1. Review API spec changes
 2. Update consuming code to match new types
-3. Run `npm run typecheck` to find all errors
+3. Run `pnpm typecheck` to find all errors
 
 ---
 
@@ -152,7 +152,7 @@ Type 'X' is not assignable to type 'Y'
 
 1. Check Vite dev server is running
 2. Clear browser cache
-3. Restart dev server: `npm run dev`
+3. Restart dev server: `pnpm dev`
 
 ---
 
@@ -174,7 +174,7 @@ Type 'X' is not assignable to type 'Y'
    ```bash
    # Clear Tailwind cache
    rm -rf node_modules/.cache
-   npm run dev
+   pnpm dev
    ```
 
 ---
@@ -365,7 +365,7 @@ When reporting issues, include:
 
    ```bash
    node --version
-   npm --version
+   pnpm --version
    git rev-parse HEAD
    ```
 

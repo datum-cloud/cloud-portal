@@ -21,6 +21,9 @@ export const AnalyticsAction = {
   FirstRunToolboxAction: 'first_run_toolbox_action',
   /** First-run setup handed to Patch. */
   FirstRunAskPatch: 'first_run_ask_patch',
+  /** Agent setup prompt copied from the project home header. */
+  CopyAgentSetupPrompt: 'copy_agent_setup_prompt',
+  /** Agent setup prompt copied from the project home's suggested next steps. */
 } as const;
 
 export type AnalyticsActionName = (typeof AnalyticsAction)[keyof typeof AnalyticsAction];

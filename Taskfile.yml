@@ -1,7 +1,7 @@
 # Taskfile for the Portal Plugin System local dev environment.
 #
 # Two tiers (see devenv/README.md and docs/enhancements/portal-plugin-system.md):
-#   Tier 0 — direct override, no Kubernetes:  PORTAL_PLUGINS="sample=http://localhost:7777" npm run dev
+#   Tier 0 — direct override, no Kubernetes:  PORTAL_PLUGINS="sample=http://localhost:7777" pnpm dev
 #   Tier 1 — local plugin registry (this Taskfile): kwok + PortalPlugin CRD + watch/status pipeline
 #
 # Quick start (Tier 1):
@@ -92,12 +92,12 @@ tasks:
   devenv:portal:
     desc: 'Run the portal against the local registry (Tier 1). Serve the plugin with `plugin:preview`. Auth/orgs/projects stay remote.'
     cmds:
-      - PLUGIN_REGISTRY_KUBECONFIG='{{.KUBECONFIG_PATH}}' AUTH_DEV_TOKEN_EXCHANGE=1 npm run dev
+      - PLUGIN_REGISTRY_KUBECONFIG='{{.KUBECONFIG_PATH}}' AUTH_DEV_TOKEN_EXCHANGE=1 pnpm dev
 
   devenv:portal:tier0:
     desc: 'Run the portal in Tier 0 (direct override, no Kubernetes). Serve the plugin with `plugin:preview`.'
     cmds:
-      - PORTAL_PLUGINS='sample=http://localhost:{{.PLUGIN_PORT}}' AUTH_DEV_TOKEN_EXCHANGE=1 npm run dev
+      - PORTAL_PLUGINS='sample=http://localhost:{{.PLUGIN_PORT}}' AUTH_DEV_TOKEN_EXCHANGE=1 pnpm dev
 
   # ---------------------------------------------------------------------------
   # Sample plugin (own package.json under examples/sample-plugin)
@@ -157,7 +157,7 @@ tasks:
         echo ""
         echo "Wrote {{.DEVENV_DIR}}/platform-kubeconfig"
         echo "Run the portal against it with:"
-        echo "  PLUGIN_REGISTRY_KUBECONFIG={{.DEVENV_DIR}}/platform-kubeconfig AUTH_DEV_TOKEN_EXCHANGE=1 npm run dev"
+        echo "  PLUGIN_REGISTRY_KUBECONFIG={{.DEVENV_DIR}}/platform-kubeconfig AUTH_DEV_TOKEN_EXCHANGE=1 pnpm dev"
 
   # ---------------------------------------------------------------------------
   # Internal helpers

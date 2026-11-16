@@ -11,8 +11,7 @@ import { requestCacheKeys } from '@/utils/request-cache-keys';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Upstream reads are injected via the middleware's `deps` seam rather than
-// mock.module'd — that registry is process-global in bun and would hand these
-// stubs to every later suite.
+// module-mocked.
 const loadUser = vi.fn(async () => ({ user: { sub: 'u1', email: 'u@example.test' } }) as never);
 const listOrganizations = vi.fn(async () => ({ items: [{ name: 'acme' }] }));
 

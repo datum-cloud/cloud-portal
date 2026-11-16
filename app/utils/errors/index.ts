@@ -36,6 +36,12 @@ export { formatZodError, fromZodError, parseOrThrow } from './error-formatter';
 
 export { mapApiError } from './error-mapper';
 
+export {
+  PERMISSION_DENIED_MESSAGE,
+  isRawAuthorizationMessage,
+  toPlainAuthorizationMessage,
+} from './authorization-message';
+
 export { parseK8sMessage } from './error-parser';
 
 export { withLoaderErrors } from './loader';

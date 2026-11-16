@@ -8,7 +8,6 @@ import { ProjectWatchBridge } from '@/features/project/home/project-watch-bridge
 import { SuspensionBar } from '@/features/project/suspension';
 import { SearchEntry } from '@/features/search/SearchEntry';
 import { ProjectSearchBar } from '@/features/search/surfaces/ProjectSearchBar';
-import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { BareLayout } from '@/layouts/bare.layout';
 import { DashboardLayout, type PinnableNavItem } from '@/layouts/dashboard.layout';
 import { ProjectHeaderPluginContent } from '@/modules/plugins/client/plugin-header';
@@ -36,6 +35,7 @@ import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helpe
 import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
 import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
 import { projectLegacySetupMiddleware, withMiddleware } from '@/utils/middlewares';
+import { useBreakpoint } from '@datum-cloud/datum-ui/hooks';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { PortalPluginHostProvider } from '@datum-cloud/portal-plugin-sdk/host';

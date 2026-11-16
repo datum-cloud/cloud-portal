@@ -1,4 +1,10 @@
-import { computeWorkloadHref, findComputePluginSlug } from './compute-backend';
+import {
+  COMPUTE_WORKLOAD_NAME_LABEL,
+  computeWorkloadHref,
+  findComputePluginSlug,
+  serviceForWorkload,
+} from './compute-backend';
+import type { ComDatumapisNetworkingV1AlphaNetworkService } from '@/modules/control-plane/networking';
 import type { PluginExtension, PublicPlugin } from '@/modules/plugins/types';
 import { describe, expect, it } from 'vitest';
 
@@ -56,5 +62,36 @@ describe('computeWorkloadHref', () => {
     expect(computeWorkloadHref('proj-1', 'workloads', 'storefront')).toBe(
       '/project/proj-1/services/workloads/storefront'
     );
+  });
+});
+
+describe('serviceForWorkload', () => {
+  const service = (name: string, workload: string, ports: string[]) =>
+    ({
+      metadata: { name, labels: { [COMPUTE_WORKLOAD_NAME_LABEL]: workload } },
+      spec: { ports: ports.map((port, i) => ({ name: port, port: 8080 + i })) },
+    }) as unknown as ComDatumapisNetworkingV1AlphaNetworkService;
+
+  it("finds the workload's service and its only port", () => {
+    expect(
+      serviceForWorkload(
+        [service('svc-a', 'api', ['http']), service('svc-b', 'redis', ['http'])],
+        'redis'
+      )
+    ).toEqual({
+      name: 'svc-b',
+      port: 'http',
+    });
+  });
+
+  it('leaves the port to the person when there are several', () => {
+    expect(serviceForWorkload([service('svc-a', 'api', ['http', 'admin'])], 'api')).toEqual({
+      name: 'svc-a',
+      port: undefined,
+    });
+  });
+
+  it('is undefined when the workload has no service', () => {
+    expect(serviceForWorkload([service('svc-a', 'api', ['http'])], 'redis')).toBeUndefined();
   });
 });
