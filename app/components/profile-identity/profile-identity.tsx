@@ -6,7 +6,7 @@ import { UserRound } from 'lucide-react';
 interface ProfileIdentityProps {
   avatarSrc?: string;
   name?: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   size?: 'xs' | 'sm' | 'md' | 'lg';
   className?: string;
   fallbackIcon?: React.ComponentType<{ className?: string }>;

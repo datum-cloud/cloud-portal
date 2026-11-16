@@ -185,6 +185,7 @@ export function useResendInvitation(
         email: invitation.email,
         role: invitation.role,
         roleNamespace: invitation?.roleNamespace ?? MILO_SYSTEM_ROLE_NAMESPACE,
+        resentFrom: name,
       })) as Invitation;
     },
     ...withResourceHandlers(resendInvitationHandlers(queryClient, orgId), {

@@ -5,7 +5,7 @@ import {
   toUpdateInvitationStatePayload,
 } from './invitation.adapter';
 import { rawMetadata } from '@/test/factories/k8s';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 describe('toInvitation', () => {
   it('maps spec/status, taking the first role and defaulting role namespace + state', () => {
@@ -64,7 +64,11 @@ describe('toInvitationList', () => {
 });
 
 describe('toCreateInvitationPayload', () => {
-  it('builds a UserInvitation with an org-prefixed name and 24h RFC3339 expiry', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('builds a UserInvitation with an org-prefixed name and RFC3339 expiry', () => {
     const payload = toCreateInvitationPayload('acme', {
       email: 'invitee@acme.com',
       role: 'viewer',
@@ -76,8 +80,31 @@ describe('toCreateInvitationPayload', () => {
     expect(payload.spec.organizationRef).toEqual({ name: 'acme' });
     expect(payload.spec.roles).toEqual([{ name: 'viewer', namespace: 'milo-system' }]);
     expect(payload.spec.state).toBe('Pending');
-    // RFC3339 expiry stamped from now+24h.
     expect(payload.spec.expirationDate).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+  });
+
+  it('gives the invitee seven days, long enough to create an account first', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-16T12:00:00Z'));
+
+    const payload = toCreateInvitationPayload('acme', { email: 'e@x.com' } as never);
+
+    expect(new Date(payload.spec.expirationDate).toISOString()).toBe('2026-11-23T12:00:00.000Z');
+  });
+
+  it('adds no annotations to a new invitation', () => {
+    const payload = toCreateInvitationPayload('acme', { email: 'e@x.com' } as never);
+    expect(payload.metadata.annotations).toBeUndefined();
+  });
+
+  it('names the invitation a resend replaces, so activity shows it as resent', () => {
+    const payload = toCreateInvitationPayload('acme', {
+      email: 'e@x.com',
+      resentFrom: 'acme-old12345',
+    });
+    expect(payload.metadata.annotations).toEqual({
+      'iam.miloapis.com/resent-from': 'acme-old12345',
+    });
   });
 
   it('emits an empty roles array when no role is given', () => {
