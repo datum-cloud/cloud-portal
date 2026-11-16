@@ -88,6 +88,8 @@ export type CreateInvitationInput = {
   email: string;
   role?: string;
   roleNamespace?: string;
+  /** Name of the invitation this one replaces, when resending. */
+  resentFrom?: string;
 };
 
 export type UpdateInvitationStateInput = {
