@@ -1,4 +1,4 @@
-import { BILLING_COUNTRIES, BILLING_PRIORITY_COUNTRY_CODES } from '@/features/billing/constants';
+import { CountryAutocomplete } from '@/features/address/country-autocomplete';
 import { AccountIdentitySummary } from '@/features/onboarding/account/account-identity-summary';
 import { OnboardingEntrance } from '@/features/onboarding/components/onboarding-entrance';
 import { onboardingCardClassName } from '@/features/onboarding/onboarding-layout';
@@ -12,11 +12,9 @@ import { useUpdateUserPreferences, type LastLoginProviderValue } from '@/resourc
 import { paths } from '@/utils/config/paths.config';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
-import { SelectSeparator } from '@datum-cloud/datum-ui/select';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { useMemo } from 'react';
 import { Link } from 'react-router';
 
 export interface AccountPageProps {
@@ -52,22 +50,6 @@ export const AccountPage = ({
       });
     },
   });
-
-  const { priorityItems, otherItems } = useMemo(() => {
-    const prioritySet = new Set<string>(BILLING_PRIORITY_COUNTRY_CODES);
-    const priority: typeof BILLING_COUNTRIES = [];
-    const others: typeof BILLING_COUNTRIES = [];
-    for (const country of BILLING_COUNTRIES) {
-      if (prioritySet.has(country.value)) {
-        priority.push(country);
-      } else {
-        others.push(country);
-      }
-    }
-    return { priorityItems: priority, otherItems: others };
-  }, []);
-
-  const showCountrySeparator = priorityItems.length > 0 && otherItems.length > 0;
 
   const handleSubmit = (values: OnboardingAccountValues) =>
     submitAndNavigate(
@@ -109,19 +91,7 @@ export const AccountPage = ({
             />
 
             <Form.Field name="country" label="Country" required className="w-full">
-              <Form.Select placeholder="Select a country">
-                {priorityItems.map((country) => (
-                  <Form.SelectItem key={country.value} value={country.value}>
-                    {country.label}
-                  </Form.SelectItem>
-                ))}
-                {showCountrySeparator && <SelectSeparator />}
-                {otherItems.map((country) => (
-                  <Form.SelectItem key={country.value} value={country.value}>
-                    {country.label}
-                  </Form.SelectItem>
-                ))}
-              </Form.Select>
+              <CountryAutocomplete />
             </Form.Field>
 
             <Text as="p" size="xs" textColor="default" className="leading-4 opacity-60">

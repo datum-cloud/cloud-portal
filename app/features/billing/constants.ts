@@ -38,10 +38,8 @@ export const CARD_BRAND_LABELS: Record<CardBrand, string> = {
  * shows up below, just in alphabetical order.
  */
 /**
- * Exported so the country picker can split items into the priority
- * block (rendered first) and the alphabetical "rest of the world"
- * block (rendered after a `<SelectSeparator>`). Anything in this list
- * is treated as "above the line" wherever the picker renders.
+ * Exported so the country picker can show these in a "Popular" group
+ * above the full A–Z list (which still includes them).
  */
 export const BILLING_PRIORITY_COUNTRY_CODES: ReadonlyArray<string> = [
   'US',
