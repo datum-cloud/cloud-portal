@@ -20,7 +20,7 @@ allowBuilds:
 # Versions that overrides must agree with. package.json takes them with
 # `catalog:` so each is written once.
 catalog:
-  '@hono/node-server': ^2.1.5
+  '@hono/node-server': ^2.1.9
   eslint: ^10.8.1
   monaco-editor: ^0.56.0
 
