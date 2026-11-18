@@ -1,6 +1,6 @@
 import { OwnerOnlyNote } from './owner-only-note';
 import { AddressFields } from '@/features/address/address-fields';
-import { BILLING_COUNTRIES, BILLING_PRIORITY_COUNTRY_CODES } from '@/features/billing/constants';
+import { CountryAutocomplete } from '@/features/address/country-autocomplete';
 import {
   buildOrgContactDefaults,
   orgContactInfoSchema,
@@ -11,7 +11,6 @@ import { type Organization, useUpdateOrganizationContactInfo } from '@/resources
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
-import { SelectSeparator } from '@datum-cloud/datum-ui/select';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useMemo } from 'react';
 
@@ -48,22 +47,6 @@ export const OrganizationContactCard = ({
     () => buildOrgContactDefaults(orgContactInfoToFormValues(organization?.contactInfo)),
     [organization?.contactInfo]
   );
-
-  const { priorityItems, otherItems } = useMemo(() => {
-    const prioritySet = new Set<string>(BILLING_PRIORITY_COUNTRY_CODES);
-    const priority: typeof BILLING_COUNTRIES = [];
-    const others: typeof BILLING_COUNTRIES = [];
-    for (const country of BILLING_COUNTRIES) {
-      if (prioritySet.has(country.value)) {
-        priority.push(country);
-      } else {
-        others.push(country);
-      }
-    }
-    return { priorityItems: priority, otherItems: others };
-  }, []);
-
-  const showCountrySeparator = priorityItems.length > 0 && otherItems.length > 0;
 
   return (
     <Card size="sm" sectioned className="relative">
@@ -106,19 +89,7 @@ export const OrganizationContactCard = ({
                   name="country"
                   label="Country or region"
                   description="Helps us determine billing region and tax rules.">
-                  <Form.Select placeholder="Select a country">
-                    {priorityItems.map((country) => (
-                      <Form.SelectItem key={country.value} value={country.value}>
-                        {country.label}
-                      </Form.SelectItem>
-                    ))}
-                    {showCountrySeparator && <SelectSeparator />}
-                    {otherItems.map((country) => (
-                      <Form.SelectItem key={country.value} value={country.value}>
-                        {country.label}
-                      </Form.SelectItem>
-                    ))}
-                  </Form.Select>
+                  <CountryAutocomplete />
                 </Form.Field>
               </div>
 

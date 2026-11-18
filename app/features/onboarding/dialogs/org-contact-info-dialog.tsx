@@ -60,7 +60,7 @@ export const OrgContactInfoDialog = ({
               <Form.Input placeholder="e.g. Acme Corp Ltd" autoComplete="organization" />
             </Form.Field>
 
-            <AddressFields dataE2ePrefix="org-contact" />
+            <AddressFields dataE2ePrefix="org-contact" modal />
           </Dialog.Body>
           <Dialog.Footer className="border-t">
             <Button htmlType="button" type="quaternary" theme="outline" onClick={onClose}>

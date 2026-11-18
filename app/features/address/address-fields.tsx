@@ -1,10 +1,10 @@
+import { CountryAutocomplete } from './country-autocomplete';
 import { usePlacesAutocomplete, type PlaceSuggestion } from './use-places-autocomplete';
-import { BILLING_COUNTRIES, BILLING_PRIORITY_COUNTRY_CODES } from '@/features/billing/constants';
+import { BILLING_COUNTRIES } from '@/features/billing/constants';
 import { useFormMetadata } from '@conform-to/react';
 import { Form, useFieldContext, useWatch } from '@datum-cloud/datum-ui/form';
-import { SelectSeparator } from '@datum-cloud/datum-ui/select';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
 
 type AddressFieldsLayout = 'stack' | 'grid';
 
@@ -20,6 +20,8 @@ interface AddressFieldsProps {
   countryRequired?: boolean;
   /** Country options for the select. Defaults to BILLING_COUNTRIES. */
   countries?: Array<{ value: string; label: string }>;
+  /** Set when rendered inside a Dialog so the country picker can take focus. */
+  modal?: boolean;
   /** Prefix for `data-e2e` attrs, e.g. `org-contact` → `org-contact-line1`. */
   dataE2ePrefix?: string;
   /** Optional class on the outermost wrapper. */
@@ -42,22 +44,8 @@ export function AddressFields({
   countries = BILLING_COUNTRIES,
   dataE2ePrefix,
   className,
+  modal,
 }: AddressFieldsProps) {
-  const { priorityItems, otherItems } = useMemo(() => {
-    const prioritySet = new Set<string>(BILLING_PRIORITY_COUNTRY_CODES);
-    const priority: typeof countries = [];
-    const others: typeof countries = [];
-    for (const country of countries) {
-      if (prioritySet.has(country.value)) {
-        priority.push(country);
-      } else {
-        others.push(country);
-      }
-    }
-    return { priorityItems: priority, otherItems: others };
-  }, [countries]);
-
-  const showCountrySeparator = priorityItems.length > 0 && otherItems.length > 0;
   const isGrid = layout === 'grid';
 
   const countryField = includeCountry ? (
@@ -67,19 +55,7 @@ export function AddressFields({
       description={isGrid ? 'Helps us determine billing region and tax rules.' : undefined}
       required={countryRequired}
       className={isGrid ? undefined : 'max-w-md'}>
-      <Form.Select placeholder="Select a country">
-        {priorityItems.map((country) => (
-          <Form.SelectItem key={country.value} value={country.value}>
-            {country.label}
-          </Form.SelectItem>
-        ))}
-        {showCountrySeparator && <SelectSeparator />}
-        {otherItems.map((country) => (
-          <Form.SelectItem key={country.value} value={country.value}>
-            {country.label}
-          </Form.SelectItem>
-        ))}
-      </Form.Select>
+      <CountryAutocomplete countries={countries} modal={modal} />
     </Form.Field>
   ) : null;
 
