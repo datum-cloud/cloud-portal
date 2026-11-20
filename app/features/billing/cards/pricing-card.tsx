@@ -1,12 +1,15 @@
+import { DateTime } from '@/components/date-time';
 import { formatDiscountPercentage } from '@/features/billing/discounts';
 import type {
   FeePrice,
   PriceBand,
+  PriceItem,
   PriceRate,
-  PricingSummary,
   UsagePrice,
 } from '@/features/billing/pricing';
 import { Card, CardContent, CardFooter } from '@datum-cloud/datum-ui/card';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Input } from '@datum-cloud/datum-ui/input';
 import {
   Table,
   TableBody,
@@ -17,7 +20,8 @@ import {
 } from '@datum-cloud/datum-ui/table';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { Fragment, type ReactNode } from 'react';
+import { SearchIcon } from 'lucide-react';
+import { Fragment, useState, type ReactNode } from 'react';
 
 // Line the first/last cells up with the card padding, as the other billing
 // tables do.
@@ -26,14 +30,27 @@ const ROW_INSET =
 
 const HEADER_DIVIDERS = '[&_th:not(:last-child)]:border-r [&_th]:border-border';
 
-const CHARGE_TYPE_LABELS: Record<FeePrice['chargeType'], string> = {
-  OneTime: 'One-time',
-  Recurring: 'Recurring',
-};
+/** How many prices a long list shows before "Show all", with search above it. */
+const ITEMS_SHOWN = 8;
+
+/** A fee's end date. Contract dates are midnight UTC, so they're shown in UTC. */
+function UtcDate({ date }: { date: string }) {
+  return (
+    <DateTime date={date} variant="absolute" format="MMMM d, yyyy" timezone="UTC" tooltip={false} />
+  );
+}
 
 function Discount({ percentage }: { percentage: number }) {
   if (percentage <= 0) return <Text textColor="muted">—</Text>;
   return <>{formatDiscountPercentage(percentage)} off</>;
+}
+
+function Muted({ children }: { children: ReactNode }) {
+  return (
+    <Text as="span" size="xs" textColor="muted">
+      {children}
+    </Text>
+  );
 }
 
 function BandPrice({ band }: { band: PriceBand }) {
@@ -55,11 +72,7 @@ function Rate({ rate }: { rate: PriceRate }) {
   const tiered = rate.bands.some((band) => band.range);
   return (
     <div className="flex flex-col gap-0.5">
-      {rate.match ? (
-        <Text as="span" size="xs" textColor="muted">
-          {rate.match}
-        </Text>
-      ) : null}
+      {rate.match ? <Muted>{rate.match}</Muted> : null}
       {tiered ? (
         // Ranges in one column and prices in the next, as the pricing page
         // lays tiers out.
@@ -80,19 +93,9 @@ function Rate({ rate }: { rate: PriceRate }) {
   );
 }
 
-/**
- * The discount every item shares, when they all have the same one above 0%,
- * so it can be said once instead of on every row.
- */
-function sharedDiscount(items: ReadonlyArray<{ discountPercentage: number }>): number | undefined {
-  const first = items[0]?.discountPercentage;
-  if (!first || first <= 0) return undefined;
-  return items.every((item) => item.discountPercentage === first) ? first : undefined;
-}
-
-function UsageRow({ price, showDiscount }: { price: UsagePrice; showDiscount: boolean }) {
+function UsageCells({ price }: { price: UsagePrice }) {
   return (
-    <TableRow>
+    <>
       <TableCell className="py-3 align-top text-sm">{price.label}</TableCell>
       <TableCell className="py-3 align-top whitespace-normal">
         <div className="flex flex-col gap-2">
@@ -105,131 +108,151 @@ function UsageRow({ price, showDiscount }: { price: UsagePrice; showDiscount: bo
           )}
         </div>
       </TableCell>
-      {showDiscount ? (
-        <TableCell className="py-3 text-right align-top text-sm">
-          <Discount percentage={price.discountPercentage} />
-        </TableCell>
-      ) : null}
-    </TableRow>
+    </>
   );
 }
 
-function PriceTable({
-  columns,
-  children,
-  'data-e2e': dataE2e,
-}: {
-  columns: Array<{ label: string; className?: string }>;
-  children: ReactNode;
-  'data-e2e'?: string;
-}) {
+function FeeCells({ fee }: { fee: FeePrice }) {
   return (
-    <Table className={cn(ROW_INSET, HEADER_DIVIDERS)} data-e2e={dataE2e}>
-      <TableHeader>
-        <TableRow className="bg-background hover:bg-background">
-          {columns.map((column) => (
-            <TableHead
-              key={column.label}
-              className={cn('text-foreground text-xs font-medium', column.className)}>
-              {column.label}
-            </TableHead>
+    <>
+      <TableCell className="py-3 align-top text-sm whitespace-normal">
+        <div className="flex flex-col">
+          <span>{fee.label}</span>
+          {fee.details.map((detail, index) => (
+            <Muted key={detail}>
+              {detail}
+              {/* The end date belongs with how long the fee runs. */}
+              {fee.endsAt && index === fee.details.length - 1 ? (
+                <>
+                  , until <UtcDate date={fee.endsAt} />
+                </>
+              ) : null}
+            </Muted>
           ))}
-        </TableRow>
-      </TableHeader>
-      <TableBody>{children}</TableBody>
-    </Table>
+        </div>
+      </TableCell>
+      <TableCell className="py-3 align-top whitespace-normal">
+        <div className="flex flex-col">
+          <Text as="span" size="sm">
+            {fee.amount}
+          </Text>
+          {fee.timing ? <Muted>{fee.timing}</Muted> : null}
+        </div>
+      </TableCell>
+    </>
   );
+}
+
+/**
+ * The discount every item shares, when they all have the same one above 0%,
+ * so it can be said once instead of on every row.
+ */
+function sharedDiscount(items: ReadonlyArray<{ discountPercentage: number }>): number | undefined {
+  const first = items[0]?.discountPercentage;
+  if (!first || first <= 0) return undefined;
+  return items.every((item) => item.discountPercentage === first) ? first : undefined;
 }
 
 export interface PricingCardProps {
-  pricing: PricingSummary;
+  items: PriceItem[];
   /** Where the account's usage this period can be seen. */
   usageLink?: ReactNode;
 }
 
 /**
- * Billing's "Pricing" section: every usage rate and fixed fee the account is
- * billed at, with each one's discount. Read-only; prices come from the
- * account's plan, which staff set.
+ * Billing's "Pricing" section: one list of everything the account is charged
+ * for, whether a contract fee, a plan fee or a usage rate, with each one's
+ * discount. A long list can be searched and shows its first prices with the
+ * rest a click away. Read-only; staff set prices.
  */
-export const PricingCard = ({ pricing, usageLink }: PricingCardProps) => {
-  const { usage, fees } = pricing;
-  const usageShared = sharedDiscount(usage);
-  const feesShared = sharedDiscount(fees);
+export const PricingCard = ({ items, usageLink }: PricingCardProps) => {
+  const [search, setSearch] = useState('');
+  const [showAll, setShowAll] = useState(false);
+  const query = search.trim().toLowerCase();
+  const matching = query ? items.filter((item) => item.label.toLowerCase().includes(query)) : items;
+  const shown = showAll || query ? matching : matching.slice(0, ITEMS_SHOWN);
+  const long = items.length > ITEMS_SHOWN;
+
+  const shared = sharedDiscount(items);
   // A column only when discounts differ from row to row.
-  const usageDiscounted = usageShared === undefined && usage.some((p) => p.discountPercentage > 0);
-  const feesDiscounted = feesShared === undefined && fees.some((p) => p.discountPercentage > 0);
-  const everythingShared =
-    usageShared !== undefined &&
-    (fees.length === 0 || feesShared === usageShared) &&
-    (usage.length > 0 || fees.length > 0);
-  const discountNotes = everythingShared
-    ? [`${formatDiscountPercentage(usageShared)} discount on everything.`]
-    : [
-        usageShared !== undefined
-          ? `${formatDiscountPercentage(usageShared)} discount on all usage.`
-          : undefined,
-        feesShared !== undefined
-          ? `${formatDiscountPercentage(feesShared)} discount on all fees.`
-          : undefined,
-      ].filter((note): note is string => note !== undefined);
+  const showDiscount = shared === undefined && items.some((item) => item.discountPercentage > 0);
 
   return (
     <Card size="sm" sectioned className="overflow-hidden" data-e2e="pricing-card">
-      {usage.length > 0 ? (
-        <CardContent padding="none">
-          <PriceTable
-            data-e2e="pricing-usage"
-            columns={[
-              { label: 'Usage', className: 'w-[40%]' },
-              { label: 'Price' },
-              ...(usageDiscounted ? [{ label: 'Discount', className: 'w-28 text-right' }] : []),
-            ]}>
-            {usage.map((price) => (
-              <UsageRow key={price.name} price={price} showDiscount={usageDiscounted} />
-            ))}
-          </PriceTable>
-        </CardContent>
-      ) : null}
-      {fees.length > 0 ? (
-        <CardContent padding="none">
-          <PriceTable
-            data-e2e="pricing-fees"
-            columns={[
-              { label: 'Fee', className: 'w-[40%]' },
-              { label: 'Type', className: 'w-32' },
-              { label: 'Amount', className: 'text-right' },
-              ...(feesDiscounted ? [{ label: 'Discount', className: 'w-28 text-right' }] : []),
-            ]}>
-            {fees.map((fee) => (
-              <TableRow key={fee.name}>
-                <TableCell className="h-11 text-sm">{fee.label}</TableCell>
-                <TableCell className="h-11 text-sm">{CHARGE_TYPE_LABELS[fee.chargeType]}</TableCell>
-                <TableCell className="h-11 text-right text-sm">{fee.amount}</TableCell>
-                {feesDiscounted ? (
-                  <TableCell className="h-11 text-right text-sm">
-                    <Discount percentage={fee.discountPercentage} />
+      <CardContent padding="none">
+        {long ? (
+          // Part of the table: a slim toolbar above its headers.
+          <div className="bg-background flex items-center justify-between gap-3 border-b px-5 py-2">
+            <div className="relative w-full sm:w-64">
+              <Icon
+                icon={SearchIcon}
+                className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2"
+              />
+              <Input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search prices"
+                aria-label="Search prices"
+                className="h-8 pl-8 text-sm"
+              />
+            </div>
+            <Text as="span" size="xs" textColor="muted" className="shrink-0">
+              {query ? `${matching.length} of ${items.length} prices` : `${items.length} prices`}
+            </Text>
+          </div>
+        ) : null}
+        <Table className={cn(ROW_INSET, HEADER_DIVIDERS)} data-e2e="pricing-list">
+          <TableHeader>
+            <TableRow className="bg-background hover:bg-background">
+              <TableHead className="text-foreground w-[40%] text-xs font-medium">Item</TableHead>
+              <TableHead className="text-foreground text-xs font-medium">Price</TableHead>
+              {showDiscount ? (
+                <TableHead className="text-foreground w-28 text-right text-xs font-medium">
+                  Discount
+                </TableHead>
+              ) : null}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {shown.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={showDiscount ? 3 : 2}
+                  className="text-muted-foreground h-11 text-center text-sm">
+                  No prices match “{search.trim()}”.
+                </TableCell>
+              </TableRow>
+            ) : null}
+            {shown.map((item) => (
+              <TableRow key={`${item.kind}-${item.name}`}>
+                {item.kind === 'usage' ? <UsageCells price={item} /> : <FeeCells fee={item} />}
+                {showDiscount ? (
+                  <TableCell className="py-3 text-right align-top text-sm">
+                    <Discount percentage={item.discountPercentage} />
                   </TableCell>
                 ) : null}
               </TableRow>
             ))}
-          </PriceTable>
-        </CardContent>
-      ) : null}
-      {usage.length === 0 && fees.length === 0 ? (
-        <CardContent>
-          <Text as="p" size="sm" textColor="muted">
-            Your plan has no charges.
-          </Text>
-        </CardContent>
-      ) : null}
+          </TableBody>
+        </Table>
+        {long && !query ? (
+          <div className="border-t px-5 py-3">
+            <button
+              type="button"
+              className="text-muted-foreground hover:text-foreground text-sm underline underline-offset-4 transition-colors"
+              onClick={() => setShowAll((value) => !value)}>
+              {showAll ? 'Show fewer' : `Show all ${items.length} prices`}
+            </button>
+          </div>
+        ) : null}
+      </CardContent>
       <CardFooter bordered className="text-muted-foreground bg-background py-3 text-xs">
         <span data-e2e="pricing-note">
-          {discountNotes.map((note) => (
-            <span key={note} className="text-foreground font-medium">
-              {note}{' '}
+          {shared !== undefined ? (
+            <span className="text-foreground font-medium">
+              {formatDiscountPercentage(shared)} discount on everything.{' '}
             </span>
-          ))}
+          ) : null}
           Prices are before discounts and taxes.
           {usageLink ? <> {usageLink}</> : null}
         </span>

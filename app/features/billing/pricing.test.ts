@@ -1,18 +1,125 @@
-import { formatPricingUnit, pricingSummary } from './pricing';
+import { contractSummary } from './contract';
+import { formatPricingUnit, priceList, type FeePrice, type UsagePrice } from './pricing';
 import type { BillingAccount } from './types';
 import { describe, expect, it } from 'vitest';
 
-type Prices = NonNullable<NonNullable<BillingAccount['status']>['prices']>;
+type Status = NonNullable<BillingAccount['status']>;
+type Prices = NonNullable<Status['prices']>;
 
-function account(prices: Prices | undefined): BillingAccount {
-  return { status: { prices } };
+function account(prices: Prices | undefined, contract?: Status['contract']): BillingAccount {
+  return { status: { prices, ...(contract ? { contract } : {}) } };
 }
 
-describe('pricingSummary', () => {
-  it('is undefined when billing publishes no prices', () => {
-    expect(pricingSummary(undefined)).toBeUndefined();
-    expect(pricingSummary(account(undefined))).toBeUndefined();
-    expect(pricingSummary(account([]))).toBeUndefined();
+/** The list split by kind, for tests that look at one or the other. */
+function pricingSummary(acct: BillingAccount | undefined) {
+  const items = priceList(acct);
+  if (!items) return undefined;
+  return {
+    usage: items.filter((item): item is UsagePrice => item.kind === 'usage'),
+    fees: items.filter((item): item is FeePrice => item.kind === 'fee'),
+  };
+}
+
+describe('priceList', () => {
+  it('is undefined when there is nothing to list', () => {
+    expect(priceList(undefined)).toBeUndefined();
+    expect(priceList(account(undefined))).toBeUndefined();
+    expect(priceList(account([]))).toBeUndefined();
+  });
+
+  it("lists the contract's fees first, with their details and discounts, then plan fees and usage", () => {
+    const acct = account(
+      [
+        {
+          name: 'alb-requests-v1',
+          displayName: 'ALB Requests',
+          chargeType: 'Usage',
+          currency: 'USD',
+          pricingUnit: 'request',
+          rates: [{ flat: '0.000001' }],
+        },
+        {
+          name: 'support-v1',
+          displayName: 'Support',
+          chargeType: 'Recurring',
+          interval: 'monthly',
+          currency: 'USD',
+          amount: '500',
+        },
+        {
+          name: 'server-v1',
+          displayName: 'Dedicated server',
+          chargeType: 'Recurring',
+          interval: 'monthly',
+          currency: 'USD',
+          amount: '1000',
+          discountPercentage: 10,
+        },
+      ],
+      {
+        startsAt: '2026-11-12T00:00:00Z',
+        billingDayOfMonth: 12,
+        usageBilled: true,
+        fees: [
+          {
+            name: 'server-v1',
+            displayName: 'Dedicated server',
+            chargeType: 'Recurring',
+            interval: 'monthly',
+            currency: 'USD',
+            amount: '1000',
+            quantity: 1,
+            pricingUnit: 'server',
+            billingTiming: 'InArrears',
+            periods: 8,
+            endsAt: '2027-07-12T00:00:00Z',
+          },
+          {
+            name: 'setup-v1',
+            displayName: 'Setup',
+            chargeType: 'OneTime',
+            currency: 'USD',
+            amount: '2500',
+          },
+        ],
+      }
+    );
+    const items = priceList(acct, contractSummary(acct, Date.parse('2026-11-20T00:00:00Z')));
+    expect(items?.map((item) => item.label)).toEqual([
+      'Dedicated server',
+      'Setup',
+      'Support',
+      'ALB Requests',
+    ]);
+    expect(items?.[0]).toEqual({
+      kind: 'fee',
+      name: 'server-v1',
+      label: 'Dedicated server',
+      chargeType: 'Recurring',
+      amount: '$1,000 / month',
+      details: ['1 × $1,000 / server', 'For 8 months'],
+      endsAt: '2027-07-12T00:00:00Z',
+      timing: 'Billed in arrears',
+      discountPercentage: 10,
+    });
+    expect(items?.[1]).toMatchObject({ amount: '$2,500', timing: 'One-time', details: [] });
+  });
+
+  it("lists a contract's fees even before billing publishes prices", () => {
+    const acct = account(undefined, {
+      startsAt: '2026-11-12T00:00:00Z',
+      billingDayOfMonth: 12,
+      fees: [
+        {
+          name: 'setup-v1',
+          displayName: 'Setup',
+          chargeType: 'OneTime',
+          currency: 'USD',
+          amount: '2500',
+        },
+      ],
+    });
+    expect(priceList(acct, contractSummary(acct, 0))?.map((item) => item.label)).toEqual(['Setup']);
   });
 
   // Formats follow the public pricing page (datum.net/pricing).
@@ -41,6 +148,7 @@ describe('pricingSummary', () => {
     );
     expect(summary?.usage).toEqual([
       {
+        kind: 'usage',
         name: 'assistant-output-tokens-v1',
         label: 'Output tokens',
         serviceRef: 'assistant.miloapis.com',
@@ -48,6 +156,7 @@ describe('pricingSummary', () => {
         discountPercentage: 0,
       },
       {
+        kind: 'usage',
         name: 'networking-alb-requests-v1',
         label: 'ALB Requests',
         serviceRef: 'networking.datumapis.com',
@@ -180,7 +289,7 @@ describe('pricingSummary', () => {
     ]);
   });
 
-  it('formats fixed fees and leaves out excluded ones', () => {
+  it('formats plan fees with their quantity and interval', () => {
     const summary = pricingSummary(
       account([
         {
@@ -207,23 +316,36 @@ describe('pricingSummary', () => {
           currency: 'USD',
           amount: '500',
         },
-      ]),
-      { excludeFees: new Set(['setup-v1']) }
+      ])
     );
     expect(summary?.usage).toEqual([]);
     expect(summary?.fees).toEqual([
       {
+        kind: 'fee',
         name: 'support-v1',
         label: 'Support',
         chargeType: 'Recurring',
-        amount: '3 × $1,000 / month',
+        amount: '$3,000 / month',
+        details: ['3 × $1,000'],
         discountPercentage: 0,
       },
       {
+        kind: 'fee',
         name: 'licence-v1',
         label: 'Licence',
         chargeType: 'Recurring',
         amount: '$12,000 / year',
+        details: [],
+        discountPercentage: 0,
+      },
+      {
+        kind: 'fee',
+        name: 'setup-v1',
+        label: 'Setup fee',
+        chargeType: 'OneTime',
+        amount: '$500',
+        details: [],
+        timing: 'One-time',
         discountPercentage: 0,
       },
     ]);

@@ -4,8 +4,11 @@
  * Customers can't read the account's Offer or its ServicePricings, so billing
  * copies every pricing in the Offer's published snapshot onto
  * `BillingAccount.status.prices`, as it copies discounts onto
- * `status.discounts` and the contract onto `status.contract`.
+ * `status.discounts` and the contract onto `status.contract`. The page lists
+ * them together with the contract's fees, as one list of what the customer
+ * pays.
  */
+import type { ContractFee, ContractSummary } from './contract';
 import { formatCurrencyAmount } from './payment-terms';
 import type { BillingAccount } from './types';
 
@@ -32,6 +35,7 @@ export interface PriceRate {
 
 /** A usage price, ready to render. */
 export interface UsagePrice {
+  kind: 'usage';
   name: string;
   label: string;
   serviceRef?: string;
@@ -40,20 +44,25 @@ export interface UsagePrice {
   discountPercentage: number;
 }
 
-/** A fixed fee, ready to render. */
+/** A fixed fee, from the account's contract or its plan, ready to render. */
 export interface FeePrice {
+  kind: 'fee';
   name: string;
   label: string;
   chargeType: 'OneTime' | 'Recurring';
-  /** "$2,400 / month", or "3 × $1,000 / month". */
+  /** What it charges: "$5,000" or "$1,000 / month". */
   amount: string;
+  /** How it's made up and how long it runs: "4 × $300 / port", "For 8 months". */
+  details: string[];
+  /** When a fee with renewals stops, as billing published it. */
+  endsAt?: string;
+  /** "One-time", "Billed in advance" or "Billed in arrears"; unset when billing doesn't say. */
+  timing?: string;
   discountPercentage: number;
 }
 
-export interface PricingSummary {
-  usage: UsagePrice[];
-  fees: FeePrice[];
-}
+/** One thing the account is charged for. */
+export type PriceItem = UsagePrice | FeePrice;
 
 const INTERVAL_SUFFIX: Record<PriceInterval, string> = {
   monthly: ' / month',
@@ -235,6 +244,7 @@ function usagePrice(price: StatusPrice): UsagePrice {
     first !== undefined &&
     priced.every((r) => JSON.stringify(r.bands) === JSON.stringify(first.bands));
   return {
+    kind: 'usage',
     name: price.name,
     label: price.displayName || price.name,
     serviceRef: price.serviceRef,
@@ -243,36 +253,71 @@ function usagePrice(price: StatusPrice): UsagePrice {
   };
 }
 
-function feePrice(price: StatusPrice): FeePrice {
+/** A fee on the account's plan that isn't part of a contract. */
+function planFee(price: StatusPrice): FeePrice {
   const chargeType = price.chargeType === 'OneTime' ? 'OneTime' : 'Recurring';
-  const amount = formatCurrencyAmount(price.amount ?? '0', price.currency);
-  const quantity = price.quantity && price.quantity > 1 ? `${price.quantity} × ` : '';
+  const quantity = price.quantity && price.quantity > 1 ? price.quantity : 1;
+  const unit = Number(price.amount ?? 0);
+  const total = Math.round(unit * quantity * 100) / 100;
   const interval = chargeType === 'Recurring' ? INTERVAL_SUFFIX[price.interval ?? 'monthly'] : '';
+  const unitPrice = formatCurrencyAmount(price.amount ?? '0', price.currency);
+  const breakdown = price.pricingUnit
+    ? `${quantity} × ${unitPrice} / ${price.pricingUnit}`
+    : quantity > 1
+      ? `${quantity} × ${unitPrice}`
+      : undefined;
   return {
+    kind: 'fee',
     name: price.name,
     label: price.displayName || price.name,
     chargeType,
-    amount: `${quantity}${amount}${interval}`,
+    amount: `${formatCurrencyAmount(Number.isFinite(total) ? total : (price.amount ?? '0'), price.currency)}${interval}`,
+    details: breakdown ? [breakdown] : [],
+    ...(chargeType === 'OneTime' ? { timing: 'One-time' } : {}),
     discountPercentage: price.discountPercentage ?? 0,
   };
 }
 
-/**
- * The prices billing publishes on the account, or undefined when it publishes
- * none (no published Offer yet, or a billing release that predates
- * `status.prices`). Usage prices are sorted by service then label, so a
- * service's meters sit together; fees keep billing's order.
- *
- * `excludeFees` leaves out fees already shown elsewhere, such as the
- * contract's.
- */
-export function pricingSummary(
-  account: BillingAccount | undefined,
-  { excludeFees }: { excludeFees?: ReadonlySet<string> } = {}
-): PricingSummary | undefined {
-  const prices = account?.status?.prices;
-  if (!prices?.length) return undefined;
+/** A contract fee, with the details billing publishes on the contract. */
+function contractFee(fee: ContractFee, discountPercentage: number): FeePrice {
+  return {
+    kind: 'fee',
+    name: fee.name,
+    label: fee.label,
+    chargeType: fee.chargeType,
+    amount: fee.amount,
+    details: [fee.quantity, fee.renewals].filter((d): d is string => Boolean(d)),
+    ...(fee.endsAt ? { endsAt: fee.endsAt } : {}),
+    timing: fee.chargeType === 'OneTime' ? 'One-time' : fee.billing,
+    discountPercentage,
+  };
+}
 
+/**
+ * Everything the account is charged for, in one list however it's billed:
+ * the contract's fees first, in billing's order, then any other fees on the
+ * plan, then the usage rates sorted by service and label so a service's
+ * meters sit together. Undefined when there is nothing to list (no published
+ * Offer and no contract).
+ *
+ * Fees and rates come from `status.prices` and the contract from
+ * `status.contract`; a contract fee takes its discount from the matching
+ * price.
+ */
+export function priceList(
+  account: BillingAccount | undefined,
+  contract?: ContractSummary
+): PriceItem[] | undefined {
+  const prices = account?.status?.prices ?? [];
+  const discountByName = new Map(prices.map((p) => [p.name, p.discountPercentage ?? 0]));
+  const contractFees = (contract?.fees ?? []).map((fee) =>
+    contractFee(fee, discountByName.get(fee.name) ?? 0)
+  );
+  const inContract = new Set(contractFees.map((fee) => fee.name));
+
+  const planFees = prices
+    .filter((p) => p.chargeType !== 'Usage' && !inContract.has(p.name))
+    .map(planFee);
   const usage = prices
     .filter((p) => p.chargeType === 'Usage')
     .map(usagePrice)
@@ -280,9 +325,7 @@ export function pricingSummary(
       (a, b) =>
         (a.serviceRef ?? '').localeCompare(b.serviceRef ?? '') || a.label.localeCompare(b.label)
     );
-  const fees = prices
-    .filter((p) => p.chargeType !== 'Usage' && !excludeFees?.has(p.name))
-    .map(feePrice);
 
-  return { usage, fees };
+  const items: PriceItem[] = [...contractFees, ...planFees, ...usage];
+  return items.length > 0 ? items : undefined;
 }

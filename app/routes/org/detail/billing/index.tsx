@@ -12,7 +12,7 @@ import {
   contractSummary,
   getBillingAccountDisplayName,
   isStaleInvoice,
-  pricingSummary,
+  priceList,
   selectDefaultOrgBillingAccount,
   summarizeDiscounts,
   toPastInvoiceRow,
@@ -236,14 +236,11 @@ export default function OrgBillingPage() {
 
   const contactInfo = account.spec?.contactInfo;
   const contract = contractSummary(account, renderedAt);
-  // The contract card lists its own fees, so pricing leaves them out.
-  const pricing = useMemo(
-    () =>
-      pricingSummary(account, {
-        excludeFees: new Set(contract?.fees.map((fee) => fee.name) ?? []),
-      }),
-    [account, contract]
-  );
+  // One list of what the account pays: the contract's fees, any other plan
+  // fees and the usage rates.
+  const prices = useMemo(() => priceList(account, contract), [account, contract]);
+  // Billing releases before `status.prices` only publish discounts.
+  const pricesPublished = (account.status?.prices?.length ?? 0) > 0;
   const discounts = useMemo(() => accountDiscounts(account), [account]);
   const paymentTerms = paymentTermsSummary(account, renderedAt);
   // Owners apply for payment terms, only while PAYMENT_TERMS_ENABLED is on.
@@ -440,24 +437,15 @@ export default function OrgBillingPage() {
           />
         </Section>
 
-        {pricing ? (
-          // The contract card lists the contract's fees, so this section
-          // names only what its own card shows and points to the rest.
+        {prices ? (
           <Section
-            title={pricing.fees.length ? 'Pricing' : 'Usage pricing'}
-            description={[
-              pricing.fees.length
-                ? 'The rate for each kind of usage and the fixed fees on your plan, with your discounts.'
-                : 'The rate for each kind of usage, with your discounts.',
-              contract?.fees.length ? "Your contract's fees are listed under Contract below." : '',
-              'To change your plan, contact support.',
-            ]
-              .filter(Boolean)
-              .join(' ')}>
-            <PricingCard pricing={pricing} usageLink={usageLink} />
+            title="Pricing"
+            description="Everything this account is charged for, with your discounts: each fee and the rate for each kind of usage. To change your plan or contract, contact support.">
+            <PricingCard items={prices} usageLink={usageLink} />
           </Section>
-        ) : summarizeDiscounts(discounts) ? (
-          // Billing releases before `status.prices` only publish discounts.
+        ) : null}
+
+        {!pricesPublished && summarizeDiscounts(discounts) ? (
           <Section
             title="Discounts"
             description="Discounts that apply to this billing account's usage.">
