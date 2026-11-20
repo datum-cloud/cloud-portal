@@ -1,5 +1,4 @@
 import { OrganizationItem } from '@/components/select-organization/organization-item';
-import { useResourcePermissions } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { type Organization, useOrganizationsGql } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
@@ -19,7 +18,7 @@ import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { MobileSheet } from '@datum-cloud/datum-ui/mobile-sheet';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Text } from '@datum-cloud/datum-ui/typography';
-import { Building, CheckIcon, ChevronDown, FolderRoot, Settings2 } from 'lucide-react';
+import { Building, CheckIcon, ChevronDown, FolderRoot } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
@@ -52,10 +51,8 @@ function OrgSwitcherSheet({
   const handleSelect = useCallback(
     (org: Organization) => {
       onOpenChange(false);
-      if (org.name !== currentOrg?.name) {
-        setOrganization(org);
-        void navigate(getPathWithParams(paths.org.detail.projects.root, { orgId: org.name }));
-      }
+      if (org.name !== currentOrg?.name) setOrganization(org);
+      void navigate(getPathWithParams(paths.org.detail.settings.general, { orgId: org.name }));
     },
     [currentOrg?.name, setOrganization, navigate, onOpenChange]
   );
@@ -68,14 +65,6 @@ function OrgSwitcherSheet({
       description="Select an organization"
       footer={
         <div className="flex items-center gap-4">
-          {currentOrg?.name && (
-            <Link
-              to={getPathWithParams(paths.org.detail.settings.general, { orgId: currentOrg.name })}
-              className="flex items-center gap-2 text-xs font-medium">
-              <Icon icon={Settings2} className="size-3.5" />
-              Settings
-            </Link>
-          )}
           <Link
             to={paths.account.organizations.root}
             className="flex items-center gap-2 text-xs font-medium">
@@ -141,13 +130,6 @@ function ProjectSwitcherSheet({
   const navigate = useNavigate();
   const { data, isLoading } = useProjects(orgId ?? '', undefined, { enabled: open && !!orgId });
 
-  const { canCreate: canCreateProject } = useResourcePermissions({
-    resource: 'projects',
-    group: 'resourcemanager.miloapis.com',
-    scope: 'org',
-    verbs: ['create'],
-  });
-
   const projects = useMemo(() => {
     const items = filterActiveProjects(data?.items ?? []);
     return [...items].sort((a, b) => {
@@ -172,17 +154,7 @@ function ProjectSwitcherSheet({
       open={open}
       onOpenChange={onOpenChange}
       title="Switch project"
-      description="Select a project"
-      footer={
-        canCreateProject ? (
-          <Link
-            to={getPathWithParams(paths.org.detail.projects.root, { orgId }, { action: 'create' })}
-            className="flex items-center gap-2 text-xs font-medium">
-            <Icon icon={FolderRoot} className="size-3.5" />
-            Add project
-          </Link>
-        ) : null
-      }>
+      description="Select a project">
       <Command className="rounded-none border-none">
         <CommandInput
           className="placeholder:text-secondary/60 h-8 border-none text-xs placeholder:text-xs focus-visible:ring-0"

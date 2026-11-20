@@ -261,7 +261,7 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
           properties: {
             billingDayOfMonth: {
               description:
-                'BillingDayOfMonth is the day of the month the contract bills on, the\nday it starts. Months shorter than it bill on their last day.',
+                "BillingDayOfMonth is the day of the month the contract bills on: the\nday it starts, or the account's invoice day for a contract whose\nbillingDay is InvoiceDay. Months shorter than it bill on their last\nday.",
               type: 'integer',
               format: 'int32',
               maximum: 31,
@@ -353,6 +353,12 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
                       "ServiceRef is the service the fee is for. Empty for a fee that isn't\nfor any one service.",
                     type: 'string',
                     maxLength: 253,
+                  },
+                  sku: {
+                    description:
+                      "SKU is the fee's product code, from its pricing. Empty when it has none.",
+                    type: 'string',
+                    maxLength: 64,
                   },
                 },
               },
@@ -507,6 +513,166 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
           description: 'Phase represents the current lifecycle phase of the billing account.',
           type: 'string',
           enum: ['Provisioning', 'Ready', 'Suspended', 'Archived'],
+        },
+        prices: {
+          description:
+            "Prices lists every service pricing in the account's Offer, copied from the\nOffer's published snapshot so customers can see what they're billed at\nwithout reading the Offer: usage rates and fixed fees, each before its\ndiscount, which is also given. Cleared when the account has no published Offer.",
+          type: 'array',
+          items: {
+            description:
+              "BillingAccountPrice is one service pricing in the account's Offer, as its\npublished snapshot bills it: a Usage pricing's rates, or a OneTime or\nRecurring fee's amount. Like BillingAccountDiscount, it doesn't name the\nOffer, and it leaves out how usage is converted into pricingUnit, how the\npricing is taxed and which list pricing it's based on.",
+            type: 'object',
+            required: ['chargeType', 'currency', 'name'],
+            properties: {
+              amount: {
+                description:
+                  'Amount is a OneTime or Recurring fee\'s unit amount, before discount,\nas a decimal string in currency (e.g. "2400.00"). The fee is charged\nquantity times. Empty for a Usage pricing.',
+                type: 'string',
+                pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
+              },
+              chargeType: {
+                description:
+                  'ChargeType is Usage for metered consumption billed at rates, OneTime\nfor a fee charged once, or Recurring for one charged every interval.',
+                type: 'string',
+                enum: ['Usage', 'OneTime', 'Recurring'],
+              },
+              currency: {
+                description: 'Currency is the ISO 4217 currency code of rates and amount.',
+                type: 'string',
+              },
+              discountPercentage: {
+                description:
+                  "DiscountPercentage is the pricing's resolved discount, a whole number\nup to 100, off its rates or amount. Empty when it has none.",
+                type: 'integer',
+                format: 'int32',
+                maximum: 100,
+                minimum: 0,
+              },
+              displayName: {
+                description:
+                  'DisplayName is the pricing\'s human-readable label (e.g. "ALB\nRequests").',
+                type: 'string',
+                maxLength: 128,
+              },
+              interval: {
+                description:
+                  'Interval is how often a Recurring fee is charged (monthly, quarterly\nor annual), so amount is per interval. Empty otherwise.',
+                type: 'string',
+                enum: ['monthly', 'quarterly', 'annual'],
+              },
+              metric: {
+                description:
+                  'Metric is the meterName of the meter a Usage pricing bills (e.g.\n"networking.datumapis.com/alb/requests"). Empty for a fee.',
+                type: 'string',
+                maxLength: 253,
+              },
+              name: {
+                description: 'Name is the metadata.name of the ServicePricing.',
+                type: 'string',
+                maxLength: 253,
+                minLength: 1,
+              },
+              pricingUnit: {
+                description:
+                  'PricingUnit is what a Usage pricing\'s rates are per (e.g. "gib"), or\nwhat a fee\'s amount is per (e.g. "port"). Empty for a fee whose\nquantity is a count of the fee.',
+                type: 'string',
+                maxLength: 64,
+              },
+              quantity: {
+                description:
+                  'Quantity is how many of a fee the Offer charges, so the fee charged\nis amount times quantity (e.g. 3 × "1000.00"). Empty for a Usage\npricing.',
+                type: 'integer',
+                format: 'int32',
+                minimum: 1,
+              },
+              rates: {
+                description:
+                  "Rates are a Usage pricing's rates per pricingUnit, before discount,\nin order: each flat or tiered, optionally for one dimension value,\nwith the last rate without a match applying to the rest. Empty for a\nfee.",
+                type: 'array',
+                items: {
+                  description:
+                    'PricingRate is a single rate entry. Exactly one of Flat or Tiered must\nbe set. An optional Match filters the rate by dimension value; the last\nunmatched entry is the default catch-all.',
+                  type: 'object',
+                  properties: {
+                    flat: {
+                      description:
+                        'Flat is a single decimal USD string multiplied by metered usage.\nMutually exclusive with Tiered.',
+                      type: 'string',
+                      pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
+                    },
+                    match: {
+                      description:
+                        'Match optionally restricts this rate to a single dimension value.',
+                      type: 'object',
+                      required: ['dimension', 'value'],
+                      properties: {
+                        dimension: {
+                          description:
+                            'Dimension is the label key declared on the monitored resource type\n(e.g. "tier", "region", "model").',
+                          type: 'string',
+                          maxLength: 63,
+                          minLength: 1,
+                        },
+                        value: {
+                          description: 'Value is the dimension value this rate applies to.',
+                          type: 'string',
+                          maxLength: 253,
+                          minLength: 1,
+                        },
+                      },
+                    },
+                    tiered: {
+                      description:
+                        'Tiered is an ordered list of graduated volume bands.\nMutually exclusive with Flat.',
+                      type: 'array',
+                      minItems: 1,
+                      items: {
+                        description:
+                          'PricingTierBand is a single graduated volume band. Aggregation for\ntier breaks is monthly at billing-account scope. Each band has a rate\nand an exclusive upper bound upTo in pricingUnit units. The last band\nomits upTo (open-ended).',
+                        type: 'object',
+                        required: ['rate'],
+                        properties: {
+                          rate: {
+                            description:
+                              'Rate is the USD decimal string applied to usage within this band.\nZero ("0") is valid for free allowances.',
+                            type: 'string',
+                            pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
+                          },
+                          upTo: {
+                            description:
+                              'UpTo is the exclusive upper bound of this band in pricingUnit units.\nOmit on the last band for an open-ended range.',
+                            type: 'string',
+                            pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
+                          },
+                        },
+                      },
+                      'x-kubernetes-list-type': 'atomic',
+                    },
+                  },
+                  'x-kubernetes-validations': [
+                    {
+                      rule: 'has(self.flat) != has(self.tiered)',
+                      message: 'exactly one of flat or tiered must be set',
+                    },
+                  ],
+                },
+                'x-kubernetes-list-type': 'atomic',
+              },
+              serviceRef: {
+                description:
+                  'ServiceRef is the service the pricing belongs to (e.g.\n"networking.datumapis.com"). Empty for a fee that isn\'t for any one\nservice.',
+                type: 'string',
+                maxLength: 253,
+              },
+              sku: {
+                description: "SKU is the pricing's product code. Empty when it has none.",
+                type: 'string',
+                maxLength: 64,
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['name'],
+          'x-kubernetes-list-type': 'map',
         },
       },
     },
@@ -1512,9 +1678,15 @@ export const com_miloapis_billing_v1alpha1_BillingEntitlementSchema = {
           type: 'object',
           required: ['startsAt'],
           properties: {
+            billingDay: {
+              description:
+                "BillingDay is the day of the month the contract bills on.\n\nStartDate, the default, bills on the day it starts, so every period\nis a full one: a contract starting on the 15th bills the 15th to the\n15th.\n\nInvoiceDay bills on the account's invoice day (its payment terms'\ninvoiceDayOfMonth, the 1st under the standard terms), like an account\nwithout a contract. The first period runs from the start to the next\ninvoice day, and its recurring fees are prorated: a monthly fee on a\ncontract starting on the 15th is charged for the 15th to the 1st,\nthen for whole months. Quarterly and annual fees bill on the invoice\nday of January, April, July and October, and of January, so their\nfirst period runs to the next of those. A fee with periods runs for\nthat many whole periods after the prorated one.\n\nImmutable.",
+              type: 'string',
+              enum: ['StartDate', 'InvoiceDay'],
+            },
             startsAt: {
               description:
-                "StartsAt is when the contract starts, at midnight UTC. The Offer's\ncharges start on this day, so a one-time setup fee is charged then,\nand monthly charges bill on this day of each month: a contract\nstarting on the 18th bills on the 18th, and one starting on the 29th,\n30th or 31st bills on the last day of shorter months. When the\ncontract is set, it may be today or up to a year ahead, but not in\nthe past: billing providers can't start charging retroactively.\nImmutable.",
+                "StartsAt is when the contract starts, at midnight UTC. The Offer's\ncharges start on this day, so a one-time setup fee is charged then,\nand, unless billingDay is InvoiceDay, monthly charges bill on this day\nof each month: a contract starting on the 18th bills on the 18th, and\none starting on the 29th, 30th or 31st bills on the last day of\nshorter months. When the\ncontract is set, it may be today or up to a year ahead, but not in\nthe past: billing providers can't start charging retroactively.\nImmutable.",
               type: 'string',
               format: 'date-time',
               'x-kubernetes-validations': [
@@ -1525,6 +1697,12 @@ export const com_miloapis_billing_v1alpha1_BillingEntitlementSchema = {
               ],
             },
           },
+          'x-kubernetes-validations': [
+            {
+              rule: "(has(oldSelf.billingDay) ? oldSelf.billingDay : 'StartDate') == (has(self.billingDay) ? self.billingDay : 'StartDate')",
+              message: 'contract.billingDay is immutable',
+            },
+          ],
         },
         offerRef: {
           description: 'OfferRef references a cluster-scoped published (GA) Offer.',
@@ -2225,6 +2403,44 @@ export const com_miloapis_billing_v1alpha1_InvoiceRequestSchema = {
             },
           },
         },
+        contractDraft: {
+          description:
+            "ContractDraft, on a Preview, previews the first invoice of a contract\nthat isn't published yet, instead of what the account is billed\nfor now. Its Offer must be a contract Offer for this billing account,\nlabelled with ContractBillingAccountLabel and\nContractOrganizationLabel, usually still at launch stage Draft.",
+          type: 'object',
+          required: ['offerRef', 'startsAt'],
+          properties: {
+            billingDay: {
+              description:
+                'BillingDay is the day of the month it would bill on, as\nBillingContract.BillingDay. Defaults to StartDate.',
+              type: 'string',
+              enum: ['StartDate', 'InvoiceDay'],
+            },
+            offerRef: {
+              description: "OfferRef names the contract's Offer.",
+              type: 'object',
+              required: ['name'],
+              properties: {
+                name: {
+                  description: 'Name of the Offer.',
+                  type: 'string',
+                  maxLength: 253,
+                  minLength: 1,
+                },
+              },
+            },
+            startsAt: {
+              description:
+                'StartsAt is when the contract would start, at midnight UTC, as\nBillingContract.StartsAt.',
+              type: 'string',
+              format: 'date-time',
+            },
+          },
+        },
+        draft: {
+          description:
+            "Draft, on a Preview, also leaves the invoice as a draft in the\ninvoicing provider's own system, for staff to open there: with Stripe,\na draft invoice in the Stripe dashboard. The draft is never finalized\nor sent, and the provider deletes it after a day. status.draft links\nto it. Providers that can't make one complete the Preview without it.",
+          type: 'boolean',
+        },
         mode: {
           description:
             'Mode is Preview to work out the invoice without creating it, or\nIssue to create it and send it to the customer.',
@@ -2237,6 +2453,14 @@ export const com_miloapis_billing_v1alpha1_InvoiceRequestSchema = {
           rule: 'self == oldSelf',
           message: 'spec is immutable',
         },
+        {
+          rule: "!has(self.draft) || !self.draft || self.mode == 'Preview'",
+          message: 'draft is only for a Preview',
+        },
+        {
+          rule: "!has(self.contractDraft) || self.mode == 'Preview'",
+          message: 'contractDraft is only for a Preview',
+        },
       ],
     },
     status: {
@@ -2244,6 +2468,12 @@ export const com_miloapis_billing_v1alpha1_InvoiceRequestSchema = {
         'InvoiceRequestStatus defines the observed state of an InvoiceRequest.\nWritten only by the invoicing provider.',
       type: 'object',
       properties: {
+        amountDue: {
+          description:
+            "AmountDue is what the customer would be charged: TotalWithTax with\nStartingBalance applied. Unset when the provider didn't say.",
+          type: 'string',
+          pattern: '^-?[0-9]+(\\.[0-9]+)?$',
+        },
         completedAt: {
           description: 'CompletedAt is when the provider finished the request.',
           type: 'string',
@@ -2308,6 +2538,24 @@ export const com_miloapis_billing_v1alpha1_InvoiceRequestSchema = {
           type: 'string',
           pattern: '^[A-Z]{3}$',
         },
+        draft: {
+          description:
+            "Draft links to the draft a Preview with spec.draft left in the\ninvoicing provider's own system.",
+          type: 'object',
+          required: ['url'],
+          properties: {
+            expiresAt: {
+              description: 'ExpiresAt is when the provider deletes the draft.',
+              type: 'string',
+              format: 'date-time',
+            },
+            url: {
+              description: "URL opens the draft in the provider's dashboard.",
+              type: 'string',
+              maxLength: 2048,
+            },
+          },
+        },
         invoiceRef: {
           description:
             'InvoiceRef references the Invoice an Issue request created, once the\nprovider has recorded it.',
@@ -2340,6 +2588,12 @@ export const com_miloapis_billing_v1alpha1_InvoiceRequestSchema = {
                 type: 'string',
                 maxLength: 512,
               },
+              discount: {
+                description:
+                  'Discount is what discounts take off the charge, as a decimal string.\nAmount is already after it.',
+                type: 'string',
+                pattern: '^-?[0-9]+(\\.[0-9]+)?$',
+              },
               period: {
                 description:
                   'Period is the service period the charge covers. Unset for a one-time\ncharge.',
@@ -2364,6 +2618,24 @@ export const com_miloapis_billing_v1alpha1_InvoiceRequestSchema = {
                   },
                 ],
               },
+              quantity: {
+                description:
+                  "Quantity is how many are charged, as a decimal string. Unset when\nthe provider didn't say.",
+                type: 'string',
+                pattern: '^[0-9]+(\\.[0-9]+)?$',
+              },
+              tax: {
+                description:
+                  "Tax is the tax on the charge, as a decimal string. Unset when the\nprovider didn't work out tax.",
+                type: 'string',
+                pattern: '^-?[0-9]+(\\.[0-9]+)?$',
+              },
+              unitAmount: {
+                description:
+                  "UnitAmount is the price of one, before discounts, as a decimal\nstring. Unset when the provider didn't say.",
+                type: 'string',
+                pattern: '^-?[0-9]+(\\.[0-9]+)?$',
+              },
             },
           },
           'x-kubernetes-list-type': 'atomic',
@@ -2380,8 +2652,26 @@ export const com_miloapis_billing_v1alpha1_InvoiceRequestSchema = {
           type: 'string',
           enum: ['Pending', 'Succeeded', 'Failed'],
         },
+        startingBalance: {
+          description:
+            "StartingBalance is the account's balance the provider carries onto\nthe invoice, as a decimal string: positive for what the customer\nalready owes, such as an earlier invoice too small to charge,\nnegative for credit. Unset when the provider didn't say.",
+          type: 'string',
+          pattern: '^-?[0-9]+(\\.[0-9]+)?$',
+        },
+        tax: {
+          description:
+            "Tax is the invoice's tax, as a decimal string, worked out from the\ncustomer's address, tax IDs and exemptions and each charge's tax\ncode. Unset when the provider didn't work out tax.",
+          type: 'string',
+          pattern: '^-?[0-9]+(\\.[0-9]+)?$',
+        },
         total: {
           description: 'Total is the sum of the lines, before tax, as a decimal string.',
+          type: 'string',
+          pattern: '^-?[0-9]+(\\.[0-9]+)?$',
+        },
+        totalWithTax: {
+          description:
+            'TotalWithTax is what the customer would pay: Total plus Tax. Unset\nwith Tax.',
           type: 'string',
           pattern: '^-?[0-9]+(\\.[0-9]+)?$',
         },
@@ -3200,7 +3490,7 @@ export const com_miloapis_billing_v1alpha1_OfferSchema = {
                   },
                   basedOn: {
                     description:
-                      "BasedOn names the list pricing, in the same namespace, that this\npricing gives a customer their own price for. It must have the same\nchargeType, and the named pricing can't itself have basedOn.\n\nA Usage pricing must match it in everything but its rate amounts:\nserviceRef, metric, pricingUnit, unitConversion, each rate's match and\nwhether it's flat or tiered, and tier bounds. A OneTime or Recurring\npricing must match it in everything but its amount and displayName:\nserviceRef, pricingUnit, trigger and interval.\n\nBilling doesn't change with basedOn: it records which list price the\ncustomer's price replaces, so portals can show them side by side.",
+                      "BasedOn names the list pricing, in the same namespace, that this\npricing gives a customer their own price for. It must have the same\nchargeType, and the named pricing can't itself have basedOn.\n\nA Usage pricing must match it in everything but its rate amounts:\nserviceRef, metric, pricingUnit, unitConversion, each rate's match and\nwhether it's flat or tiered, and tier bounds. A OneTime or Recurring\npricing must match it in everything but its amount and displayName:\nserviceRef, pricingUnit, trigger and interval. Either kind has its\nlist pricing's sku and tax.\n\nBilling doesn't change with basedOn: it records which list price the\ncustomer's price replaces, so portals can show them side by side.",
                     type: 'string',
                     maxLength: 253,
                     minLength: 1,
@@ -3319,6 +3609,39 @@ export const com_miloapis_billing_v1alpha1_OfferSchema = {
                     type: 'string',
                     maxLength: 253,
                     minLength: 1,
+                  },
+                  sku: {
+                    description:
+                      "SKU is the product code finance knows this price's product by (e.g.\n\"DC-CAB-01\"). It's internal, for tracking and reporting, and never\nprinted on an invoice. It names the product, not the price: a\ncustomer's pricing with basedOn has its list pricing's SKU, and a new\nprice for the same product keeps it.",
+                    type: 'string',
+                    maxLength: 64,
+                    pattern: '^[A-Za-z0-9]([A-Za-z0-9._-]*[A-Za-z0-9])?$',
+                  },
+                  tax: {
+                    description:
+                      "Tax says how this price's charges are taxed. Without it, they're\ntaxed by the billing profile's default, as every charge was before\nprices carried their own. A customer's pricing with basedOn has its\nlist pricing's tax, as it has its SKU.",
+                    type: 'object',
+                    minProperties: 1,
+                    properties: {
+                      code: {
+                        description:
+                          "Code is the tax engine's code for what this price sells, which sets\nthe rate it's taxed at. With Stripe Tax it's one of Stripe's tax\ncodes (e.g. \"txcd_10103001\" for software as a service). Finance\nchooses it. Omitted, the billing profile's default code applies.",
+                        type: 'string',
+                        maxLength: 64,
+                        pattern: '^[A-Za-z0-9][A-Za-z0-9_.-]*$',
+                      },
+                      taxable: {
+                        description:
+                          "Taxable is false for a charge that's never taxed, wherever the\ncustomer is. Omitted, the charge is taxable.",
+                        type: 'boolean',
+                      },
+                    },
+                    'x-kubernetes-validations': [
+                      {
+                        rule: '!has(self.taxable) || self.taxable || !has(self.code)',
+                        message: "code can't be set on a pricing that isn't taxable",
+                      },
+                    ],
                   },
                   trigger: {
                     description: 'Trigger identifies when a OneTime charge fires.',
@@ -4074,7 +4397,7 @@ export const com_miloapis_billing_v1alpha1_ServicePricingSchema = {
         },
         basedOn: {
           description:
-            "BasedOn names the list pricing, in the same namespace, that this\npricing gives a customer their own price for. It must have the same\nchargeType, and the named pricing can't itself have basedOn.\n\nA Usage pricing must match it in everything but its rate amounts:\nserviceRef, metric, pricingUnit, unitConversion, each rate's match and\nwhether it's flat or tiered, and tier bounds. A OneTime or Recurring\npricing must match it in everything but its amount and displayName:\nserviceRef, pricingUnit, trigger and interval.\n\nBilling doesn't change with basedOn: it records which list price the\ncustomer's price replaces, so portals can show them side by side.",
+            "BasedOn names the list pricing, in the same namespace, that this\npricing gives a customer their own price for. It must have the same\nchargeType, and the named pricing can't itself have basedOn.\n\nA Usage pricing must match it in everything but its rate amounts:\nserviceRef, metric, pricingUnit, unitConversion, each rate's match and\nwhether it's flat or tiered, and tier bounds. A OneTime or Recurring\npricing must match it in everything but its amount and displayName:\nserviceRef, pricingUnit, trigger and interval. Either kind has its\nlist pricing's sku and tax.\n\nBilling doesn't change with basedOn: it records which list price the\ncustomer's price replaces, so portals can show them side by side.",
           type: 'string',
           maxLength: 253,
           minLength: 1,
@@ -4192,6 +4515,39 @@ export const com_miloapis_billing_v1alpha1_ServicePricingSchema = {
           type: 'string',
           maxLength: 253,
           minLength: 1,
+        },
+        sku: {
+          description:
+            "SKU is the product code finance knows this price's product by (e.g.\n\"DC-CAB-01\"). It's internal, for tracking and reporting, and never\nprinted on an invoice. It names the product, not the price: a\ncustomer's pricing with basedOn has its list pricing's SKU, and a new\nprice for the same product keeps it.",
+          type: 'string',
+          maxLength: 64,
+          pattern: '^[A-Za-z0-9]([A-Za-z0-9._-]*[A-Za-z0-9])?$',
+        },
+        tax: {
+          description:
+            "Tax says how this price's charges are taxed. Without it, they're\ntaxed by the billing profile's default, as every charge was before\nprices carried their own. A customer's pricing with basedOn has its\nlist pricing's tax, as it has its SKU.",
+          type: 'object',
+          minProperties: 1,
+          properties: {
+            code: {
+              description:
+                "Code is the tax engine's code for what this price sells, which sets\nthe rate it's taxed at. With Stripe Tax it's one of Stripe's tax\ncodes (e.g. \"txcd_10103001\" for software as a service). Finance\nchooses it. Omitted, the billing profile's default code applies.",
+              type: 'string',
+              maxLength: 64,
+              pattern: '^[A-Za-z0-9][A-Za-z0-9_.-]*$',
+            },
+            taxable: {
+              description:
+                "Taxable is false for a charge that's never taxed, wherever the\ncustomer is. Omitted, the charge is taxable.",
+              type: 'boolean',
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: '!has(self.taxable) || self.taxable || !has(self.code)',
+              message: "code can't be set on a pricing that isn't taxable",
+            },
+          ],
         },
         trigger: {
           description: 'Trigger identifies when a OneTime charge fires.',

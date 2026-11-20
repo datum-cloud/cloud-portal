@@ -15,7 +15,7 @@ export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: Organization 
   return (
     <SelectOrganization
       triggerClassName="flex w-fit items-center justify-between gap-3 text-left px-0 font-normal"
-      currentOrg={currentOrg!}
+      currentOrg={currentOrg}
       hideContent={false}
       selectedContent={
         <>
@@ -27,7 +27,7 @@ export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: Organization 
       }
       onSelect={(org: Organization) => {
         setOrganization(org);
-        void navigate(getPathWithParams(paths.org.detail.projects.root, { orgId: org.name }));
+        void navigate(getPathWithParams(paths.org.detail.settings.general, { orgId: org.name }));
       }}
     />
   );

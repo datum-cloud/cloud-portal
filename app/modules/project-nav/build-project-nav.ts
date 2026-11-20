@@ -12,7 +12,6 @@ import { comingSoonHref } from './coming-soon';
 import { plannedServicesForSection } from './planned-services';
 import { COMING_SOON_BADGE, type ProjectNavSection } from './types';
 import type { PinnableNavItem } from '@/layouts/dashboard.layout';
-import { fetchOrgUsageDashboard, usageKeys } from '@/modules/billing/usage.queries';
 import { connectorKeys, createConnectorService } from '@/resources/connectors';
 import { createDnsZoneService, dnsZoneKeys } from '@/resources/dns-zones';
 import { createDomainService, domainKeys } from '@/resources/domains';
@@ -27,7 +26,6 @@ import type { QueryClient } from '@tanstack/react-query';
 import {
   ActivityIcon,
   ChartSplineIcon,
-  GaugeIcon,
   GlobeIcon,
   HomeIcon,
   PlugIcon,
@@ -41,8 +39,6 @@ export type BuildProjectNavOptions = {
   isReady?: boolean;
   /** Optional React Query client for sidebar prefetch. */
   queryClient?: QueryClient;
-  /** Owning org — used to prefetch the project-scoped usage dashboard. */
-  orgId?: string;
 };
 
 /** Section id on category parents for plugin merge. Not rendered by datum-ui. */
@@ -108,15 +104,12 @@ function category(
  */
 export function buildProjectNavTree(
   projectId: string,
-  { isReady = true, queryClient, orgId }: BuildProjectNavOptions = {}
+  { isReady = true, queryClient }: BuildProjectNavOptions = {}
 ): SectionNavItem[] {
   const settingsGeneral = getPathWithParams(paths.project.detail.settings.general, {
     projectId,
   });
   const settingsQuotas = getPathWithParams(paths.project.detail.settings.quotas, {
-    projectId,
-  });
-  const settingsBilling = getPathWithParams(paths.project.detail.settings.billing, {
     projectId,
   });
 
@@ -226,29 +219,6 @@ export function buildProjectNavTree(
         disabled: !isReady,
       },
       {
-        title: 'Usage',
-        order: 15,
-        icon: GaugeIcon,
-        href: getPathWithParams(paths.project.detail.usage, { projectId }),
-        type: 'link',
-        disabled: !isReady,
-        onPrefetch:
-          queryClient && orgId
-            ? () => {
-                void queryClient.prefetchQuery({
-                  queryKey: usageKeys.dashboard(orgId, projectId, 'current', 'project'),
-                  queryFn: () =>
-                    fetchOrgUsageDashboard({
-                      orgId,
-                      project: projectId,
-                      cycle: 'current',
-                      scope: 'project',
-                    }),
-                });
-              }
-            : undefined,
-      },
-      {
         title: 'Metrics Export',
         order: 20,
         icon: ChartSplineIcon,
@@ -276,7 +246,7 @@ export function buildProjectNavTree(
           href: settingsGeneral,
           type: 'link',
           disabled: !isReady,
-          tabChildLinks: [settingsGeneral, settingsBilling],
+          tabChildLinks: [settingsGeneral],
         },
         {
           title: 'Quotas',

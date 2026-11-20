@@ -5,10 +5,6 @@ import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
 import { setSentryOrgContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';
-import {
-  billingAccountBindingKeys,
-  createBillingAccountBindingService,
-} from '@/resources/billing-account-bindings';
 import { billingAccountKeys, createBillingAccountService } from '@/resources/billing-accounts';
 import { createGroupService, groupKeys } from '@/resources/groups';
 import { createInvitationService, invitationKeys } from '@/resources/invitations';
@@ -184,16 +180,6 @@ export default route.Page(({ data: initialOrg, companions }) => {
           void queryClient.prefetchQuery({
             queryKey: billingAccountKeys.list(orgId),
             queryFn: () => createBillingAccountService().list(orgId),
-            staleTime: QUERY_STALE_TIME,
-          });
-          void queryClient.prefetchQuery({
-            queryKey: billingAccountBindingKeys.list(orgId),
-            queryFn: () => createBillingAccountBindingService().list(orgId),
-            staleTime: QUERY_STALE_TIME,
-          });
-          void queryClient.prefetchQuery({
-            queryKey: projectKeys.list(orgId),
-            queryFn: () => createProjectService().list(orgId),
             staleTime: QUERY_STALE_TIME,
           });
         },

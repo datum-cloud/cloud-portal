@@ -95,9 +95,6 @@ describe('type scale', () => {
 
         cy.visit(getPathWithParams(paths.project.detail.settings.general, { projectId }));
         shoot(`${size}-04-project-settings`);
-
-        cy.visit(getPathWithParams(paths.project.detail.usage, { projectId }));
-        shoot(`${size}-05-project-usage`);
       });
 
       it('captures the org surfaces', () => {
