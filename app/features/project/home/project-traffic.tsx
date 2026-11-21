@@ -1,4 +1,14 @@
 import {
+  projectNlbBytesQuery,
+  projectNlbBytesRateQuery,
+  projectNlbCountQuery,
+  projectNlbDroppedQuery,
+  projectNlbDroppedRateQuery,
+  projectNlbPacketsQuery,
+  projectNlbPacketsRateQuery,
+  useNlbListHref,
+} from './nlb-traffic';
+import {
   projectErrorRateQuery,
   projectRequestCountQuery,
   projectRpsQuery,
@@ -27,6 +37,16 @@ const STEP = '30m';
  */
 const ERROR_RATE_WINDOW = '2h';
 const REQUESTS_TITLE = 'Requests served';
+const NLB_BYTES_TITLE = 'NLB data received';
+
+/**
+ * Whether the tiles for one kind of load balancer have anything to draw:
+ * the project has one, and it saw traffic in the last day.
+ */
+function tilesFor(count: number, traffic: number | undefined) {
+  const quiet = count > 0 && traffic === 0;
+  return { has: count > 0, quiet, show: count > 0 && !quiet };
+}
 
 /**
  * The last 24 hours of traffic across every load balancer in the project.
@@ -52,26 +72,54 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
     { type: 'card', projectId, query: requestsQuery, timeRange, metricFormat: 'short-number' },
     { enabled: proxies.length > 0 }
   );
-  const quiet = proxies.length > 0 && requests?.value === 0;
+
+  // NLBs live in the networking plugin, so they're counted from their
+  // metrics: every programmed listener records a backends series.
+  const nlbCountQuery = projectNlbCountQuery(projectId, '24h');
+  const { data: nlbCount, isLoading: nlbCountLoading } = usePrometheusAPIQuery<MetricCardData>(
+    ['nlb-count', nlbCountQuery, timeRange.start.getTime(), timeRange.end.getTime()],
+    { type: 'card', projectId, query: nlbCountQuery, timeRange, metricFormat: 'number' },
+    {}
+  );
+  const nlbs = nlbCount?.value ?? 0;
+  // Shares its key with the "NLB data received" tile, like requests above.
+  const nlbBytesQuery = projectNlbBytesQuery(projectId, '24h');
+  const { data: nlbBytes } = usePrometheusAPIQuery<MetricCardData>(
+    [
+      'alb-stat',
+      NLB_BYTES_TITLE,
+      nlbBytesQuery,
+      timeRange.start.getTime(),
+      timeRange.end.getTime(),
+    ],
+    { type: 'card', projectId, query: nlbBytesQuery, timeRange, metricFormat: 'bytes' },
+    { enabled: nlbs > 0 }
+  );
+  const nlbHref = useNlbListHref(projectId);
+
+  const alb = tilesFor(proxies.length, requests?.value);
+  const nlb = tilesFor(nlbs, nlbBytes?.value);
+  const quiet = (alb.has || nlb.has) && !alb.show && !nlb.show;
 
   const href = getPathWithParams(paths.project.detail.proxy.root, { projectId });
-  const idle = !isLoading && proxies.length === 0;
+  const idle = !isLoading && !nlbCountLoading && !alb.has && !nlb.has;
+  // Until both kinds are known, hold the ALB tiles' place so the page doesn't
+  // shift, as it always has while the ALB list loads.
+  const albPending = isLoading || (!alb.has && nlbCountLoading);
   const shared = {
-    href,
     timeRange,
     step: STEP,
     rangeLabel: 'Last 24h',
-    pending: isLoading,
   };
 
+  const total = proxies.length + nlbs;
   const scope =
-    proxies.length > 1
-      ? `all ${proxies.length} of this project's load balancers`
-      : "this project's load balancers";
+    total > 1 ? `all ${total} of this project's load balancers` : "this project's load balancers";
   const description = idle
     ? 'Add a load balancer to see its traffic here.'
     : quiet
-      ? `No requests to ${scope} in the last 24 hours.`
+      ? // An NLB carries packets, not requests.
+        `No ${nlb.has ? 'traffic' : 'requests'} to ${scope} in the last 24 hours.`
       : `Traffic across ${scope} over the last 24 hours.`;
 
   return (
@@ -93,7 +141,7 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
       </div>
       {/* With nothing to chart, the heading and its one line say it all;
           three empty tiles would outweigh everything that has content. */}
-      {!idle && !quiet && (
+      {!idle && !quiet && (alb.show || albPending) && (
         <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-3">
           <SparklineStatCard
             projectId={projectId}
@@ -102,6 +150,8 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
             valueQuery={requestsQuery}
             format="short-number"
             precision={1}
+            href={href}
+            pending={albPending}
             {...shared}
           />
           <SparklineStatCard
@@ -111,6 +161,8 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
             valueQuery={projectErrorRateQuery(projectId, '24h')}
             format="percent"
             color="var(--color-chart-1)"
+            href={href}
+            pending={albPending}
             {...shared}
           />
           <SparklineStatCard
@@ -121,6 +173,45 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
             format="short-number"
             precision={0}
             color="var(--color-chart-1)"
+            href={href}
+            pending={albPending}
+            {...shared}
+          />
+        </div>
+      )}
+      {nlb.show && (
+        <div
+          className="grid grid-cols-1 gap-4 @xl/main:grid-cols-3"
+          data-testid="project-home-nlb-traffic">
+          <SparklineStatCard
+            projectId={projectId}
+            title={NLB_BYTES_TITLE}
+            query={projectNlbBytesRateQuery(projectId, STEP)}
+            valueQuery={nlbBytesQuery}
+            format="bytes"
+            precision={1}
+            href={nlbHref}
+            {...shared}
+          />
+          <SparklineStatCard
+            projectId={projectId}
+            title="NLB packets received"
+            query={projectNlbPacketsRateQuery(projectId, STEP)}
+            valueQuery={projectNlbPacketsQuery(projectId, '24h')}
+            format="short-number"
+            precision={1}
+            href={nlbHref}
+            {...shared}
+          />
+          <SparklineStatCard
+            projectId={projectId}
+            title="NLB dropped packets"
+            query={projectNlbDroppedRateQuery(projectId, STEP)}
+            valueQuery={projectNlbDroppedQuery(projectId, '24h')}
+            format="short-number"
+            precision={0}
+            color="var(--color-chart-1)"
+            href={nlbHref}
             {...shared}
           />
         </div>
