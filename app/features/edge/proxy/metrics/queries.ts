@@ -130,6 +130,21 @@ export function resetGuardedIncrease(metric: string, selector: string, window: s
   return `(increase(${series}[${window}]) * (resets(${series}[${window}]) == bool 0))`;
 }
 
+/**
+ * The increase over `window`, added up from `slice`-long pieces that each
+ * drop out when their counter reset. resetGuardedIncrease over a whole day
+ * reads 0 after a single gateway restart; this loses only the slice the reset
+ * fell in.
+ */
+export function slicedResetGuardedIncrease(
+  metric: string,
+  selector: string,
+  window: string,
+  slice = '5m'
+): string {
+  return `sum_over_time(${resetGuardedIncrease(metric, selector, slice)}[${window}:${slice}])`;
+}
+
 export function windowDuration(ctx: QueryBuilderContext): string {
   return formatDurationFromMs(ctx.timeRange.end.getTime() - ctx.timeRange.start.getTime());
 }
@@ -393,7 +408,7 @@ export function projectRpsQuery(projectId: string, timeWindow: string): string {
 
 /** Total requests across every ALB in the project over `window`. */
 export function projectRequestCountQuery(projectId: string, window: string): string {
-  return `sum(${resetGuardedIncrease(ENVOY_RQ_METRIC, projectTrafficSelector(projectId), window)})`;
+  return `sum(${slicedResetGuardedIncrease(ENVOY_RQ_METRIC, projectTrafficSelector(projectId), window)})`;
 }
 
 /**
@@ -424,5 +439,5 @@ export function projectWafBlockedQuery(projectId: string, window: string): strin
     baseLabels: { resourcemanager_datumapis_com_project_name: projectId },
     customLabels: { [REGION_LABEL]: '!=""', coraza_outcome: '=~"blocked|dropped"' },
   });
-  return `sum(${resetGuardedIncrease(CORAZA_EVENTS_METRIC, selector, window)})`;
+  return `sum(${slicedResetGuardedIncrease(CORAZA_EVENTS_METRIC, selector, window)})`;
 }

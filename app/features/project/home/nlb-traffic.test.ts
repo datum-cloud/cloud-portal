@@ -23,13 +23,13 @@ describe('NLB project queries', () => {
     );
   });
 
-  it('reads inbound bytes as a rate and a reset-guarded total', () => {
+  it('reads inbound bytes as a rate and a total that drops only the slices a reset fell in', () => {
     expect(projectNlbBytesRateQuery('demo', '30m')).toBe(
       `sum(rate(datum_nlb_listener_receive_bytes_total${SELECTOR}[30m]))`
     );
     expect(projectNlbBytesQuery('demo', '24h')).toBe(
-      `sum((increase(datum_nlb_listener_receive_bytes_total${SELECTOR}[24h]) * ` +
-        `(resets(datum_nlb_listener_receive_bytes_total${SELECTOR}[24h]) == bool 0)))`
+      `sum(sum_over_time((increase(datum_nlb_listener_receive_bytes_total${SELECTOR}[5m]) * ` +
+        `(resets(datum_nlb_listener_receive_bytes_total${SELECTOR}[5m]) == bool 0))[24h:5m]))`
     );
   });
 

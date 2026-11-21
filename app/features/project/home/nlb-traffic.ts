@@ -10,7 +10,7 @@
  * NLB pages belong to the networking plugin, so the portal finds them through
  * the plugin's mount rather than its own routes.
  */
-import { resetGuardedIncrease } from '@/features/edge/proxy/metrics/queries';
+import { slicedResetGuardedIncrease } from '@/features/edge/proxy/metrics/queries';
 import { buildPrometheusLabelSelector } from '@/modules/metrics';
 import { useProjectPlugins } from '@/modules/plugins/client/use-project-plugins';
 import type { PublicPlugin } from '@/modules/plugins/types';
@@ -48,7 +48,7 @@ export function projectNlbBytesRateQuery(projectId: string, timeWindow: string):
 
 /** Bytes received across every NLB in the project over `window`. */
 export function projectNlbBytesQuery(projectId: string, window: string): string {
-  return `sum(${resetGuardedIncrease(NLB_RECEIVE_BYTES_METRIC, nlbSelector(projectId), window)})`;
+  return `sum(${slicedResetGuardedIncrease(NLB_RECEIVE_BYTES_METRIC, nlbSelector(projectId), window)})`;
 }
 
 /**
@@ -66,7 +66,7 @@ export function projectNlbPacketsRateQuery(projectId: string, timeWindow: string
 
 /** Packets received across every NLB in the project over `window`. */
 export function projectNlbPacketsQuery(projectId: string, window: string): string {
-  return `sum(${resetGuardedIncrease(NLB_RECEIVE_PACKETS_METRIC, nlbSelector(projectId), window)})`;
+  return `sum(${slicedResetGuardedIncrease(NLB_RECEIVE_PACKETS_METRIC, nlbSelector(projectId), window)})`;
 }
 
 /** Inbound packets dropped per second across every NLB in the project. */
@@ -76,7 +76,7 @@ export function projectNlbDroppedRateQuery(projectId: string, timeWindow: string
 
 /** Inbound packets dropped across every NLB in the project over `window`. */
 export function projectNlbDroppedQuery(projectId: string, window: string): string {
-  return `sum(${resetGuardedIncrease(NLB_RECEIVE_DROPPED_METRIC, nlbSelector(projectId), window)})`;
+  return `sum(${slicedResetGuardedIncrease(NLB_RECEIVE_DROPPED_METRIC, nlbSelector(projectId), window)})`;
 }
 
 /**
