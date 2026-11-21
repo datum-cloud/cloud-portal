@@ -69,6 +69,12 @@ export interface ContractSummary {
   upcomingInvoices: ScheduledInvoice[];
   /** Whether any recurring fee is billed in arrears, at the end of its period. */
   hasFeesInArrears: boolean;
+  /**
+   * For a contract billed on the account's invoice day, when its first
+   * period, charged in part, ends, while that's still to come. Unset when
+   * every period is whole.
+   */
+  proratedUntil?: string;
 }
 
 const INTERVAL_SUFFIX: Record<FeeInterval, string> = {
@@ -152,6 +158,33 @@ function billingDate(startsAt: Date, months: number): Date {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/** `months` months after an invoice day, on the same day (1 to 28), in UTC. */
+function addMonthsUtc(date: Date, months: number): Date {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + months, date.getUTCDate()));
+}
+
+/**
+ * The first date on or after `date` that a fee charged every `months` months
+ * bills on, for a contract billed on the invoice day `invoiceDay`: that day
+ * of every month, of January, April, July and October, or of January, as
+ * billing counts periods.
+ */
+export function nextInvoiceDayBilling(date: Date, invoiceDay: number, months = 1): Date {
+  let billing = new Date(Date.UTC(date.getUTCFullYear(), 0, invoiceDay));
+  while (billing > date) billing = new Date(Date.UTC(billing.getUTCFullYear() - 1, 0, invoiceDay));
+  while (billing < date) {
+    billing = new Date(
+      Date.UTC(billing.getUTCFullYear(), billing.getUTCMonth() + months, invoiceDay)
+    );
+  }
+  return billing;
+}
+
+/** Whether billing bills the contract on the account's invoice day, not its start's. */
+function billsOnInvoiceDay(contract: StatusContract): boolean {
+  return contract.billingDay === 'InvoiceDay';
+}
+
 /**
  * The contract's invoices from its start through the next `months` months,
  * worked out from its fees the way they're billed: one-time fees on the
@@ -159,13 +192,15 @@ const DAY_MS = 24 * 60 * 60 * 1000;
  * periods, and one billed in arrears at the end; a fee with renewals
  * stopping after its last period; and usage at the end of every month. All
  * fall on the contract's billing day, and are due the account's net days
- * after.
+ * after. A contract billed on the account's invoice day follows
+ * invoiceDaySchedule instead.
  */
 export function contractInvoiceSchedule(
   contract: StatusContract,
   netDays: number | undefined,
   months = 12
 ): ScheduledInvoice[] {
+  if (billsOnInvoiceDay(contract)) return invoiceDaySchedule(contract, netDays, months);
   const startsAt = new Date(contract.startsAt);
   const fees = contract.fees ?? [];
   const currency = fees[0]?.currency ?? 'USD';
@@ -196,6 +231,118 @@ export function contractInvoiceSchedule(
     });
   }
   return invoices;
+}
+
+/** A recurring fee's periods on a contract billed on the invoice day. */
+function invoiceDayPeriods(
+  fee: StatusContractFee,
+  startsAt: Date,
+  invoiceDay: number,
+  until: number
+): { from: Date; to: Date; share: number }[] {
+  const every = INTERVAL_MONTHS[fee.interval ?? 'monthly'];
+  const first = nextInvoiceDayBilling(startsAt, invoiceDay, every);
+  const periods: { from: Date; to: Date; share: number }[] = [];
+  if (first > startsAt) {
+    const whole = first.getTime() - addMonthsUtc(first, -every).getTime();
+    periods.push({
+      from: startsAt,
+      to: first,
+      share: (first.getTime() - startsAt.getTime()) / whole,
+    });
+  }
+  // A fee with renewals runs that many whole periods after the prorated one.
+  for (let i = 0; !fee.periods || i < fee.periods; i++) {
+    const from = addMonthsUtc(first, i * every);
+    if (from.getTime() > until) break;
+    periods.push({ from, to: addMonthsUtc(first, (i + 1) * every), share: 1 });
+  }
+  return periods;
+}
+
+/**
+ * contractInvoiceSchedule for a contract billed on the account's invoice day
+ * (billingDayOfMonth): invoiced when it starts, then on each invoice day. A
+ * recurring fee's first period runs from the start to its first billing date
+ * (the next invoice day, or for a quarterly or annual fee the next one in
+ * January, April, July or October, or in January) and is charged in part;
+ * its renewals are whole periods from there.
+ */
+function invoiceDaySchedule(
+  contract: StatusContract,
+  netDays: number | undefined,
+  months: number
+): ScheduledInvoice[] {
+  const startsAt = new Date(contract.startsAt);
+  const invoiceDay = contract.billingDayOfMonth;
+  const fees = contract.fees ?? [];
+  const currency = fees[0]?.currency ?? 'USD';
+
+  const first = nextInvoiceDayBilling(startsAt, invoiceDay);
+  const dates = [startsAt];
+  for (let k = first > startsAt ? 0 : 1; dates.length <= months; k++) {
+    dates.push(addMonthsUtc(first, k));
+  }
+  const horizon = dates[dates.length - 1].getTime();
+  const byDate = new Map<number, ScheduledCharge[]>(dates.map((date) => [date.getTime(), []]));
+  const add = (date: Date, charge: ScheduledCharge) => {
+    if (date.getTime() <= horizon) byDate.get(date.getTime())?.push(charge);
+  };
+
+  for (const fee of fees) {
+    const label = fee.displayName || fee.name;
+    if (fee.chargeType === 'OneTime') {
+      add(startsAt, { label, total: feeTotal(fee) });
+      continue;
+    }
+    const inAdvance = feeTiming(fee) === 'InAdvance';
+    for (const period of invoiceDayPeriods(fee, startsAt, invoiceDay, horizon)) {
+      add(inAdvance ? period.from : period.to, {
+        label,
+        total: Math.round(feeTotal(fee) * period.share * 100) / 100,
+      });
+    }
+  }
+
+  return dates.flatMap((date, k): ScheduledInvoice[] => {
+    const charges = byDate.get(date.getTime()) ?? [];
+    const usage = (contract.usageBilled ?? false) && k > 0;
+    if (charges.length === 0 && !usage) return [];
+    const total = Math.round(charges.reduce((sum, c) => sum + c.total, 0) * 100) / 100;
+    return [
+      {
+        date: date.toISOString(),
+        ...(netDays !== undefined
+          ? { dueDate: new Date(date.getTime() + netDays * DAY_MS).toISOString() }
+          : {}),
+        charges,
+        total: formatCurrencyAmount(total, currency),
+        billsUsage: usage,
+      },
+    ];
+  });
+}
+
+/**
+ * When a contract billed on the invoice day finishes the first period it's
+ * charged in part for: the latest of its recurring fees' first billing
+ * dates, or undefined when it bills on its start day, or starts on all of
+ * them.
+ */
+function proratedUntil(contract: StatusContract): Date | undefined {
+  if (!billsOnInvoiceDay(contract)) return undefined;
+  const startsAt = new Date(contract.startsAt);
+  const ends = (contract.fees ?? [])
+    .filter((fee) => fee.chargeType === 'Recurring')
+    .map((fee) =>
+      nextInvoiceDayBilling(
+        startsAt,
+        contract.billingDayOfMonth,
+        INTERVAL_MONTHS[fee.interval ?? 'monthly']
+      )
+    )
+    .filter((end) => end > startsAt);
+  return ends.length > 0 ? new Date(Math.max(...ends.map((end) => end.getTime()))) : undefined;
 }
 
 /**
@@ -234,6 +381,7 @@ export function contractSummary(
   if (!contract) return undefined;
   const netDays =
     account?.status?.paymentArrangement?.invoice?.netDays ?? account?.spec?.paymentTerms?.netDays;
+  const prorated = proratedUntil(contract);
 
   return {
     startsAt: contract.startsAt,
@@ -245,6 +393,7 @@ export function contractSummary(
     hasFeesInArrears: (contract.fees ?? []).some(
       (fee) => fee.chargeType === 'Recurring' && feeTiming(fee) === 'InArrears'
     ),
+    ...(prorated && prorated.getTime() > now ? { proratedUntil: prorated.toISOString() } : {}),
   };
 }
 

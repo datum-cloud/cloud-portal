@@ -259,6 +259,12 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
           type: 'object',
           required: ['billingDayOfMonth', 'startsAt'],
           properties: {
+            billingDay: {
+              description:
+                "BillingDay is how the contract chose its billing day, from its\ncontract.billingDay: StartDate bills on the day it starts, so every\nperiod is whole; InvoiceDay bills on the account's invoice day, so the\nfirst period runs from the start to the next billing date and is\nprorated, and quarterly and annual fees bill in January, April, July\nand October, and in January.",
+              type: 'string',
+              enum: ['InvoiceDay', 'StartDate'],
+            },
             billingDayOfMonth: {
               description:
                 "BillingDayOfMonth is the day of the month the contract bills on: the\nday it starts, or the account's invoice day for a contract whose\nbillingDay is InvoiceDay. Months shorter than it bill on their last\nday.",

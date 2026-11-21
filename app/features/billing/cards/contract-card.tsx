@@ -50,6 +50,7 @@ export const ContractCard = ({ contract }: ContractCardProps) => {
     usageBilled,
     upcomingInvoices,
     hasFeesInArrears,
+    proratedUntil,
   } = contract;
 
   return (
@@ -131,6 +132,13 @@ export const ContractCard = ({ contract }: ContractCardProps) => {
         {started
           ? "The contract's fees are listed with their prices under Pricing. To change your contract, contact support."
           : "One-time fees, and fees billed in advance, are charged when the contract starts. The contract's fees are listed under Pricing."}
+        {proratedUntil ? (
+          <>
+            {' '}
+            The first period, until <ContractDate date={proratedUntil} />, is charged in part, so
+            the contract bills on the {ordinal(billingDayOfMonth)} like the rest of your account.
+          </>
+        ) : null}
         {hasFeesInArrears
           ? ' Fees billed in arrears are invoiced at the end of each period, with its usage.'
           : ''}

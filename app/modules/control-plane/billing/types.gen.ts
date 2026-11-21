@@ -214,6 +214,15 @@ export type ComMiloapisBillingV1Alpha1BillingAccount = {
      */
     contract?: {
       /**
+       * BillingDay is how the contract chose its billing day, from its
+       * contract.billingDay: StartDate bills on the day it starts, so every
+       * period is whole; InvoiceDay bills on the account's invoice day, so the
+       * first period runs from the start to the next billing date and is
+       * prorated, and quarterly and annual fees bill in January, April, July
+       * and October, and in January.
+       */
+      billingDay?: 'InvoiceDay' | 'StartDate';
+      /**
        * BillingDayOfMonth is the day of the month the contract bills on: the
        * day it starts, or the account's invoice day for a contract whose
        * billingDay is InvoiceDay. Months shorter than it bill on their last
