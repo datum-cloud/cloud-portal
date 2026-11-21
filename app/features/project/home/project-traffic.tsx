@@ -125,7 +125,8 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
     rangeLabel: 'Last 24h',
   };
 
-  const total = proxies.length + nlbs;
+  // Hold the count until both kinds are in, so it doesn't change under the reader.
+  const total = isLoading || nlbCountLoading ? 0 : proxies.length + nlbs;
   const scope =
     total > 1 ? `all ${total} of this project's load balancers` : "this project's load balancers";
   const description = idle

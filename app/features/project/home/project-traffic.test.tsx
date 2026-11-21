@@ -27,13 +27,19 @@ function serve({
   requests,
   nlbs,
   nlbBytes,
+  nlbCountLoading = false,
 }: {
   requests?: number;
   nlbs?: number;
   nlbBytes?: number;
+  nlbCountLoading?: boolean;
 }) {
   queryMock.mockImplementation((key: readonly unknown[], request: { query: string }) => {
-    if (key[0] === 'nlb-count') return { data: { value: nlbs ?? 0 }, isLoading: false };
+    if (key[0] === 'nlb-count') {
+      return nlbCountLoading
+        ? { data: undefined, isLoading: true }
+        : { data: { value: nlbs ?? 0 }, isLoading: false };
+    }
     if (request.query.includes('datum_nlb_listener_receive_bytes_total')) {
       return { data: nlbBytes === undefined ? undefined : { value: nlbBytes }, isLoading: false };
     }
@@ -87,6 +93,16 @@ describe('ProjectTraffic', () => {
     expect(rowLabels()).toEqual(['ALB']);
     expect(description()).toBe(
       "Traffic across all 2 of this project's load balancers over the last 24 hours."
+    );
+  });
+
+  it('holds the load balancer count until the NLBs are counted too', () => {
+    proxiesMock.mockReturnValue({ data: [{ name: 'a' }, { name: 'b' }], isLoading: false });
+    serve({ requests: 120, nlbCountLoading: true });
+    renderTraffic();
+
+    expect(description()).toBe(
+      "Traffic across this project's load balancers over the last 24 hours."
     );
   });
 
