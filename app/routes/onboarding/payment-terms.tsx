@@ -78,8 +78,8 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
     const contact = account?.spec?.contactInfo;
     if (!account || !billingAccountName || !contact?.email || !contact.address) {
       return redirect(
-        entry === 'settings' && billingAccountName
-          ? billingSettingsPath(billingAccountName)
+        entry === 'settings'
+          ? billingSettingsPath(orgId)
           : `${paths.onboarding.billing}?orgId=${encodeURIComponent(orgId)}`
       );
     }

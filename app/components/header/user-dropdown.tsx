@@ -20,7 +20,7 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { useTheme } from '@datum-cloud/datum-ui/theme';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { CheckIcon, CreditCard, LogOut, UserCogIcon } from 'lucide-react';
+import { CheckIcon, LogOut, UserCogIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -30,16 +30,10 @@ const THEME_OPTIONS = [
   { value: 'system', label: 'System', icon: SystemModeIcon },
 ] as const;
 
-export const UserDropdown = ({
-  className,
-  hideBillingAccount = false,
-}: {
-  className?: string;
-  hideBillingAccount?: boolean;
-}) => {
+export const UserDropdown = ({ className }: { className?: string }) => {
   const navigate = useNavigate();
   const { resolvedTheme, setTheme } = useTheme();
-  const { user, userPreferences, setUser, ownsAnyOrg } = useApp();
+  const { user, userPreferences, setUser } = useApp();
   const userId = user?.sub ?? 'me';
 
   const [currentTheme, setCurrentTheme] = useState<ThemeValue>(resolvedTheme as ThemeValue);
@@ -129,19 +123,6 @@ export const UserDropdown = ({
               </Text>
             </div>
           </DropdownMenuItem>
-          {ownsAnyOrg && !hideBillingAccount && (
-            <DropdownMenuItem
-              data-e2e="user-menu-billing"
-              className="cursor-pointer rounded-lg px-3 py-2 font-normal"
-              onClick={() => navigate(paths.account.billing.root)}>
-              <div className="flex items-center gap-2">
-                <Icon icon={CreditCard} size={14} />
-                <Text size="xs" textColor="default">
-                  Billing Accounts
-                </Text>
-              </div>
-            </DropdownMenuItem>
-          )}
           <DropdownMenuItem
             asChild
             variant="destructive"

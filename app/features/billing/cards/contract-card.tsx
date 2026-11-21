@@ -4,34 +4,9 @@ import { chargeNames, type ContractSummary } from '@/features/billing/contract';
 import { ordinal } from '@/features/billing/payment-terms';
 import { Card, CardContent, CardFooter } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { Input } from '@datum-cloud/datum-ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@datum-cloud/datum-ui/table';
 import { Text } from '@datum-cloud/datum-ui/typography';
-import { cn } from '@datum-cloud/datum-ui/utils';
-import { FileSignatureIcon, SearchIcon } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
-
-// Line the first/last cells up with the card padding, as the other billing
-// tables do.
-const ROW_INSET =
-  '[&_th:first-child]:pl-5 [&_th:last-child]:pr-5 [&_td:first-child]:pl-5 [&_td:last-child]:pr-5';
-
-/** How many fees a contract shows before "Show all". */
-const FEES_SHOWN = 5;
-
-const HEADER_DIVIDERS = '[&_th:not(:last-child)]:border-r [&_th]:border-border';
-
-const CHARGE_TYPE_LABELS: Record<ContractSummary['fees'][number]['chargeType'], string> = {
-  OneTime: 'One-time',
-  Recurring: 'Recurring',
-};
+import { FileSignatureIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 /**
  * The contract's start day. Contracts start at midnight UTC, so it's shown in
@@ -61,11 +36,10 @@ export interface ContractCardProps {
 }
 
 /**
- * Billing settings' "Contract" section: the contract the account is billed
- * under, its fixed fees (how often each is charged, whether in advance or in
- * arrears, and for how long), whether usage is billed on top, and the
- * invoices coming up. Read-only; staff set contracts up, so changes go
- * through support.
+ * Billing settings' "Contract" section: the contract's terms (when it
+ * started, the day it bills, whether usage is billed on top) and the invoices
+ * coming up. Its fees are listed with every other price in the Pricing
+ * section. Read-only; staff set contracts up, so changes go through support.
  */
 export const ContractCard = ({ contract }: ContractCardProps) => {
   const {
@@ -76,15 +50,8 @@ export const ContractCard = ({ contract }: ContractCardProps) => {
     usageBilled,
     upcomingInvoices,
     hasFeesInArrears,
+    proratedUntil,
   } = contract;
-  // A long contract shows its first fees, with the rest a click away, and
-  // can be searched by name.
-  const [search, setSearch] = useState('');
-  const [showAll, setShowAll] = useState(false);
-  const query = search.trim().toLowerCase();
-  const matching = query ? fees.filter((fee) => fee.label.toLowerCase().includes(query)) : fees;
-  const shownFees = showAll || query ? matching : matching.slice(0, FEES_SHOWN);
-  const long = fees.length > FEES_SHOWN;
 
   return (
     <Card size="sm" sectioned className="overflow-hidden" data-e2e="contract-card">
@@ -109,101 +76,14 @@ export const ContractCard = ({ contract }: ContractCardProps) => {
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Detail label="Billing cycle">Monthly, on the {ordinal(billingDayOfMonth)}</Detail>
+          <Detail label="Fees">
+            {fees.length === 0 ? 'None' : `${fees.length} ${fees.length === 1 ? 'fee' : 'fees'}`}
+          </Detail>
           <Detail label="Usage">
             {usageBilled ? 'Billed on top of your fees' : 'No usage charges'}
           </Detail>
         </div>
       </CardContent>
-      {fees.length > 0 ? (
-        <CardContent padding="none">
-          {long ? (
-            // Part of the table: a slim toolbar above its headers.
-            <div className="bg-background flex items-center justify-between gap-3 border-y px-5 py-2">
-              <div className="relative w-full sm:w-64">
-                <Icon
-                  icon={SearchIcon}
-                  className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2"
-                />
-                <Input
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Search fees"
-                  aria-label="Search fees"
-                  className="h-8 pl-8 text-sm"
-                />
-              </div>
-              <Text as="span" size="xs" textColor="muted" className="shrink-0">
-                {query ? `${matching.length} of ${fees.length} fees` : `${fees.length} fees`}
-              </Text>
-            </div>
-          ) : null}
-          <Table className={cn(ROW_INSET, HEADER_DIVIDERS)} data-e2e="contract-fees">
-            <TableHeader>
-              <TableRow className="bg-background hover:bg-background">
-                <TableHead className="text-foreground text-xs font-medium">Fee</TableHead>
-                <TableHead className="text-foreground w-32 text-xs font-medium">Type</TableHead>
-                <TableHead className="text-foreground w-40 text-right text-xs font-medium">
-                  Amount
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {shownFees.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-muted-foreground h-11 text-center text-sm">
-                    No fees match “{search.trim()}”.
-                  </TableCell>
-                </TableRow>
-              ) : null}
-              {shownFees.map((fee) => (
-                <TableRow key={fee.name}>
-                  <TableCell className="h-11 text-sm">
-                    <div className="flex flex-col py-1.5">
-                      <span>{fee.label}</span>
-                      {fee.quantity ? (
-                        <Text as="span" size="xs" textColor="muted">
-                          {fee.quantity}
-                        </Text>
-                      ) : null}
-                      {fee.renewals ? (
-                        <Text as="span" size="xs" textColor="muted">
-                          {fee.renewals}
-                          {fee.endsAt ? (
-                            <>
-                              , until <ContractDate date={fee.endsAt} />
-                            </>
-                          ) : null}
-                        </Text>
-                      ) : null}
-                    </div>
-                  </TableCell>
-                  <TableCell className="h-11 text-sm">
-                    <div className="flex flex-col py-1.5">
-                      <span>{fee.frequency ?? CHARGE_TYPE_LABELS[fee.chargeType]}</span>
-                      {fee.billing ? (
-                        <Text as="span" size="xs" textColor="muted">
-                          {fee.billing}
-                        </Text>
-                      ) : null}
-                    </div>
-                  </TableCell>
-                  <TableCell className="h-11 text-right text-sm">{fee.amount}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          {long && !query ? (
-            <div className="border-t px-5 py-3">
-              <button
-                type="button"
-                className="text-muted-foreground hover:text-foreground text-sm underline underline-offset-4 transition-colors"
-                onClick={() => setShowAll((value) => !value)}>
-                {showAll ? 'Show fewer' : `Show all ${fees.length} fees`}
-              </button>
-            </div>
-          ) : null}
-        </CardContent>
-      ) : null}
       {upcomingInvoices.length > 0 ? (
         <CardContent className="flex flex-col gap-3" data-e2e="contract-upcoming-invoices">
           <Text as="p" size="sm" weight="medium">
@@ -250,8 +130,15 @@ export const ContractCard = ({ contract }: ContractCardProps) => {
       ) : null}
       <CardFooter bordered className="text-muted-foreground bg-background py-3 text-xs">
         {started
-          ? 'Fees are shown before discounts. To change your contract, contact support.'
-          : 'One-time fees, and fees billed in advance, are charged when the contract starts. Fees are shown before discounts.'}
+          ? "The contract's fees are listed with their prices under Pricing. To change your contract, contact support."
+          : "One-time fees, and fees billed in advance, are charged when the contract starts. The contract's fees are listed under Pricing."}
+        {proratedUntil ? (
+          <>
+            {' '}
+            The first period, until <ContractDate date={proratedUntil} />, is charged in part, so
+            the contract bills on the {ordinal(billingDayOfMonth)} like the rest of your account.
+          </>
+        ) : null}
         {hasFeesInArrears
           ? ' Fees billed in arrears are invoiced at the end of each period, with its usage.'
           : ''}

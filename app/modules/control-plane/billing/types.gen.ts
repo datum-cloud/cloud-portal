@@ -214,8 +214,19 @@ export type ComMiloapisBillingV1Alpha1BillingAccount = {
      */
     contract?: {
       /**
-       * BillingDayOfMonth is the day of the month the contract bills on, the
-       * day it starts. Months shorter than it bill on their last day.
+       * BillingDay is how the contract chose its billing day, from its
+       * contract.billingDay: StartDate bills on the day it starts, so every
+       * period is whole; InvoiceDay bills on the account's invoice day, so the
+       * first period runs from the start to the next billing date and is
+       * prorated, and quarterly and annual fees bill in January, April, July
+       * and October, and in January.
+       */
+      billingDay?: 'InvoiceDay' | 'StartDate';
+      /**
+       * BillingDayOfMonth is the day of the month the contract bills on: the
+       * day it starts, or the account's invoice day for a contract whose
+       * billingDay is InvoiceDay. Months shorter than it bill on their last
+       * day.
        */
       billingDayOfMonth: number;
       /**
@@ -285,6 +296,10 @@ export type ComMiloapisBillingV1Alpha1BillingAccount = {
          * for any one service.
          */
         serviceRef?: string;
+        /**
+         * SKU is the fee's product code, from its pricing. Empty when it has none.
+         */
+        sku?: string;
       }>;
       /**
        * StartsAt is when the contract starts, at midnight UTC: its one-time
@@ -402,6 +417,118 @@ export type ComMiloapisBillingV1Alpha1BillingAccount = {
      * Phase represents the current lifecycle phase of the billing account.
      */
     phase?: 'Provisioning' | 'Ready' | 'Suspended' | 'Archived';
+    /**
+     * Prices lists every service pricing in the account's Offer, copied from the
+     * Offer's published snapshot so customers can see what they're billed at
+     * without reading the Offer: usage rates and fixed fees, each before its
+     * discount, which is also given. Cleared when the account has no published Offer.
+     */
+    prices?: Array<{
+      /**
+       * Amount is a OneTime or Recurring fee's unit amount, before discount,
+       * as a decimal string in currency (e.g. "2400.00"). The fee is charged
+       * quantity times. Empty for a Usage pricing.
+       */
+      amount?: string;
+      /**
+       * ChargeType is Usage for metered consumption billed at rates, OneTime
+       * for a fee charged once, or Recurring for one charged every interval.
+       */
+      chargeType: 'Usage' | 'OneTime' | 'Recurring';
+      /**
+       * Currency is the ISO 4217 currency code of rates and amount.
+       */
+      currency: string;
+      /**
+       * DiscountPercentage is the pricing's resolved discount, a whole number
+       * up to 100, off its rates or amount. Empty when it has none.
+       */
+      discountPercentage?: number;
+      /**
+       * DisplayName is the pricing's human-readable label (e.g. "ALB
+       * Requests").
+       */
+      displayName?: string;
+      /**
+       * Interval is how often a Recurring fee is charged (monthly, quarterly
+       * or annual), so amount is per interval. Empty otherwise.
+       */
+      interval?: 'monthly' | 'quarterly' | 'annual';
+      /**
+       * Metric is the meterName of the meter a Usage pricing bills (e.g.
+       * "networking.datumapis.com/alb/requests"). Empty for a fee.
+       */
+      metric?: string;
+      /**
+       * Name is the metadata.name of the ServicePricing.
+       */
+      name: string;
+      /**
+       * PricingUnit is what a Usage pricing's rates are per (e.g. "gib"), or
+       * what a fee's amount is per (e.g. "port"). Empty for a fee whose
+       * quantity is a count of the fee.
+       */
+      pricingUnit?: string;
+      /**
+       * Quantity is how many of a fee the Offer charges, so the fee charged
+       * is amount times quantity (e.g. 3 × "1000.00"). Empty for a Usage
+       * pricing.
+       */
+      quantity?: number;
+      /**
+       * Rates are a Usage pricing's rates per pricingUnit, before discount,
+       * in order: each flat or tiered, optionally for one dimension value,
+       * with the last rate without a match applying to the rest. Empty for a
+       * fee.
+       */
+      rates?: Array<{
+        /**
+         * Flat is a single decimal USD string multiplied by metered usage.
+         * Mutually exclusive with Tiered.
+         */
+        flat?: string;
+        /**
+         * Match optionally restricts this rate to a single dimension value.
+         */
+        match?: {
+          /**
+           * Dimension is the label key declared on the monitored resource type
+           * (e.g. "tier", "region", "model").
+           */
+          dimension: string;
+          /**
+           * Value is the dimension value this rate applies to.
+           */
+          value: string;
+        };
+        /**
+         * Tiered is an ordered list of graduated volume bands.
+         * Mutually exclusive with Flat.
+         */
+        tiered?: Array<{
+          /**
+           * Rate is the USD decimal string applied to usage within this band.
+           * Zero ("0") is valid for free allowances.
+           */
+          rate: string;
+          /**
+           * UpTo is the exclusive upper bound of this band in pricingUnit units.
+           * Omit on the last band for an open-ended range.
+           */
+          upTo?: string;
+        }>;
+      }>;
+      /**
+       * ServiceRef is the service the pricing belongs to (e.g.
+       * "networking.datumapis.com"). Empty for a fee that isn't for any one
+       * service.
+       */
+      serviceRef?: string;
+      /**
+       * SKU is the pricing's product code. Empty when it has none.
+       */
+      sku?: string;
+    }>;
   };
 };
 
@@ -1080,11 +1207,32 @@ export type ComMiloapisBillingV1Alpha1BillingEntitlement = {
      */
     contract?: {
       /**
+       * BillingDay is the day of the month the contract bills on.
+       *
+       * StartDate, the default, bills on the day it starts, so every period
+       * is a full one: a contract starting on the 15th bills the 15th to the
+       * 15th.
+       *
+       * InvoiceDay bills on the account's invoice day (its payment terms'
+       * invoiceDayOfMonth, the 1st under the standard terms), like an account
+       * without a contract. The first period runs from the start to the next
+       * invoice day, and its recurring fees are prorated: a monthly fee on a
+       * contract starting on the 15th is charged for the 15th to the 1st,
+       * then for whole months. Quarterly and annual fees bill on the invoice
+       * day of January, April, July and October, and of January, so their
+       * first period runs to the next of those. A fee with periods runs for
+       * that many whole periods after the prorated one.
+       *
+       * Immutable.
+       */
+      billingDay?: 'StartDate' | 'InvoiceDay';
+      /**
        * StartsAt is when the contract starts, at midnight UTC. The Offer's
        * charges start on this day, so a one-time setup fee is charged then,
-       * and monthly charges bill on this day of each month: a contract
-       * starting on the 18th bills on the 18th, and one starting on the 29th,
-       * 30th or 31st bills on the last day of shorter months. When the
+       * and, unless billingDay is InvoiceDay, monthly charges bill on this day
+       * of each month: a contract starting on the 18th bills on the 18th, and
+       * one starting on the 29th, 30th or 31st bills on the last day of
+       * shorter months. When the
        * contract is set, it may be today or up to a year ahead, but not in
        * the past: billing providers can't start charging retroactively.
        * Immutable.
@@ -1543,6 +1691,42 @@ export type ComMiloapisBillingV1Alpha1InvoiceRequest = {
       name: string;
     };
     /**
+     * ContractDraft, on a Preview, previews the first invoice of a contract
+     * that isn't published yet, instead of what the account is billed
+     * for now. Its Offer must be a contract Offer for this billing account,
+     * labelled with ContractBillingAccountLabel and
+     * ContractOrganizationLabel, usually still at launch stage Draft.
+     */
+    contractDraft?: {
+      /**
+       * BillingDay is the day of the month it would bill on, as
+       * BillingContract.BillingDay. Defaults to StartDate.
+       */
+      billingDay?: 'StartDate' | 'InvoiceDay';
+      /**
+       * OfferRef names the contract's Offer.
+       */
+      offerRef: {
+        /**
+         * Name of the Offer.
+         */
+        name: string;
+      };
+      /**
+       * StartsAt is when the contract would start, at midnight UTC, as
+       * BillingContract.StartsAt.
+       */
+      startsAt: string;
+    };
+    /**
+     * Draft, on a Preview, also leaves the invoice as a draft in the
+     * invoicing provider's own system, for staff to open there: with Stripe,
+     * a draft invoice in the Stripe dashboard. The draft is never finalized
+     * or sent, and the provider deletes it after a day. status.draft links
+     * to it. Providers that can't make one complete the Preview without it.
+     */
+    draft?: boolean;
+    /**
      * Mode is Preview to work out the invoice without creating it, or
      * Issue to create it and send it to the customer.
      */
@@ -1553,6 +1737,11 @@ export type ComMiloapisBillingV1Alpha1InvoiceRequest = {
    * Written only by the invoicing provider.
    */
   status?: {
+    /**
+     * AmountDue is what the customer would be charged: TotalWithTax with
+     * StartingBalance applied. Unset when the provider didn't say.
+     */
+    amountDue?: string;
     /**
      * CompletedAt is when the provider finished the request.
      */
@@ -1600,6 +1789,20 @@ export type ComMiloapisBillingV1Alpha1InvoiceRequest = {
      */
     currencyCode?: string;
     /**
+     * Draft links to the draft a Preview with spec.draft left in the
+     * invoicing provider's own system.
+     */
+    draft?: {
+      /**
+       * ExpiresAt is when the provider deletes the draft.
+       */
+      expiresAt?: string;
+      /**
+       * URL opens the draft in the provider's dashboard.
+       */
+      url: string;
+    };
+    /**
      * InvoiceRef references the Invoice an Issue request created, once the
      * provider has recorded it.
      */
@@ -1623,6 +1826,11 @@ export type ComMiloapisBillingV1Alpha1InvoiceRequest = {
        */
       description: string;
       /**
+       * Discount is what discounts take off the charge, as a decimal string.
+       * Amount is already after it.
+       */
+      discount?: string;
+      /**
        * Period is the service period the charge covers. Unset for a one-time
        * charge.
        */
@@ -1636,6 +1844,21 @@ export type ComMiloapisBillingV1Alpha1InvoiceRequest = {
          */
         start: string;
       };
+      /**
+       * Quantity is how many are charged, as a decimal string. Unset when
+       * the provider didn't say.
+       */
+      quantity?: string;
+      /**
+       * Tax is the tax on the charge, as a decimal string. Unset when the
+       * provider didn't work out tax.
+       */
+      tax?: string;
+      /**
+       * UnitAmount is the price of one, before discounts, as a decimal
+       * string. Unset when the provider didn't say.
+       */
+      unitAmount?: string;
     }>;
     /**
      * ObservedGeneration is the most recent generation observed by the
@@ -1648,9 +1871,27 @@ export type ComMiloapisBillingV1Alpha1InvoiceRequest = {
      */
     phase?: 'Pending' | 'Succeeded' | 'Failed';
     /**
+     * StartingBalance is the account's balance the provider carries onto
+     * the invoice, as a decimal string: positive for what the customer
+     * already owes, such as an earlier invoice too small to charge,
+     * negative for credit. Unset when the provider didn't say.
+     */
+    startingBalance?: string;
+    /**
+     * Tax is the invoice's tax, as a decimal string, worked out from the
+     * customer's address, tax IDs and exemptions and each charge's tax
+     * code. Unset when the provider didn't work out tax.
+     */
+    tax?: string;
+    /**
      * Total is the sum of the lines, before tax, as a decimal string.
      */
     total?: string;
+    /**
+     * TotalWithTax is what the customer would pay: Total plus Tax. Unset
+     * with Tax.
+     */
+    totalWithTax?: string;
   };
 };
 
@@ -2219,7 +2460,8 @@ export type ComMiloapisBillingV1Alpha1Offer = {
          * serviceRef, metric, pricingUnit, unitConversion, each rate's match and
          * whether it's flat or tiered, and tier bounds. A OneTime or Recurring
          * pricing must match it in everything but its amount and displayName:
-         * serviceRef, pricingUnit, trigger and interval.
+         * serviceRef, pricingUnit, trigger and interval. Either kind has its
+         * list pricing's sku and tax.
          *
          * Billing doesn't change with basedOn: it records which list price the
          * customer's price replaces, so portals can show them side by side.
@@ -2310,6 +2552,34 @@ export type ComMiloapisBillingV1Alpha1Offer = {
          * setup or support fee; when set, it must name a Service.
          */
         serviceRef?: string;
+        /**
+         * SKU is the product code finance knows this price's product by (e.g.
+         * "DC-CAB-01"). It's internal, for tracking and reporting, and never
+         * printed on an invoice. It names the product, not the price: a
+         * customer's pricing with basedOn has its list pricing's SKU, and a new
+         * price for the same product keeps it.
+         */
+        sku?: string;
+        /**
+         * Tax says how this price's charges are taxed. Without it, they're
+         * taxed by the billing profile's default, as every charge was before
+         * prices carried their own. A customer's pricing with basedOn has its
+         * list pricing's tax, as it has its SKU.
+         */
+        tax?: {
+          /**
+           * Code is the tax engine's code for what this price sells, which sets
+           * the rate it's taxed at. With Stripe Tax it's one of Stripe's tax
+           * codes (e.g. "txcd_10103001" for software as a service). Finance
+           * chooses it. Omitted, the billing profile's default code applies.
+           */
+          code?: string;
+          /**
+           * Taxable is false for a charge that's never taxed, wherever the
+           * customer is. Omitted, the charge is taxable.
+           */
+          taxable?: boolean;
+        };
         /**
          * Trigger identifies when a OneTime charge fires.
          */
@@ -2882,7 +3152,8 @@ export type ComMiloapisBillingV1Alpha1ServicePricing = {
      * serviceRef, metric, pricingUnit, unitConversion, each rate's match and
      * whether it's flat or tiered, and tier bounds. A OneTime or Recurring
      * pricing must match it in everything but its amount and displayName:
-     * serviceRef, pricingUnit, trigger and interval.
+     * serviceRef, pricingUnit, trigger and interval. Either kind has its
+     * list pricing's sku and tax.
      *
      * Billing doesn't change with basedOn: it records which list price the
      * customer's price replaces, so portals can show them side by side.
@@ -2973,6 +3244,34 @@ export type ComMiloapisBillingV1Alpha1ServicePricing = {
      * setup or support fee; when set, it must name a Service.
      */
     serviceRef?: string;
+    /**
+     * SKU is the product code finance knows this price's product by (e.g.
+     * "DC-CAB-01"). It's internal, for tracking and reporting, and never
+     * printed on an invoice. It names the product, not the price: a
+     * customer's pricing with basedOn has its list pricing's SKU, and a new
+     * price for the same product keeps it.
+     */
+    sku?: string;
+    /**
+     * Tax says how this price's charges are taxed. Without it, they're
+     * taxed by the billing profile's default, as every charge was before
+     * prices carried their own. A customer's pricing with basedOn has its
+     * list pricing's tax, as it has its SKU.
+     */
+    tax?: {
+      /**
+       * Code is the tax engine's code for what this price sells, which sets
+       * the rate it's taxed at. With Stripe Tax it's one of Stripe's tax
+       * codes (e.g. "txcd_10103001" for software as a service). Finance
+       * chooses it. Omitted, the billing profile's default code applies.
+       */
+      code?: string;
+      /**
+       * Taxable is false for a charge that's never taxed, wherever the
+       * customer is. Omitted, the charge is taxable.
+       */
+      taxable?: boolean;
+    };
     /**
      * Trigger identifies when a OneTime charge fires.
      */

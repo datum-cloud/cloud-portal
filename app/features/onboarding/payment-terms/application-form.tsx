@@ -153,7 +153,7 @@ export function PaymentTermsApplicationForm({
             description: `Change it to ${apEmail} in billing settings so invoices reach accounts payable.`,
             action: {
               label: 'Billing settings',
-              onClick: () => void navigate(billingSettingsPath(billingAccountName)),
+              onClick: () => void navigate(billingSettingsPath(orgId)),
             },
           });
         }

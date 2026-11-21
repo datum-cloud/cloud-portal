@@ -1,6 +1,5 @@
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { deriveSuspensionVerdict } from '@/features/project/suspension';
-import { useResourcePermissions } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import type { Project } from '@/resources/projects';
 import { filterActiveProjects } from '@/resources/projects';
@@ -15,7 +14,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from '@datum-cloud/datum-ui/command';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
@@ -23,7 +21,7 @@ import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { CheckIcon, ChevronDown, FolderRoot } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 
 /** Compact "Suspended" pill, shared by the switcher trigger and its dropdown rows. */
 const SuspendedBadge = () => (
@@ -59,13 +57,6 @@ export const ProjectSwitcher = ({
     () => deriveSuspensionVerdict(currentProject?.status).isSuspended,
     [currentProject?.status]
   );
-
-  const { canCreate: canCreateProject } = useResourcePermissions({
-    resource: 'projects',
-    group: 'resourcemanager.miloapis.com',
-    scope: 'org',
-    verbs: ['create'],
-  });
 
   const { data, isLoading } = useProjects(orgId ?? '', undefined, {
     enabled: open && !!orgId,
@@ -149,24 +140,6 @@ export const ProjectSwitcher = ({
                     );
                   })}
                 </CommandGroup>
-              )}
-
-              {canCreateProject && (
-                <>
-                  <CommandSeparator />
-                  <CommandItem asChild className="cursor-pointer">
-                    <Link
-                      to={getPathWithParams(
-                        paths.org.detail.projects.root,
-                        { orgId },
-                        { action: 'create' }
-                      )}
-                      className="flex items-center gap-2 px-3 py-2">
-                      <Icon icon={FolderRoot} className="size-3.5" />
-                      <Text size="xs">Add project</Text>
-                    </Link>
-                  </CommandItem>
-                </>
               )}
             </CommandList>
           </Command>

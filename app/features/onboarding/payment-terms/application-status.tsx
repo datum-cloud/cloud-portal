@@ -199,7 +199,7 @@ export function ApplicationUnderReview({
         }
         void navigate(
           fromSettings
-            ? billingSettingsPath(context.billingAccountName)
+            ? billingSettingsPath(context.orgId)
             : cardSetupPath({ orgId: context.orgId, entry: context.entry }),
           { replace: true }
         );
@@ -280,7 +280,7 @@ export function ApplicationUnderReview({
           {fromSettings ? (
             <LinkButton
               as={Link}
-              href={billingSettingsPath(context.billingAccountName)}
+              href={billingSettingsPath(context.orgId)}
               type="primary"
               theme="solid"
               className="w-full">
@@ -396,7 +396,7 @@ export function ApplicationApproved({
           {fromSettings ? (
             <LinkButton
               as={Link}
-              href={billingSettingsPath(context.billingAccountName)}
+              href={billingSettingsPath(context.orgId)}
               type="primary"
               theme="solid"
               className="w-full">

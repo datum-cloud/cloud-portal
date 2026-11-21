@@ -431,16 +431,11 @@ describe('mergePluginNavIntoTree children', () => {
 });
 
 describe('buildProjectNavTree usage item', () => {
-  test('places Usage between Activity and Metrics Export', () => {
+  test('leaves usage to the organization', () => {
     const tree = buildProjectNavTree('proj-1');
     const observe = tree.find((item) => item.title === 'Observe');
     const titles = observe?.children?.map((c) => c.title) ?? [];
-    expect(titles).toContain('Usage');
-    expect(titles.indexOf('Activity')).toBeLessThan(titles.indexOf('Usage'));
-    expect(titles.indexOf('Usage')).toBeLessThan(titles.indexOf('Metrics Export'));
-    const usage = observe?.children?.find((c) => c.title === 'Usage');
-    expect(usage?.href).toBe('/project/proj-1/usage');
-    expect(usage?.icon).toBeDefined();
+    expect(titles).not.toContain('Usage');
   });
 });
 
