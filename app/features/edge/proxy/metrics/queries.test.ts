@@ -10,9 +10,11 @@ import {
   createStatusClassFilter,
   projectErrorRateQuery,
   projectRequestCountQuery,
+  projectRequestsSeenQuery,
   projectRpsQuery,
   projectWafBlockedQuery,
   resetGuardedIncrease,
+  slicedResetGuardedIncrease,
   toStatusClassPatterns,
 } from './queries';
 import { describe, expect, it } from 'vitest';
@@ -39,6 +41,21 @@ describe('resetGuardedIncrease', () => {
 
     expect(incWindow).toBe('1m');
     expect(resetsWindow).toBe('1m');
+  });
+});
+
+describe('slicedResetGuardedIncrease', () => {
+  it('adds up guarded 5m increases across the window, so a reset drops only its slice', () => {
+    expect(slicedResetGuardedIncrease('some_counter_total', '{label="value"}', '24h')).toBe(
+      'sum_over_time((increase(some_counter_total{label="value"}[5m]) * ' +
+        '(resets(some_counter_total{label="value"}[5m]) == bool 0))[24h:5m])'
+    );
+  });
+
+  it('takes a different slice', () => {
+    expect(slicedResetGuardedIncrease('c', '{}', '30m', '1m')).toBe(
+      'sum_over_time((increase(c{}[1m]) * (resets(c{}[1m]) == bool 0))[30m:1m])'
+    );
   });
 });
 
@@ -136,6 +153,7 @@ describe('project-wide query builders', () => {
     for (const query of [
       projectRpsQuery('proj', '30m'),
       projectRequestCountQuery('proj', '24h'),
+      projectRequestsSeenQuery('proj', '24h'),
       projectErrorRateQuery('proj', '30m'),
       projectWafBlockedQuery('proj', '24h'),
     ]) {
@@ -151,6 +169,21 @@ describe('project-wide query builders', () => {
     expect(numerator).toContain('or vector(0)');
     expect(denominator).not.toContain('envoy_response_code');
     expect(denominator.endsWith('> 0)')).toBe(true);
+  });
+
+  it('checks for any requests without dropping series that reset', () => {
+    const query = projectRequestsSeenQuery('proj', '24h');
+    expect(query).toMatch(/^sum\(increase\(envoy_vhost_vcluster_upstream_rq\{.*\}\[24h\]\)\)$/);
+    expect(query).not.toContain('resets(');
+  });
+
+  it('totals requests and WAF blocks a slice at a time, so one reset does not zero the day', () => {
+    for (const query of [
+      projectRequestCountQuery('proj', '24h'),
+      projectWafBlockedQuery('proj', '24h'),
+    ]) {
+      expect(query).toMatch(/^sum\(sum_over_time\(.*\[24h:5m\]\)\)$/);
+    }
   });
 
   it('counts only blocked and dropped WAF events', () => {
