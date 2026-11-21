@@ -57,6 +57,12 @@ function renderTraffic() {
 const tiles = () =>
   [...container.querySelectorAll('[data-tile]')].map((el) => el.getAttribute('data-tile'));
 const description = () => container.querySelector('p')?.textContent;
+const rowLabels = () => [...container.querySelectorAll('h3')].map((el) => el.textContent);
+/** The queries that decide whether a row shows. */
+const seenQueries = () =>
+  queryMock.mock.calls
+    .filter(([key]) => (key as unknown[])[0] === 'traffic-seen')
+    .map(([, request]) => (request as { query: string }).query);
 
 beforeEach(() => {
   (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -78,9 +84,23 @@ describe('ProjectTraffic', () => {
     renderTraffic();
 
     expect(tiles()).toEqual(['Requests served', 'Error rate (4xx + 5xx)', 'Blocked by WAF']);
+    expect(rowLabels()).toEqual(['ALB']);
     expect(description()).toBe(
       "Traffic across all 2 of this project's load balancers over the last 24 hours."
     );
+  });
+
+  it('decides a row is quiet from a plain increase, so a counter reset keeps it', () => {
+    proxiesMock.mockReturnValue({ data: [{ name: 'a' }], isLoading: false });
+    serve({ requests: 120, nlbs: 1, nlbBytes: 5_000 });
+    renderTraffic();
+
+    const queries = seenQueries();
+    expect(queries).toEqual([
+      expect.stringContaining('increase(envoy_vhost_vcluster_upstream_rq{'),
+      expect.stringContaining('increase(datum_nlb_listener_receive_bytes_total{'),
+    ]);
+    for (const query of queries) expect(query).not.toContain('resets(');
   });
 
   it('keeps the ALB wording for a quiet ALB-only project', () => {
@@ -99,10 +119,11 @@ describe('ProjectTraffic', () => {
     serve({ nlbs: 1, nlbBytes: 5_000 });
     renderTraffic();
 
-    expect(tiles()).toEqual(['NLB data received', 'NLB packets received', 'NLB dropped packets']);
-    expect(
-      container.querySelector('[data-tile="NLB data received"]')?.getAttribute('data-href')
-    ).toBe('/project/demo/services/networking/nlb');
+    expect(tiles()).toEqual(['Data received', 'Packets received', 'Dropped packets']);
+    expect(rowLabels()).toEqual(['NLB']);
+    expect(container.querySelector('[data-tile="Data received"]')?.getAttribute('data-href')).toBe(
+      '/project/demo/services/networking/nlb'
+    );
     expect(description()).toBe(
       "Traffic across this project's load balancers over the last 24 hours."
     );
@@ -114,6 +135,7 @@ describe('ProjectTraffic', () => {
     renderTraffic();
 
     expect(tiles()).toHaveLength(6);
+    expect(rowLabels()).toEqual(['ALB', 'NLB']);
     expect(description()).toBe(
       "Traffic across all 3 of this project's load balancers over the last 24 hours."
     );
@@ -125,6 +147,14 @@ describe('ProjectTraffic', () => {
     renderTraffic();
 
     expect(tiles()).toEqual(['Requests served', 'Error rate (4xx + 5xx)', 'Blocked by WAF']);
+  });
+
+  it('drops the ALB row when the ALBs were quiet but the NLBs were not', () => {
+    proxiesMock.mockReturnValue({ data: [{ name: 'a' }], isLoading: false });
+    serve({ requests: 0, nlbs: 1, nlbBytes: 5_000 });
+    renderTraffic();
+
+    expect(rowLabels()).toEqual(['NLB']);
   });
 
   it('says there was no traffic when only quiet NLBs exist', () => {

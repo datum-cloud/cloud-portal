@@ -10,6 +10,7 @@ import {
   createStatusClassFilter,
   projectErrorRateQuery,
   projectRequestCountQuery,
+  projectRequestsSeenQuery,
   projectRpsQuery,
   projectWafBlockedQuery,
   resetGuardedIncrease,
@@ -136,6 +137,7 @@ describe('project-wide query builders', () => {
     for (const query of [
       projectRpsQuery('proj', '30m'),
       projectRequestCountQuery('proj', '24h'),
+      projectRequestsSeenQuery('proj', '24h'),
       projectErrorRateQuery('proj', '30m'),
       projectWafBlockedQuery('proj', '24h'),
     ]) {
@@ -151,6 +153,12 @@ describe('project-wide query builders', () => {
     expect(numerator).toContain('or vector(0)');
     expect(denominator).not.toContain('envoy_response_code');
     expect(denominator.endsWith('> 0)')).toBe(true);
+  });
+
+  it('checks for any requests without dropping series that reset', () => {
+    const query = projectRequestsSeenQuery('proj', '24h');
+    expect(query).toMatch(/^sum\(increase\(envoy_vhost_vcluster_upstream_rq\{.*\}\[24h\]\)\)$/);
+    expect(query).not.toContain('resets(');
   });
 
   it('counts only blocked and dropped WAF events', () => {

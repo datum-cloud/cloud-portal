@@ -1,6 +1,7 @@
 import {
   projectNlbBytesQuery,
   projectNlbBytesRateQuery,
+  projectNlbBytesSeenQuery,
   projectNlbCountQuery,
   projectNlbDroppedQuery,
   projectNlbDroppedRateQuery,
@@ -11,6 +12,7 @@ import {
 import {
   projectErrorRateQuery,
   projectRequestCountQuery,
+  projectRequestsSeenQuery,
   projectRpsQuery,
   projectWafBlockedQuery,
 } from '@/features/edge/proxy/metrics/queries';
@@ -36,8 +38,6 @@ const STEP = '30m';
  * 0% and 100%; the longer window shows the trend instead of that noise.
  */
 const ERROR_RATE_WINDOW = '2h';
-const REQUESTS_TITLE = 'Requests served';
-const NLB_BYTES_TITLE = 'NLB data received';
 
 /**
  * Whether the tiles for one kind of load balancer have anything to draw:
@@ -46,6 +46,26 @@ const NLB_BYTES_TITLE = 'NLB data received';
 function tilesFor(count: number, traffic: number | undefined) {
   const quiet = count > 0 && traffic === 0;
   return { has: count > 0, quiet, show: count > 0 && !quiet };
+}
+
+/** One kind of load balancer's tiles, under its name. */
+function TrafficRow({
+  label,
+  testId,
+  children,
+}: {
+  label: string;
+  testId: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-2" data-testid={testId}>
+      <Text as="h3" size="xs" textColor="muted" weight="medium">
+        {label}
+      </Text>
+      <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-3">{children}</div>
+    </div>
+  );
 }
 
 /**
@@ -63,13 +83,13 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
     return { start: new Date(end.getTime() - DAY_MS), end };
   }, []);
 
-  // The same query, under the same key, as the "Requests served" tile, so it
-  // is fetched once. A day with no requests gets one line instead of three
-  // tiles of zeros.
-  const requestsQuery = projectRequestCountQuery(projectId, '24h');
+  // A day with no requests gets one line instead of three tiles of zeros.
+  // Not the tile's own reset-guarded count, which reads 0 once a counter has
+  // reset in the window, however busy the ALB was.
+  const requestsSeenQuery = projectRequestsSeenQuery(projectId, '24h');
   const { data: requests } = usePrometheusAPIQuery<MetricCardData>(
-    ['alb-stat', REQUESTS_TITLE, requestsQuery, timeRange.start.getTime(), timeRange.end.getTime()],
-    { type: 'card', projectId, query: requestsQuery, timeRange, metricFormat: 'short-number' },
+    ['traffic-seen', requestsSeenQuery, timeRange.start.getTime(), timeRange.end.getTime()],
+    { type: 'card', projectId, query: requestsSeenQuery, timeRange, metricFormat: 'number' },
     { enabled: proxies.length > 0 }
   );
 
@@ -82,17 +102,10 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
     {}
   );
   const nlbs = nlbCount?.value ?? 0;
-  // Shares its key with the "NLB data received" tile, like requests above.
-  const nlbBytesQuery = projectNlbBytesQuery(projectId, '24h');
+  const nlbBytesSeenQuery = projectNlbBytesSeenQuery(projectId, '24h');
   const { data: nlbBytes } = usePrometheusAPIQuery<MetricCardData>(
-    [
-      'alb-stat',
-      NLB_BYTES_TITLE,
-      nlbBytesQuery,
-      timeRange.start.getTime(),
-      timeRange.end.getTime(),
-    ],
-    { type: 'card', projectId, query: nlbBytesQuery, timeRange, metricFormat: 'bytes' },
+    ['traffic-seen', nlbBytesSeenQuery, timeRange.start.getTime(), timeRange.end.getTime()],
+    { type: 'card', projectId, query: nlbBytesSeenQuery, timeRange, metricFormat: 'number' },
     { enabled: nlbs > 0 }
   );
   const nlbHref = useNlbListHref(projectId);
@@ -142,12 +155,12 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
       {/* With nothing to chart, the heading and its one line say it all;
           three empty tiles would outweigh everything that has content. */}
       {!idle && !quiet && (alb.show || albPending) && (
-        <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-3">
+        <TrafficRow label="ALB" testId="project-home-alb-traffic">
           <SparklineStatCard
             projectId={projectId}
-            title={REQUESTS_TITLE}
+            title="Requests served"
             query={projectRpsQuery(projectId, STEP)}
-            valueQuery={requestsQuery}
+            valueQuery={projectRequestCountQuery(projectId, '24h')}
             format="short-number"
             precision={1}
             href={href}
@@ -177,17 +190,15 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
             pending={albPending}
             {...shared}
           />
-        </div>
+        </TrafficRow>
       )}
       {nlb.show && (
-        <div
-          className="grid grid-cols-1 gap-4 @xl/main:grid-cols-3"
-          data-testid="project-home-nlb-traffic">
+        <TrafficRow label="NLB" testId="project-home-nlb-traffic">
           <SparklineStatCard
             projectId={projectId}
-            title={NLB_BYTES_TITLE}
+            title="Data received"
             query={projectNlbBytesRateQuery(projectId, STEP)}
-            valueQuery={nlbBytesQuery}
+            valueQuery={projectNlbBytesQuery(projectId, '24h')}
             format="bytes"
             precision={1}
             href={nlbHref}
@@ -195,7 +206,7 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
           />
           <SparklineStatCard
             projectId={projectId}
-            title="NLB packets received"
+            title="Packets received"
             query={projectNlbPacketsRateQuery(projectId, STEP)}
             valueQuery={projectNlbPacketsQuery(projectId, '24h')}
             format="short-number"
@@ -205,7 +216,7 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
           />
           <SparklineStatCard
             projectId={projectId}
-            title="NLB dropped packets"
+            title="Dropped packets"
             query={projectNlbDroppedRateQuery(projectId, STEP)}
             valueQuery={projectNlbDroppedQuery(projectId, '24h')}
             format="short-number"
@@ -214,7 +225,7 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
             href={nlbHref}
             {...shared}
           />
-        </div>
+        </TrafficRow>
       )}
     </section>
   );

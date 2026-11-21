@@ -51,6 +51,14 @@ export function projectNlbBytesQuery(projectId: string, window: string): string 
   return `sum(${resetGuardedIncrease(NLB_RECEIVE_BYTES_METRIC, nlbSelector(projectId), window)})`;
 }
 
+/**
+ * Whether any NLB in the project received bytes over `window`. A series whose
+ * counter reset still counts, unlike the total above.
+ */
+export function projectNlbBytesSeenQuery(projectId: string, window: string): string {
+  return `sum(increase(${NLB_RECEIVE_BYTES_METRIC}${nlbSelector(projectId)}[${window}]))`;
+}
+
 /** Packets per second received across every NLB in the project. */
 export function projectNlbPacketsRateQuery(projectId: string, timeWindow: string): string {
   return `sum(rate(${NLB_RECEIVE_PACKETS_METRIC}${nlbSelector(projectId)}[${timeWindow}]))`;

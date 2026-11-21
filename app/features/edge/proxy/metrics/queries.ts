@@ -397,6 +397,15 @@ export function projectRequestCountQuery(projectId: string, window: string): str
 }
 
 /**
+ * Whether any ALB in the project served a request over `window`. Unlike the
+ * count above, a series whose counter reset still counts, so a gateway
+ * restart doesn't make a busy project read as quiet.
+ */
+export function projectRequestsSeenQuery(projectId: string, window: string): string {
+  return `sum(increase(${ENVOY_RQ_METRIC}${projectTrafficSelector(projectId)}[${window}]))`;
+}
+
+/**
  * Share of 4xx/5xx responses across the project. The `> 0` guard drops the
  * result when there was no traffic, so an idle project reads 0% rather than NaN.
  */
