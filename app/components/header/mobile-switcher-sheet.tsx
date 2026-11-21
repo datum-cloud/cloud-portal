@@ -52,7 +52,7 @@ function OrgSwitcherSheet({
     (org: Organization) => {
       onOpenChange(false);
       if (org.name !== currentOrg?.name) setOrganization(org);
-      void navigate(getPathWithParams(paths.org.detail.settings.general, { orgId: org.name }));
+      void navigate(getPathWithParams(paths.org.detail.projects.root, { orgId: org.name }));
     },
     [currentOrg?.name, setOrganization, navigate, onOpenChange]
   );
