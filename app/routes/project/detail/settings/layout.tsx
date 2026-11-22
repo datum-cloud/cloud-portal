@@ -6,7 +6,7 @@ import { type Project } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useMemo } from 'react';
-import { Outlet, useRouteLoaderData } from 'react-router';
+import { Outlet } from 'react-router';
 
 type ProjectDetailEnvelope = DslLoaderData<
   Project,
@@ -27,9 +27,6 @@ export const handle = {
 
 export default function ProjectSettingsLayout() {
   const { project } = useProjectContext();
-  const parent = useRouteLoaderData('project-detail') as ProjectDetailEnvelope | undefined;
-  const isOrgOwner =
-    parent && parent.restricted === false ? (parent.companions.isOrgOwner ?? false) : false;
 
   const navItems: SubNavigationTab[] = useMemo(() => {
     const projectId = project?.name;
@@ -38,16 +35,8 @@ export default function ProjectSettingsLayout() {
         label: 'General',
         href: getPathWithParams(paths.project.detail.settings.general, { projectId }),
       },
-      ...(isOrgOwner
-        ? [
-            {
-              label: 'Billing',
-              href: getPathWithParams(paths.project.detail.settings.billing, { projectId }),
-            },
-          ]
-        : []),
     ];
-  }, [project, isOrgOwner]);
+  }, [project]);
 
   return (
     <SubLayout title="Manage project" navItems={navItems}>

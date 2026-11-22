@@ -57,7 +57,7 @@ export const OnboardingLayout = ({
     )}
     <header className={onboardingHeaderClassName}>
       <LogoFlat className={onboardingLogoClassName} aria-label="Datum" />
-      <UserDropdown hideBillingAccount />
+      <UserDropdown />
     </header>
     <div className={cn(onboardingContentClassName, widthClassName[width], contentClassName)}>
       {children}

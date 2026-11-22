@@ -1,7 +1,6 @@
 import { OrganizationItem } from './organization-item';
 import { useOrganizationsGql, type Organization } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import {
   Command,
@@ -17,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/p
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { BuildingIcon, CheckIcon, ChevronDown, Settings2 } from 'lucide-react';
+import { BuildingIcon, CheckIcon, ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 
@@ -106,9 +105,7 @@ export const SelectOrganization = ({
                         key={org.name}
                         onSelect={() => {
                           setOpen(false);
-                          if (!isSelected) {
-                            onSelect?.(org);
-                          }
+                          onSelect?.(org);
                         }}
                         className="cursor-pointer justify-between px-3 py-2">
                         <OrganizationItem org={org} />
@@ -122,18 +119,6 @@ export const SelectOrganization = ({
             {!hideNewOrganization && (
               <>
                 <CommandSeparator />
-                {currentOrg?.name && (
-                  <CommandItem className="cursor-pointer" asChild onSelect={() => setOpen(false)}>
-                    <Link
-                      to={getPathWithParams(paths.org.detail.settings.general, {
-                        orgId: currentOrg.name,
-                      })}
-                      className="flex items-center gap-2 px-3 py-2">
-                      <Icon icon={Settings2} className="size-3.5" />
-                      <Text size="xs">Manage organization</Text>
-                    </Link>
-                  </CommandItem>
-                )}
                 <CommandItem className="cursor-pointer" asChild>
                   <Link
                     to={paths.account.organizations.root}

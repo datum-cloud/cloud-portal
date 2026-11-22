@@ -228,6 +228,160 @@ describe('contractSummary', () => {
     ]);
   });
 
+  describe('billed on the invoice day', () => {
+    const invoiceDay: BillingAccount = {
+      ...account,
+      status: {
+        ...account.status,
+        contract: {
+          startsAt: '2026-11-15T00:00:00Z',
+          billingDay: 'InvoiceDay',
+          billingDayOfMonth: 1,
+          usageBilled: true,
+          fees: [
+            { name: 'setup', chargeType: 'OneTime', amount: '1000.00', currency: 'USD' },
+            {
+              name: 'rack',
+              chargeType: 'Recurring',
+              amount: '3000.00',
+              currency: 'USD',
+              interval: 'monthly',
+            },
+            {
+              name: 'support',
+              chargeType: 'Recurring',
+              amount: '900.00',
+              currency: 'USD',
+              interval: 'quarterly',
+              billingTiming: 'InArrears',
+            },
+            {
+              name: 'link',
+              chargeType: 'Recurring',
+              amount: '1200.00',
+              currency: 'USD',
+              interval: 'annual',
+              periods: 2,
+            },
+          ],
+        },
+      },
+    };
+
+    it('charges the first period in part and then bills on the invoice day', () => {
+      const schedule = contractInvoiceSchedule(invoiceDay.status!.contract!, 30);
+      const byDate = Object.fromEntries(
+        schedule.map((invoice) => [invoice.date.slice(0, 10), invoice])
+      );
+      // 15 November to 1 December is 16 of November's 30 days; to 1 January,
+      // 47 of the 92 days from 1 October and of the 365 from 1 January 2026.
+      expect(byDate['2026-11-15'].charges).toEqual([
+        { label: 'setup', total: 1000 },
+        { label: 'rack', total: 1600 },
+        { label: 'link', total: 154.52 },
+      ]);
+      expect(byDate['2026-11-15'].billsUsage).toBe(false);
+      expect(byDate['2026-12-01'].charges).toEqual([{ label: 'rack', total: 3000 }]);
+      expect(byDate['2026-12-01'].dueDate).toBe('2026-12-31T00:00:00.000Z');
+      expect(byDate['2027-01-01'].charges).toEqual([
+        { label: 'rack', total: 3000 },
+        { label: 'support', total: 459.78 },
+        { label: 'link', total: 1200 },
+      ]);
+      expect(byDate['2027-01-01'].billsUsage).toBe(true);
+      // Quarterly fees bill in January, April, July and October.
+      expect(
+        schedule
+          .filter((invoice) => invoice.charges.some((charge) => charge.label === 'support'))
+          .map((invoice) => invoice.date.slice(0, 10))
+      ).toEqual(['2027-01-01', '2027-04-01', '2027-07-01', '2027-10-01']);
+      expect(schedule.map((invoice) => invoice.date.slice(0, 10)).at(-1)).toBe('2027-11-01');
+    });
+
+    it('says when the first period charged in part ends, until it has', () => {
+      const summary = contractSummary(invoiceDay, Date.parse('2026-11-10T00:00:00Z'));
+      // The monthly fee reaches the invoice day first; from then the contract
+      // bills on the 1st like the rest of the account.
+      expect(summary?.proratedUntil).toBe('2026-12-01T00:00:00.000Z');
+      expect(summary?.upcomingInvoices.map((invoice) => invoice.date.slice(0, 10))).toEqual([
+        '2026-11-15',
+        '2027-01-01',
+        '2027-04-01',
+        '2027-07-01',
+      ]);
+      expect(contractSummary(invoiceDay, Date.parse('2026-12-02T00:00:00Z'))?.proratedUntil).toBe(
+        undefined
+      );
+    });
+
+    it('reads a contract from billing before billingDay as billed on the invoice day', () => {
+      const { billingDay: _billingDay, ...contract } = invoiceDay.status!.contract!;
+      const dates = contractInvoiceSchedule(contract, undefined).map((invoice) =>
+        invoice.date.slice(0, 10)
+      );
+      expect(dates.slice(0, 3)).toEqual(['2026-11-15', '2026-12-01', '2027-01-01']);
+    });
+
+    it('schedules nothing when the dates are unreadable, instead of looping', () => {
+      const fees = [
+        {
+          name: 'rack',
+          chargeType: 'Recurring' as const,
+          amount: '3000.00',
+          currency: 'USD',
+          interval: 'monthly' as const,
+        },
+      ];
+      expect(
+        contractInvoiceSchedule(
+          { startsAt: 'not a date', billingDay: 'InvoiceDay', billingDayOfMonth: 1, fees },
+          undefined
+        )
+      ).toEqual([]);
+      expect(
+        contractInvoiceSchedule(
+          {
+            startsAt: '2026-11-15T00:00:00Z',
+            billingDay: 'InvoiceDay',
+            billingDayOfMonth: undefined as unknown as number,
+            fees,
+          },
+          undefined
+        )
+      ).toEqual([]);
+    });
+
+    it('charges a quarterly fee in part even when the contract starts on the invoice day', () => {
+      const contract = {
+        startsAt: '2027-02-01T00:00:00Z',
+        billingDay: 'InvoiceDay' as const,
+        billingDayOfMonth: 1,
+        fees: [
+          {
+            name: 'support',
+            chargeType: 'Recurring' as const,
+            amount: '900.00',
+            currency: 'USD',
+            interval: 'quarterly' as const,
+          },
+        ],
+      };
+      // 1 February to 1 April is 59 of the 90 days from 1 January.
+      expect(
+        contractInvoiceSchedule(contract, undefined).map((invoice) => [
+          invoice.date.slice(0, 10),
+          invoice.total,
+        ])
+      ).toEqual([
+        ['2027-02-01', '$590'],
+        ['2027-04-01', '$900'],
+        ['2027-07-01', '$900'],
+        ['2027-10-01', '$900'],
+        ['2028-01-01', '$900'],
+      ]);
+    });
+  });
+
   it("isn't started before its start date", () => {
     expect(contractSummary(account, beforeStart)?.started).toBe(false);
   });

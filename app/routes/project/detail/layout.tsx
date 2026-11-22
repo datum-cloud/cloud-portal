@@ -264,12 +264,11 @@ function ProjectDetailLayoutContent({
     const builtInTree = buildProjectNavTree(project.name, {
       isReady,
       queryClient,
-      orgId,
     });
     return mergePluginNavIntoTree(builtInTree, plugins ?? [], project.name, {
       activeServiceEntitlements,
     });
-  }, [project, queryClient, plugins, activeServiceEntitlements, orgId]);
+  }, [project, queryClient, plugins, activeServiceEntitlements]);
 
   useEffect(() => {
     const currentOrg = org ?? appOrg;

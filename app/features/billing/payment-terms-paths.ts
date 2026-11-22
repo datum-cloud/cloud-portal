@@ -56,8 +56,8 @@ export function paymentTermsPath(search: Partial<PaymentTermsSearch> & { orgId: 
 export function cardSetupPath(
   search: Pick<PaymentTermsSearch, 'entry' | 'billingAccountName'> & { orgId: string }
 ): string {
-  if (search.entry === 'settings' && search.billingAccountName) {
-    return billingSettingsPath(search.billingAccountName);
+  if (search.entry === 'settings') {
+    return billingSettingsPath(search.orgId);
   }
   const params = new URLSearchParams({ method: 'card' });
   // New users finish onboarding on the billing step without an org id; with
@@ -66,9 +66,7 @@ export function cardSetupPath(
   return `${paths.onboarding.billing}?${params.toString()}`;
 }
 
-/** The billing account's settings page. */
-export function billingSettingsPath(billingAccountName: string): string {
-  return getPathWithParams(paths.account.billing.detail.root, {
-    billingAccountId: billingAccountName,
-  });
+/** The org's billing page, where its billing account is managed. */
+export function billingSettingsPath(orgId: string): string {
+  return getPathWithParams(paths.org.detail.billing.root, { orgId });
 }

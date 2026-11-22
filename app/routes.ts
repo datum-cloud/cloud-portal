@@ -44,11 +44,11 @@ export default [
         index('routes/account/organizations/index.tsx'),
       ]),
 
-      // Account Billing — user-level billing accounts (cross-org aggregate)
-      route('billing', 'routes/account/billing/layout.tsx', [
-        index('routes/account/billing/index.tsx'),
-        route(':billingAccountId', 'routes/account/billing/detail.tsx'),
-      ]),
+      // Billing moved into each org; old links redirect there.
+      route('billing', 'routes/account/billing/redirect.tsx', { id: 'account-billing-redirect' }),
+      route('billing/:billingAccountId', 'routes/account/billing/redirect.tsx', {
+        id: 'account-billing-detail-redirect',
+      }),
 
       // Account General
       layout('routes/account/settings/layout.tsx', [
@@ -77,9 +77,7 @@ export default [
           index('routes/org/detail/projects/index.tsx'),
         ]),
 
-        // Billing of an organization — thin "which billing account funds this
-        // org's projects" switcher. Full account management lives at the
-        // user level (`/account/billing/*`).
+        // Billing of an organization — the org's one billing account.
         route('billing', 'routes/org/detail/billing/layout.tsx', [
           index('routes/org/detail/billing/index.tsx'),
         ]),
@@ -130,17 +128,21 @@ export default [
         // Settings
         layout('routes/project/detail/settings/layout.tsx', [
           route('general', 'routes/project/detail/settings/general.tsx'),
-          route('billing', 'routes/project/detail/settings/billing.tsx'),
         ]),
+
+        // Usage and billing are the organization's; old project links go there.
+        route('usage', 'routes/project/detail/legacy-org-redirect.tsx', {
+          id: 'project-usage-redirect',
+        }),
+        route('billing', 'routes/project/detail/legacy-org-redirect.tsx', {
+          id: 'project-billing-redirect',
+        }),
 
         // Project quotas (Manage project) — outside settings SubLayout
         route('quotas', 'routes/project/detail/settings/quotas.tsx'),
 
         // Project activity (Observe) — outside settings SubLayout
         route('activity', 'routes/project/detail/activity.tsx'),
-
-        // Project usage (Observe) — same dashboard as org, scoped to this project
-        route('usage', 'routes/project/detail/usage/index.tsx'),
 
         // Coming Soon holding page for planned / soft-launch services
         route('coming-soon/:serviceId', 'routes/project/detail/coming-soon.tsx'),

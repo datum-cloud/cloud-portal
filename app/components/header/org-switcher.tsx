@@ -15,7 +15,7 @@ export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: Organization 
   return (
     <SelectOrganization
       triggerClassName="flex w-fit items-center justify-between gap-3 text-left px-0 font-normal"
-      currentOrg={currentOrg!}
+      currentOrg={currentOrg}
       hideContent={false}
       selectedContent={
         <>

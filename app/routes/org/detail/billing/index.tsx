@@ -1,558 +1,615 @@
-import { DateTime } from '@/components/date-time';
-import { type ColumnDef, Table } from '@/components/table';
+import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import {
-  CreateBillingAccountDialog,
-  type CreateBillingAccountValues,
-} from '@/features/billing/dialogs/create-billing-account-dialog';
-import {
+  BillingDetailsCard,
+  ContractCard,
+  DiscountsCard,
+  PastInvoicesCard,
+  PaymentMethodsCard,
+  PaymentTermsCard,
+  PaymentTermsPrompt,
+  PricingCard,
+  accountDiscounts,
+  contractSummary,
   getBillingAccountDisplayName,
-  getDefaultOrgBillingAccountName,
+  isStaleInvoice,
+  priceList,
+  selectDefaultOrgBillingAccount,
+  summarizeDiscounts,
+  toPastInvoiceRow,
   type BillingAccount,
-  type BillingAccountBinding,
-} from '@/features/billing/types';
+  type BillingArrangementApplication,
+  type BillingDetailsValues,
+  type Invoice,
+  type PastInvoiceRow,
+  type PaymentMethod,
+} from '@/features/billing';
+import type {
+  AddPaymentMethodValues,
+  CreatePaymentMethodResult,
+} from '@/features/billing/dialogs/add-payment-method-dialog';
+import { withInvoiceEmail } from '@/features/billing/invoice-email';
+import { latestApplication, paymentTermsSummary } from '@/features/billing/payment-terms';
 import { requireBillingOwner } from '@/modules/billing/billing-access.server';
-import { FeatureFlag } from '@/modules/feature-flags';
-import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
-import { PermissionButton } from '@/modules/rbac';
-import { useApp } from '@/providers/app.provider';
+import { logger } from '@/modules/logger';
+import { usePermission } from '@/modules/rbac';
+import { buildContactAddressPrefill } from '@/modules/stripe';
 import {
-  billingAccountBindingKeys,
-  createBillingAccountBindingService,
-  useBillingAccountBindings,
-  useBillingAccountBindingsWatch,
-  type CreateBillingAccountBindingInput,
-} from '@/resources/billing-account-bindings';
-import {
-  billingAccountKeys,
   createBillingAccountService,
   useBillingAccounts,
   useBillingAccountsWatch,
-  useCreateBillingAccount,
+  useUpdateBillingAccount,
 } from '@/resources/billing-accounts';
-import { newBindingName } from '@/resources/billing/_naming';
+import { createBillingArrangementApplicationService } from '@/resources/billing-arrangement-applications';
+import { createInvoiceService, useInvoices, useInvoicesWatch } from '@/resources/invoices';
 import {
-  filterActiveProjects,
-  useProjects,
-  useProjectsWatch,
-  type ProjectList,
-} from '@/resources/projects';
-import { createProjectService } from '@/resources/projects/project.service';
+  createPaymentMethodService,
+  useCreatePaymentMethod,
+  useDeletePaymentMethod,
+  usePaymentMethods,
+  usePaymentMethodsWatch,
+  type CreatePaymentMethodInput,
+} from '@/resources/payment-methods';
+import { waitForStripePaymentMethodSetup } from '@/resources/stripe-payment-methods';
+import {
+  createStripeProviderConfigService,
+  useStripeProviderConfigs,
+} from '@/resources/stripe-provider-configs';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
+import { env } from '@/utils/env';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { openSupportMessage } from '@/utils/open-support-message';
+import { Alert, AlertDescription, AlertTitle } from '@datum-cloud/datum-ui/alert';
 import { Button } from '@datum-cloud/datum-ui/button';
-import { Icon } from '@datum-cloud/datum-ui/icons';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@datum-cloud/datum-ui/select';
+import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Text } from '@datum-cloud/datum-ui/typography';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowRightIcon, ArrowUpIcon, FolderRoot, PlusIcon } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   type LoaderFunctionArgs,
   type MetaFunction,
   Link,
   redirect,
   useLoaderData,
-  useNavigate,
-  useParams,
 } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => metaObject('Billing'));
 
-/**
- * Flat switcher-row shape rendered by the table. Computed client-side
- * by left-joining the org's projects with their currently-active
- * binding (if any). Projects without a binding still appear so the
- * user can pick an account from the per-row dropdown.
- */
-interface SwitcherRow {
-  projectName: string;
-  projectDisplayName: string;
-  /** Empty string when the project doesn't have an active binding yet. */
-  billingAccountName: string;
-  linkedAt: string;
+interface LoaderData {
+  orgId: string;
+  account: BillingAccount;
+  accounts: BillingAccount[];
+  /**
+   * An account a link asked for (`?account=`) that the org doesn't have, so
+   * the page says it's showing another one.
+   */
+  missingAccount: string | undefined;
+  /** Null when they couldn't be read, so the page doesn't say there are none. */
+  paymentMethods: PaymentMethod[] | null;
+  invoices: Invoice[] | null;
+  /** The account's most recent application for payment terms. */
+  paymentTermsApplication: BillingArrangementApplication | undefined;
+  /** When the loader ran, so server and browser agree on terms ending soon. */
+  renderedAt: number;
+  stripePublishableKey: string | undefined;
 }
 
 /**
- * Org-level billing — projects-to-account switcher.
+ * The organization's billing account.
  *
- * The full management surface (addresses, payment methods, invoices,
- * credits, recipients) lives one level up at `/account/billing/[id]`.
- * This page is the per-org "which account is funding which project"
- * pivot:
- *   - one row per project in the org
- *   - current binding shown inline with a "Change" picker per row
- *   - "View account" deep-links into the user-level detail page
- *   - the create CTA is gated by the `multi-billing-accounts` flag for
- *     orgs only entitled to a single account.
+ * Each org has one billing account, so this page is that account: its
+ * details, what it's billed at, how it pays and its invoices. Only the org's
+ * owners reach it (the billing layout enforces the same rule). An org that
+ * hasn't set billing up yet goes to the billing step of setup instead.
  *
- * Data flow:
- *   loader → service.list() seeds React Query via `initialData` →
- *   useXxx hooks read from the cache → useXxxsWatch keeps the cache
- *   fresh as the controller publishes status changes / new bindings.
+ * An org with more than one account, from before there was one per org,
+ * shows its default account and links to the others (`?account=`).
  */
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+export const loader = async ({ params, request }: LoaderFunctionArgs): Promise<LoaderData> => {
   const { orgId } = params;
   await requireBillingOwner(orgId);
+  if (!orgId) throw redirect(paths.account.root);
 
-  if (!orgId) {
-    const emptyProjects: ProjectList = { items: [], hasMore: false, nextCursor: null };
-    return {
-      accounts: [] as BillingAccount[],
-      bindings: [] as BillingAccountBinding[],
-      projects: emptyProjects,
-      multiBillingAccountsEnabled: false,
-    };
+  const accounts = await createBillingAccountService().list(orgId);
+  const requested = new URL(request.url).searchParams.get('account') ?? undefined;
+  const account =
+    liveAccounts(accounts).find((a) => a.metadata?.name === requested) ??
+    selectDefaultOrgBillingAccount(accounts);
+  if (!account?.metadata?.name) {
+    throw redirect(`${paths.onboarding.billing}?orgId=${encodeURIComponent(orgId)}`);
   }
+  const accountName = account.metadata.name;
 
-  // Fan the three reads out in parallel — they're independent and the
-  // page renders meaningful partial state from any subset. The loader
-  // returns the raw service results; component-level joining keeps
-  // the React Query caches independently watchable.
-  const [accounts, bindings, projects, multiBillingAccountsEnabled] = await Promise.all([
-    createBillingAccountService().list(orgId),
-    createBillingAccountBindingService().list(orgId),
-    createProjectService().list(orgId),
-    isFeatureEnabled(FeatureFlag.MultiBillingAccounts, orgId),
+  // Independent reads; the page renders meaningful partial state from any
+  // subset, so one failure doesn't blank it.
+  const unreadable = (what: string) => (error: unknown) => {
+    logger.warn(`[org/billing] Could not list ${what}`, {
+      orgId,
+      fallback: 'loaded in the browser',
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  };
+  const [paymentMethods, invoices, applications, stripeConfigs] = await Promise.all([
+    createPaymentMethodService().list(orgId).catch(unreadable('payment methods')),
+    createInvoiceService().list(orgId).catch(unreadable('invoices')),
+    createBillingArrangementApplicationService()
+      .list(orgId)
+      .catch((error): BillingArrangementApplication[] => {
+        logger.warn('[org/billing] Could not list payment terms applications', {
+          orgId,
+          fallback: 'no application shown',
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return [];
+      }),
+    createStripeProviderConfigService()
+      .list()
+      .catch(() => []),
   ]);
 
-  // Nothing to switch when the org has no projects — this page is a
-  // projects-to-account pivot, so send the user straight to their billing
-  // account instead of a "create a project first" dead-end. Billing stays
-  // viewable without any linked projects. Only redirect when there's an
-  // account to land on; otherwise fall through to the empty state so they
-  // can still create one.
-  if (projects.items.length === 0) {
-    const defaultAccountName = getDefaultOrgBillingAccountName(accounts);
-    if (defaultAccountName) {
-      throw redirect(
-        getPathWithParams(paths.account.billing.detail.root, {
-          billingAccountId: defaultAccountName,
-        })
-      );
-    }
-  }
-
-  return { accounts, bindings, projects, multiBillingAccountsEnabled };
+  return {
+    orgId,
+    account,
+    accounts,
+    missingAccount: requested && requested !== accountName ? requested : undefined,
+    paymentMethods,
+    invoices,
+    paymentTermsApplication: latestApplication(applications, accountName),
+    renderedAt: Date.now(),
+    // First StripeProviderConfig wins while we run a single Stripe tenant.
+    stripePublishableKey: stripeConfigs[0]?.spec?.publishableKey ?? undefined,
+  };
 };
 
-export default function OrgBillingSwitcherPage() {
-  const navigate = useNavigate();
-  const { orgId } = useParams();
-  const { user } = useApp();
-  const queryClient = useQueryClient();
-  const {
-    accounts: initialAccounts,
-    bindings: initialBindings,
-    projects: initialProjects,
-    multiBillingAccountsEnabled,
-  } = useLoaderData<typeof loader>();
+/** The org's accounts that aren't being deleted. */
+function liveAccounts(accounts: BillingAccount[]): BillingAccount[] {
+  return accounts.filter((a) => !a.metadata?.deletionTimestamp);
+}
 
-  const [openCreateDialog, setOpenCreateDialog] = useState(false);
-
-  // Seed the create dialog's contact-name field from the signed-in
-  // user. `user.fullName` is built as `${givenName} ${familyName}` in
-  // the user adapter — when either part is missing that helper hands
-  // back literal "undefined" tokens, so we recompose here from the
-  // raw fields and filter out empties.
-  const defaultContactName = useMemo(
-    () => [user?.givenName, user?.familyName].filter(Boolean).join(' ').trim(),
-    [user?.givenName, user?.familyName]
+/**
+ * Where a list the page couldn't read goes, instead of a card saying there
+ * are none: loading in the browser, then an error with a retry.
+ */
+const Unloaded = ({
+  what,
+  isError,
+  onRetry,
+}: {
+  what: string;
+  isError: boolean;
+  onRetry: () => void;
+}) =>
+  isError ? (
+    <Alert variant="destructive" data-e2e="billing-load-error">
+      <AlertTitle className="text-sm">Couldn&apos;t load {what}</AlertTitle>
+      <AlertDescription className="flex flex-col items-start gap-2">
+        <span>Billing didn&apos;t answer. Your {what} are unchanged.</span>
+        <Button htmlType="button" type="quaternary" theme="outline" size="xs" onClick={onRetry}>
+          Try again
+        </Button>
+      </AlertDescription>
+    </Alert>
+  ) : (
+    <Text as="p" size="sm" textColor="muted">
+      Loading {what}…
+    </Text>
   );
 
-  // Hydrate each cache directly from the loader. Watches keep them
-  // fresh; `staleTime` stops the page from re-issuing fetches when
-  // the user navigates back and forth between sibling tabs.
+/**
+ * Two-column section: the title and supporting copy on the left, the card(s)
+ * on the right.
+ */
+const Section = ({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: React.ReactNode;
+  children: React.ReactNode;
+}) => (
+  <section className="border-border grid grid-cols-1 gap-6 border-b py-8 last:border-b-0 last:pb-0 md:grid-cols-[minmax(0,22rem)_1fr] md:gap-10 lg:grid-cols-[minmax(0,26rem)_1fr] lg:gap-12">
+    <div className="flex flex-col gap-2">
+      <Title as="h2" level={6} weight="medium" textColor="default">
+        {title}
+      </Title>
+      <Text as="p" textColor="muted" className="leading-relaxed">
+        {description}
+      </Text>
+    </div>
+    <div className="flex flex-col gap-4">{children}</div>
+  </section>
+);
+
+export default function OrgBillingPage() {
+  const {
+    orgId,
+    account: initialAccount,
+    accounts: initialAccounts,
+    missingAccount,
+    paymentMethods: initialPaymentMethods,
+    invoices: initialInvoices,
+    paymentTermsApplication,
+    renderedAt,
+    stripePublishableKey: initialPublishableKey,
+  } = useLoaderData<typeof loader>();
+
+  const accountName = initialAccount.metadata?.name ?? '';
+  const namespace = buildOrganizationNamespace(orgId);
+
+  // Every editable field on the page PATCHes the billingaccounts resource.
+  // `patch` rather than `update` so a role that can only patch isn't
+  // over-gated.
+  const { hasPermission: canEditAccount, isLoading: editCheckLoading } = usePermission(
+    'billingaccounts',
+    'patch',
+    { group: 'billing.miloapis.com', namespace, scope: 'org' }
+  );
+
+  // Live caches seeded by the loader; the watches keep them fresh.
   const accountsQuery = useBillingAccounts(orgId, {
     initialData: initialAccounts,
     initialDataUpdatedAt: Date.now(),
     staleTime: QUERY_STALE_TIME,
   });
-  const bindingsQuery = useBillingAccountBindings(orgId, {
-    initialData: initialBindings,
-    initialDataUpdatedAt: Date.now(),
+  // Lists the loader couldn't read are fetched in the browser instead.
+  const paymentMethodsQuery = usePaymentMethods(orgId, {
+    ...(initialPaymentMethods
+      ? { initialData: initialPaymentMethods, initialDataUpdatedAt: Date.now() }
+      : {}),
     staleTime: QUERY_STALE_TIME,
   });
-  const projectsQuery = useProjects(orgId ?? '', undefined, {
-    initialData: initialProjects,
-    initialDataUpdatedAt: Date.now(),
+  const invoicesQuery = useInvoices(orgId, {
+    ...(initialInvoices ? { initialData: initialInvoices, initialDataUpdatedAt: Date.now() } : {}),
     staleTime: QUERY_STALE_TIME,
   });
+  const stripeConfigsQuery = useStripeProviderConfigs({ staleTime: QUERY_STALE_TIME });
 
   useBillingAccountsWatch(orgId);
-  useBillingAccountBindingsWatch(orgId);
-  useProjectsWatch(orgId ?? '');
+  usePaymentMethodsWatch(orgId);
+  useInvoicesWatch(orgId);
 
   const accounts = accountsQuery.data ?? initialAccounts;
-  const allBindings = bindingsQuery.data ?? initialBindings;
-  const projects = projectsQuery.data ?? initialProjects;
-
-  const accountByName = useMemo(() => {
-    const map = new Map<string, BillingAccount>();
-    for (const account of accounts) {
-      if (account.metadata?.name) map.set(account.metadata.name, account);
-    }
-    return map;
-  }, [accounts]);
-
-  // Project bindings are immutable — collapse the list down to the
-  // active binding per project so the picker shows the funding
-  // account today, not historical ones.
-  const activeBindingByProject = useMemo(() => {
-    const map = new Map<string, BillingAccountBinding>();
-    for (const binding of allBindings) {
-      const projectRef = binding.spec?.projectRef?.name;
-      if (!projectRef) continue;
-      if (binding.status?.phase && binding.status.phase !== 'Active') continue;
-      map.set(projectRef, binding);
-    }
-    return map;
-  }, [allBindings]);
-
-  const rows: SwitcherRow[] = useMemo(
+  const account = accounts.find((a) => a.metadata?.name === accountName) ?? initialAccount;
+  const otherAccounts = liveAccounts(accounts).filter((a) => a.metadata?.name !== accountName);
+  const paymentMethods = useMemo(
     () =>
-      filterActiveProjects(projects.items).map((project) => {
-        const binding = activeBindingByProject.get(project.name);
-        const establishedAt =
-          binding?.status?.billingResponsibility?.establishedAt ??
-          binding?.metadata?.creationTimestamp ??
-          '';
-        return {
-          projectName: project.name,
-          projectDisplayName: project.displayName ?? project.name,
-          billingAccountName: binding?.spec?.billingAccountRef?.name ?? '',
-          linkedAt: establishedAt,
-        };
-      }),
-    [projects.items, activeBindingByProject]
+      (paymentMethodsQuery.data ?? []).filter(
+        (pm) => pm.spec?.billingAccountRef?.name === accountName
+      ),
+    [paymentMethodsQuery.data, accountName]
   );
+  const pastInvoices = useMemo(
+    () =>
+      (invoicesQuery.data ?? [])
+        .filter((inv) => inv.spec?.billingAccountRef?.name === accountName && !isStaleInvoice(inv))
+        .map(toPastInvoiceRow),
+    [invoicesQuery.data, accountName]
+  );
+  const stripePublishableKey =
+    stripeConfigsQuery.data?.[0]?.spec?.publishableKey ?? initialPublishableKey;
 
-  const createAccountMutation = useCreateBillingAccount({
-    onSuccess: (account) => {
-      const accountName = account.metadata?.name ?? '';
-      setOpenCreateDialog(false);
-      toast.success('Billing account created', {
-        description: `${getBillingAccountDisplayName(account)} is ready to set up.`,
+  const contactInfo = account.spec?.contactInfo;
+  const contract = useMemo(() => contractSummary(account, renderedAt), [account, renderedAt]);
+  // One list of what the account pays: the contract's fees, any other plan
+  // fees and the usage rates.
+  const prices = useMemo(() => priceList(account, contract), [account, contract]);
+  // Billing releases before `status.prices` only publish discounts.
+  const pricesPublished = (account.status?.prices?.length ?? 0) > 0;
+  const discounts = useMemo(() => accountDiscounts(account), [account]);
+  const paymentTerms = paymentTermsSummary(account, renderedAt);
+  // Owners apply for payment terms, only while PAYMENT_TERMS_ENABLED is on.
+  // The loader already required the user to own the org.
+  const canApplyForPaymentTerms = env.public.paymentTermsEnabled;
+
+  // ─── Billing details ──────────────────────────────────────────────────
+  const detailsMutation = useUpdateBillingAccount({
+    onSuccess: () => {
+      toast.success('Billing details updated', {
+        description: 'Changes show on upcoming invoices.',
       });
-      void navigate(
-        getPathWithParams(paths.account.billing.detail.root, { billingAccountId: accountName })
-      );
     },
     onError: (error) => {
-      toast.error('Could not create billing account', {
+      toast.error('Could not update billing details', {
         description: error.message || 'Please try again.',
       });
     },
   });
+
+  const handleSaveDetails = useCallback(
+    async (values: BillingDetailsValues) => {
+      // The whole contact block, as the invoice email card sends it: billing
+      // drops nested contactInfo fields a patch leaves out.
+      await detailsMutation.mutateAsync({
+        orgId,
+        name: accountName,
+        displayName: values.displayName,
+        contactInfo: {
+          ...withInvoiceEmail(contactInfo, values.invoiceEmail ?? ''),
+          name: values.name,
+          businessName: values.businessName,
+          address: {
+            country: values.country,
+            line1: values.line1,
+            line2: values.line2,
+            city: values.city,
+            region: values.region,
+            postalCode: values.postalCode,
+          },
+        },
+        taxIds: values.taxIds,
+      });
+    },
+    [detailsMutation, orgId, accountName, contactInfo]
+  );
+
+  // ─── Payment methods ──────────────────────────────────────────────────
+  const createPaymentMethodMutation = useCreatePaymentMethod();
+
+  // A freshly added card the user asked to make the default. The billing
+  // API rejects a default that points at a card still provisioning, so the
+  // intent waits here until the watch reports the card `Active`.
+  const [pendingDefaultPmName, setPendingDefaultPmName] = useState<string | null>(null);
 
   /**
-   * Optimistic rebind. Reaches into the cached binding list and
-   * appends a synthetic active binding for the (project, account)
-   * pair so the per-row picker flips immediately, marks the previous
-   * active binding `Superseded` so `activeBindingByProject` picks the
-   * new one up, and rolls everything back on failure. The watch +
-   * `onSettled` invalidation reconcile the cache with server state
-   * once the controller catches up.
-   *
-   * Written as a bare `useMutation` rather than `useCreateBillingAccountBinding`
-   * so we can carry an `onMutate` context — the resource hook's
-   * generic doesn't expose `TContext` and adding it cross-cuts every
-   * other consumer.
+   * Create the `PaymentMethod`, then wait for stripe-provider to publish the
+   * matching `StripePaymentMethod` with a SetupIntent client secret.
    */
-  const rebindMutation = useMutation<
-    BillingAccountBinding,
-    Error,
-    CreateBillingAccountBindingInput,
-    { previous: BillingAccountBinding[] | undefined }
-  >({
-    mutationFn: (input) => createBillingAccountBindingService().create(input),
-    onMutate: async ({ orgId: targetOrg, projectName, billingAccountName }) => {
-      await queryClient.cancelQueries({
-        queryKey: billingAccountBindingKeys.list(targetOrg),
-      });
-      const previous = queryClient.getQueryData<BillingAccountBinding[]>(
-        billingAccountBindingKeys.list(targetOrg)
-      );
-      queryClient.setQueryData<BillingAccountBinding[]>(
-        billingAccountBindingKeys.list(targetOrg),
-        (old) => {
-          const list = old ?? [];
-          const stamped: BillingAccountBinding = {
-            apiVersion: 'billing.miloapis.com/v1alpha1',
-            kind: 'BillingAccountBinding',
-            metadata: {
-              name: newBindingName(projectName),
-              namespace: buildOrganizationNamespace(targetOrg),
-              creationTimestamp: new Date().toISOString(),
-            },
-            spec: {
-              projectRef: { name: projectName },
-              billingAccountRef: { name: billingAccountName },
-            },
-            status: { phase: 'Active' },
-          };
-          const supersededPrev = list.map((b) =>
-            b.spec?.projectRef?.name === projectName &&
-            (!b.status?.phase || b.status.phase === 'Active')
-              ? { ...b, status: { ...b.status, phase: 'Superseded' as const } }
-              : b
-          );
-          return [...supersededPrev, stamped];
-        }
-      );
-      return { previous };
-    },
-    onError: (error, input, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(billingAccountBindingKeys.list(input.orgId), context.previous);
+  const createPaymentMethod = useCallback(
+    async (
+      values: AddPaymentMethodValues
+    ): Promise<CreatePaymentMethodResult | null | undefined> => {
+      const input: CreatePaymentMethodInput = {
+        orgId,
+        billingAccountName: accountName,
+        displayName: values.displayName,
+      };
+      const { paymentMethodName } = await createPaymentMethodMutation.mutateAsync(input);
+      if (values.setAsDefault) {
+        setPendingDefaultPmName(paymentMethodName);
       }
-      toast.error('Could not update billing', {
+      const { promise, cancel } = waitForStripePaymentMethodSetup({
+        orgId,
+        namespace,
+        paymentMethodName,
+      });
+      const timeout = setTimeout(cancel, 30_000);
+      try {
+        const { clientSecret } = await promise;
+        return { clientSecret };
+      } finally {
+        clearTimeout(timeout);
+      }
+    },
+    [accountName, namespace, orgId, createPaymentMethodMutation]
+  );
+
+  const handleConfirmed = useCallback(() => {
+    toast.success('Card saved', {
+      description: 'Your new payment method will appear once it confirms.',
+    });
+  }, []);
+
+  // The default card is the account's `spec.defaultPaymentMethodRef`.
+  const setDefaultMutation = useUpdateBillingAccount({
+    onError: (error) => {
+      toast.error('Could not update default payment method', {
         description: error.message || 'Please try again.',
-      });
-    },
-    onSuccess: (_binding, { billingAccountName }) => {
-      const target = accountByName.get(billingAccountName);
-      toast.success('Billing account updated', {
-        description: target
-          ? `Project will be billed against ${getBillingAccountDisplayName(target)}.`
-          : 'The change will apply to upcoming invoices.',
-      });
-    },
-    onSettled: (_data, _error, input) => {
-      void queryClient.invalidateQueries({
-        queryKey: billingAccountBindingKeys.list(input.orgId),
       });
     },
   });
 
-  const handleCreate = useCallback(
-    async (values: CreateBillingAccountValues) => {
-      const owningOrg = values.organizationName || orgId;
-      if (!owningOrg) {
-        toast.error('Pick an organization to create this account under.');
-        return;
-      }
-      await createAccountMutation.mutateAsync({
-        orgId: owningOrg,
-        displayName: values.displayName,
-        name: values.name,
-        invoiceEmails: values.invoiceEmails,
+  const handleSetDefaultPaymentMethod = useCallback(
+    (method: PaymentMethod) => {
+      const name = method.metadata?.name;
+      if (!name) return;
+      setDefaultMutation.mutate({ orgId, name: accountName, defaultPaymentMethodName: name });
+    },
+    [setDefaultMutation, orgId, accountName]
+  );
+
+  // Apply a deferred "set as default" once the new card reaches `Active`.
+  // The first card is made the default by the controller, so skip the patch
+  // when the account already points at it.
+  useEffect(() => {
+    if (!pendingDefaultPmName) return;
+    const method = paymentMethods.find((pm) => pm.metadata?.name === pendingDefaultPmName);
+    if (!method || method.status?.phase !== 'Active') return;
+    setPendingDefaultPmName(null);
+    if (account.spec?.defaultPaymentMethodRef?.name === pendingDefaultPmName) return;
+    setDefaultMutation.mutate({
+      orgId,
+      name: accountName,
+      defaultPaymentMethodName: pendingDefaultPmName,
+    });
+  }, [pendingDefaultPmName, paymentMethods, account, orgId, accountName, setDefaultMutation]);
+
+  const { confirm } = useConfirmationDialog();
+  const deletePaymentMethodMutation = useDeletePaymentMethod({
+    onError: (error) => {
+      toast.error('Could not remove payment method', {
+        description: error.message || 'Please try again.',
       });
     },
-    [createAccountMutation, orgId]
-  );
+  });
 
-  const handleRebind = useCallback(
-    (projectName: string, billingAccountName: string) => {
-      if (!orgId) return;
-      rebindMutation.mutate({ orgId, projectName, billingAccountName });
-    },
-    [orgId, rebindMutation]
-  );
-
-  // Layout-level `onPrefetch` warms sibling caches on hover; we do the
-  // matching thing on the create-button hover so the detail page lands
-  // with the new account already cached. Safe to keep this idempotent
-  // because the mutation hook seeds the same key.
-  const prefetchDetail = useCallback(
-    (accountName: string) => {
-      if (!orgId) return;
-      void queryClient.prefetchQuery({
-        queryKey: billingAccountKeys.detail(orgId, accountName),
-        queryFn: () => createBillingAccountService().get(orgId, accountName),
-      });
-    },
-    [orgId, queryClient]
-  );
-
-  const columns: ColumnDef<SwitcherRow>[] = useMemo(
-    () => [
-      {
-        header: 'Project',
-        id: 'project',
-        accessorFn: (row) => row.projectDisplayName,
-        cell: ({ row }) => (
-          <Link
-            to={getPathWithParams(paths.project.detail.settings.billing, {
-              projectId: row.original.projectName,
-            })}
-            className="text-foreground hover:text-primary inline-flex items-center gap-2 font-medium transition-colors">
-            <Icon icon={FolderRoot} className="text-icon-primary size-3.5" />
-            <div className="flex flex-col">
-              <Text>{row.original.projectDisplayName}</Text>
-              <Text size="xs" textColor="muted">
-                {row.original.projectName}
-              </Text>
-            </div>
-          </Link>
+  const handleRemovePaymentMethod = useCallback(
+    async (method: PaymentMethod) => {
+      const name = method.metadata?.name;
+      if (!name) return;
+      await confirm({
+        title: 'Remove payment method',
+        description: (
+          <span>
+            Are you sure you want to remove&nbsp;
+            <strong>{method.spec?.displayName ?? 'this card'}</strong>? Invoices funded by it will
+            fall back to the account default.
+          </span>
         ),
-      },
-      {
-        header: 'Billing account',
-        id: 'billingAccount',
-        accessorFn: (row) => row.billingAccountName,
-        cell: ({ row }) => {
-          if (!row.original.billingAccountName) {
-            return (
-              <Text size="xs" textColor="muted">
-                Not set
-              </Text>
-            );
-          }
-          const account = accountByName.get(row.original.billingAccountName);
-          if (account?.metadata?.name) {
-            return (
-              <Link
-                to={getPathWithParams(paths.account.billing.detail.root, {
-                  billingAccountId: account.metadata.name,
-                })}
-                onMouseEnter={() => prefetchDetail(account.metadata!.name!)}
-                className="text-primary hover:text-primary/80 inline-flex items-center gap-1 text-sm font-medium">
-                {getBillingAccountDisplayName(account)}
-                <Icon icon={ArrowRightIcon} className="size-3" />
-              </Link>
-            );
-          }
-          // Cross-org binding: the account funding this project lives
-          // in a different org's namespace, so it's not in the
-          // per-org picker. Surface the resource ID so the user knows
-          // *something* is bound, and link into the user-level detail
-          // page where they can see / change the account in full.
-          return (
-            <Link
-              to={getPathWithParams(paths.account.billing.detail.root, {
-                billingAccountId: row.original.billingAccountName,
-              })}
-              className="text-muted-foreground hover:text-primary inline-flex items-center gap-1 text-xs">
-              External account
-              <Icon icon={ArrowRightIcon} className="size-3" />
-            </Link>
-          );
+        submitText: 'Remove',
+        cancelText: 'Cancel',
+        variant: 'destructive',
+        onSubmit: async () => {
+          await deletePaymentMethodMutation.mutateAsync({ orgId, name });
         },
-      },
-      {
-        header: 'Change',
-        id: 'change',
-        meta: { tooltip: 'Pick a different billing account to fund this project' },
-        cell: ({ row }) => (
-          <Select
-            value={row.original.billingAccountName || undefined}
-            onValueChange={(value) => handleRebind(row.original.projectName, value)}>
-            <SelectTrigger className="h-8 w-[18rem] max-w-full text-xs">
-              <SelectValue placeholder="Pick an account" />
-            </SelectTrigger>
-            <SelectContent>
-              {accounts.length === 0 ? (
-                <SelectItem value="__empty" disabled>
-                  No accounts in this org yet
-                </SelectItem>
-              ) : (
-                accounts.map((account) => (
-                  <SelectItem
-                    key={account.metadata?.name}
-                    value={account.metadata?.name ?? ''}
-                    disabled={!account.metadata?.name}>
-                    {getBillingAccountDisplayName(account)}
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
-        ),
-      },
-      {
-        header: 'Linked',
-        id: 'linkedAt',
-        accessorKey: 'linkedAt',
-        cell: ({ row }) =>
-          row.original.linkedAt ? <DateTime date={row.original.linkedAt} /> : null,
-      },
-    ],
-    [accounts, accountByName, handleRebind, prefetchDetail]
+      });
+    },
+    [confirm, deletePaymentMethodMutation, orgId]
   );
 
-  // Single-account orgs get a quiet "ask us for more" CTA in the
-  // toolbar — mirrors the previous detail-page CTA. Multi-account
-  // orgs see the Create button instead.
-  const requestMoreAccountsAction = (
-    <Button
-      key="request"
-      htmlType="button"
-      type="quaternary"
-      theme="outline"
-      size="small"
-      onClick={() =>
-        openSupportMessage({
-          subject: 'Request additional billing accounts',
-          text:
-            `Hello team,\n\n` +
-            `I'd like to enable multiple billing accounts for my organization so I can split usage across separate invoices / payment methods.\n\n` +
-            `Details:\n` +
-            `- Organization: ${orgId ?? '[please specify]'}\n` +
-            `- Reason / use case: [brief context, e.g., separate billing for production vs. staging]\n\n` +
-            `Thank you!`,
-        })
-      }
-      icon={<Icon icon={ArrowUpIcon} className="size-4" />}>
-      Request additional billing accounts
-    </Button>
-  );
+  const handleDownloadInvoice = useCallback((invoice: PastInvoiceRow) => {
+    if (!invoice.downloadUrl) return;
+    window.open(invoice.downloadUrl, '_blank', 'noopener,noreferrer');
+  }, []);
 
-  const createAction = (
-    <PermissionButton
-      key="create"
-      resource="billingaccounts"
-      verb="create"
-      group="billing.miloapis.com"
-      namespace={orgId ? buildOrganizationNamespace(orgId) : undefined}
-      scope="org"
-      deniedReason="You don't have permission to create billing accounts in this organization"
-      htmlType="button"
-      type="primary"
-      theme="solid"
-      size="small"
-      className="w-full sm:w-auto"
-      onClick={() => setOpenCreateDialog(true)}
-      icon={<Icon icon={PlusIcon} className="size-4" />}>
-      Add billing account
-    </PermissionButton>
+  const usageLink = (
+    <Link
+      to={getPathWithParams(paths.org.detail.usage, { orgId })}
+      className="text-primary hover:text-primary/80 font-medium">
+      See this period&apos;s usage
+    </Link>
   );
 
   return (
-    <>
-      <Table.Client
+    <div className="flex w-full flex-col gap-4">
+      <PageTitle
         title="Billing"
-        columns={columns}
-        data={rows}
-        search="Search projects"
-        searchableColumns={['projectDisplayName', 'projectName', 'billingAccountName']}
-        getRowId={(row) => row.projectName}
-        actions={multiBillingAccountsEnabled ? [createAction] : [requestMoreAccountsAction]}
-        empty={{
-          title: 'no projects in this organization yet',
-          description:
-            'Create a project under this organization to assign it a billing account and start tracking usage.',
-        }}
+        description={getBillingAccountDisplayName(account)}
+        titleClassName="text-3xl"
       />
 
-      <CreateBillingAccountDialog
-        open={openCreateDialog}
-        onOpenChange={setOpenCreateDialog}
-        defaultContactEmail={user?.email}
-        defaultContactName={defaultContactName}
-        defaultOrganization={orgId}
-        onSubmit={handleCreate}
-      />
-    </>
+      {missingAccount || otherAccounts.length > 0 ? (
+        <Alert variant="info" data-e2e="billing-other-accounts">
+          <AlertTitle className="text-sm">
+            {missingAccount
+              ? `This organization has no billing account named ${missingAccount}`
+              : `This organization has ${otherAccounts.length + 1} billing accounts`}
+          </AlertTitle>
+          <AlertDescription>
+            <span>
+              This page shows {getBillingAccountDisplayName(account)}.
+              {otherAccounts.length > 0 ? ' Also on this organization: ' : null}
+              {otherAccounts.map((other, index) => (
+                <span key={other.metadata?.name}>
+                  {index > 0 ? ', ' : null}
+                  <Link
+                    to={`${getPathWithParams(paths.org.detail.billing.root, { orgId })}?account=${encodeURIComponent(other.metadata?.name ?? '')}`}
+                    className="text-primary hover:text-primary/80 font-medium">
+                    {getBillingAccountDisplayName(other)}
+                  </Link>
+                </span>
+              ))}
+              {otherAccounts.length > 0 ? '.' : null}
+            </span>
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      <div className="border-border border-t">
+        <Section
+          title="Billing details"
+          description="Who's billed and where invoices go. Changes show on upcoming invoices; past invoices aren't affected.">
+          <BillingDetailsCard
+            account={account}
+            canEdit={editCheckLoading ? undefined : canEditAccount}
+            isSubmitting={detailsMutation.isPending}
+            onSubmit={handleSaveDetails}
+          />
+        </Section>
+
+        {prices ? (
+          <Section
+            title="Pricing"
+            description="Everything this account is charged for, with your discounts: each fee and the rate for each kind of usage. To change your plan or contract, contact support.">
+            <PricingCard items={prices} usageLink={usageLink} />
+          </Section>
+        ) : null}
+
+        {!pricesPublished && summarizeDiscounts(discounts) ? (
+          <Section
+            title="Discounts"
+            description="Discounts that apply to this billing account's usage.">
+            <DiscountsCard discounts={discounts} />
+          </Section>
+        ) : null}
+
+        {contract ? (
+          <Section
+            title="Contract"
+            description="The contract this account is billed under, set up with our team. To change it, contact support.">
+            <ContractCard contract={contract} />
+          </Section>
+        ) : null}
+
+        <Section
+          title="Payment methods"
+          description={
+            paymentTerms
+              ? 'This account pays by invoice under the payment terms our team approved. To change them, contact support.'
+              : 'Invoices are charged to the default card.'
+          }>
+          {/* Terms in effect or an application under review. Renders
+              nothing otherwise. */}
+          <PaymentTermsCard
+            orgId={orgId}
+            billingAccountName={accountName}
+            terms={paymentTerms}
+            application={paymentTermsApplication}
+            currency={account.spec?.currencyCode ?? 'USD'}
+            canApply={canApplyForPaymentTerms}
+            now={renderedAt}
+          />
+          {paymentMethodsQuery.data ? (
+            <PaymentMethodsCard
+              footerNote={
+                paymentTerms ? undefined : (
+                  <PaymentTermsPrompt
+                    orgId={orgId}
+                    billingAccountName={accountName}
+                    application={paymentTermsApplication}
+                    canApply={canApplyForPaymentTerms}
+                  />
+                )
+              }
+              paymentMethods={paymentMethods}
+              billingAccount={account}
+              stripePublishableKey={stripePublishableKey}
+              billingDetailsPrefill={{
+                email: contactInfo?.email,
+                name: contactInfo?.name,
+                address: buildContactAddressPrefill(contactInfo?.address),
+              }}
+              onCreatePaymentMethod={createPaymentMethod}
+              onPaymentMethodConfirmed={handleConfirmed}
+              onSetAsDefault={handleSetDefaultPaymentMethod}
+              onRemove={handleRemovePaymentMethod}
+              emptyMessage={
+                paymentTerms ? 'No card on file. This account pays by invoice.' : undefined
+              }
+            />
+          ) : (
+            <Unloaded
+              what="payment methods"
+              isError={paymentMethodsQuery.isError}
+              onRetry={() => void paymentMethodsQuery.refetch()}
+            />
+          )}
+        </Section>
+
+        <Section title="Invoices" description="Past invoices for this organization.">
+          {invoicesQuery.data ? (
+            <PastInvoicesCard invoices={pastInvoices} onDownload={handleDownloadInvoice} />
+          ) : (
+            <Unloaded
+              what="invoices"
+              isError={invoicesQuery.isError}
+              onRetry={() => void invoicesQuery.refetch()}
+            />
+          )}
+        </Section>
+      </div>
+    </div>
   );
 }

@@ -93,7 +93,6 @@ function UsagePageHeader({
   billingCycles,
   isLoading,
   isPlaceholder,
-  hideProjectSelect,
   spend,
   spendUnavailable,
   billingCycleError,
@@ -102,7 +101,6 @@ function UsagePageHeader({
   billingCycles: { value: 'current' | 'previous'; label: string }[];
   isLoading?: boolean;
   isPlaceholder?: boolean;
-  hideProjectSelect?: boolean;
   spend?: UsageSpend;
   spendUnavailable?: boolean;
   /** The billing account lookup failed, so the cycles are defaults. */
@@ -118,7 +116,6 @@ function UsagePageHeader({
             billingCycles={billingCycles}
             isLoading={isLoading}
             isPlaceholder={isPlaceholder}
-            hideProjectSelect={hideProjectSelect}
           />
         </div>
         {spend || spendUnavailable ? (
@@ -140,37 +137,30 @@ function UsagePageHeader({
 export interface UsageDashboardProps {
   orgId: string;
   orgLabel?: string;
-  /**
-   * When set, usage is locked to this project (no project picker) and read
-   * in the project's own context. Used by the project-scoped usage page.
-   */
-  lockedProject?: UsageProjectOption;
 }
 
 /**
- * Org and project usage dashboards share this surface. Org scope keeps the
- * project filter; project scope passes `lockedProject` and hides it.
+ * The organization's usage dashboard. Usage lives at the org level only; the
+ * project filter narrows it to one project.
  */
-export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboardProps) {
+export function UsageDashboard({ orgId, orgLabel }: UsageDashboardProps) {
   const [searchParams] = useSearchParams();
-  const hideProjectSelect = lockedProject != null;
 
   const projectsQuery = useProjects(orgId, undefined, {
-    enabled: !!orgId && !hideProjectSelect,
+    enabled: !!orgId,
     staleTime: QUERY_STALE_TIME,
   });
 
-  const projects: UsageProjectOption[] = useMemo(() => {
-    if (lockedProject) return [lockedProject];
-    return filterActiveProjects(projectsQuery.data?.items ?? []).map((project) => ({
-      name: project.name,
-      displayName: project.displayName,
-    }));
-  }, [lockedProject, projectsQuery.data?.items]);
+  const projects: UsageProjectOption[] = useMemo(
+    () =>
+      filterActiveProjects(projectsQuery.data?.items ?? []).map((project) => ({
+        name: project.name,
+        displayName: project.displayName,
+      })),
+    [projectsQuery.data?.items]
+  );
 
-  const selectedProject = lockedProject
-    ? lockedProject.name
-    : resolveProjectSelection(searchParams.get('project'), projects);
+  const selectedProject = resolveProjectSelection(searchParams.get('project'), projects);
   const selectedBillingCycle = resolveCycleSelection(searchParams.get('cycle'));
 
   const {
@@ -179,13 +169,9 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
     isFetching,
     isError,
     error,
-  } = useOrgUsageDashboard(
-    orgId,
-    selectedProject,
-    selectedBillingCycle,
-    hideProjectSelect ? 'project' : 'organization',
-    { enabled: !!orgId }
-  );
+  } = useOrgUsageDashboard(orgId, selectedProject, selectedBillingCycle, 'organization', {
+    enabled: !!orgId,
+  });
 
   const albsQuery = useHttpProxies(selectedProject === 'all' ? '' : selectedProject, {
     staleTime: QUERY_STALE_TIME,
@@ -216,8 +202,7 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
       : 'Metered consumption across all projects in this organization for the selected billing period.';
 
   const dashboardKey = `${selectedProject}-${selectedBillingCycle}`;
-  const toolbarLoading =
-    (!hideProjectSelect && projectsQuery.isLoading) || (isLoading && billingCycles.length === 0);
+  const toolbarLoading = projectsQuery.isLoading || (isLoading && billingCycles.length === 0);
 
   if (isError) {
     return (
@@ -238,7 +223,6 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
           projects={projects}
           billingCycles={billingCycles}
           isPlaceholder={toolbarLoading}
-          hideProjectSelect={hideProjectSelect}
         />
         <UsageDashboardSkeleton scopeDescription={scopeDescription} />
       </div>
@@ -268,7 +252,6 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
           projects={projects}
           billingCycles={billingCycles}
           isLoading={isRefetching}
-          hideProjectSelect={hideProjectSelect}
           billingCycleError={billingCycleError}
         />
         <EmptyState
@@ -292,7 +275,6 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
           projects={projects}
           billingCycles={billingCycles}
           isLoading={isRefetching}
-          hideProjectSelect={hideProjectSelect}
           billingCycleError={billingCycleError}
         />
         <EmptyState
@@ -318,7 +300,6 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
         projects={projects}
         billingCycles={billingCycles}
         isLoading={isRefetching}
-        hideProjectSelect={hideProjectSelect}
         billingCycleError={billingCycleError}
         spend={view.spend}
         spendUnavailable={view.spendUnavailable}
