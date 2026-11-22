@@ -1,10 +1,10 @@
+import { isServiceVisible } from '@/modules/entitlements/entitled-services';
 import {
   OTHER_GROUP,
   resolveResourceDisplayName,
   resolveServiceDisplayName,
   resolveServiceName,
-} from './service-catalog';
-import { isServiceVisible } from '@/modules/entitlements/entitled-services';
+} from '@/modules/service-catalog';
 import type { AllowanceBucket } from '@/resources/allowance-buckets';
 import type { ResourceRegistration } from '@/resources/resource-registrations';
 

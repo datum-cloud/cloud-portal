@@ -1,3 +1,4 @@
+import { describeErrorPage } from './describe-error-page';
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { paths } from '@/utils/config/paths.config';
 import { Button, buttonVariants } from '@datum-cloud/datum-ui/button';
@@ -6,7 +7,6 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { BuildingIcon, FolderIcon, RefreshCcwIcon } from 'lucide-react';
-// import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
 /**
@@ -30,100 +30,129 @@ const resolvePrimaryAction = (
   return { label: 'Organization', to: paths.home, icon: BuildingIcon };
 };
 
-export const GenericError = ({ message, status }: { message: string; status?: number }) => {
-  const navigate = useNavigate();
-  // const [isDebug, setIsDebug] = useState(false);
+interface StatusCopy {
+  title: string;
+  /** The advice paragraph, which ends with the support email link. */
+  lead: string;
+  reloadLabel: string;
+}
 
-  // useEffect(() => {
-  //   setIsDebug(window.ENV?.DEBUG || ['localhost', '127.0.0.1'].includes(window.location.hostname));
-  // }, []);
+const DEFAULT_COPY: StatusCopy = {
+  title: 'Whoops! Something went wrong.',
+  lead: "Something went wrong on our end. Our team has been notified, and we're working to fix it. Please try again later. If the issue persists, reach out to",
+  reloadLabel: 'Refresh Page',
+};
 
-  const isNotFound = status === 404;
-  const isForbidden = status === 403;
-  const isExpired = status === 410;
-  const primaryAction = resolvePrimaryAction(message, isNotFound);
-  const title = isNotFound
-    ? "We couldn't find that page."
-    : isForbidden
-      ? "You don't have access to this."
-      : isExpired
-        ? 'This page has expired.'
-        : 'Whoops! Something went wrong.';
+const STATUS_COPY: Record<number, StatusCopy> = {
+  403: {
+    title: "You don't have access to this.",
+    lead: "You don't have permission to view this resource. If you think you should, ask an administrator for access or reach out to",
+    reloadLabel: 'Refresh Page',
+  },
+  404: {
+    title: "We couldn't find that page.",
+    lead: "The page or resource you're looking for doesn't exist or has been moved. Check the URL or head back to your organization. If you think this is a mistake, reach out to",
+    reloadLabel: 'Refresh Page',
+  },
+  410: {
+    title: 'This page has expired.',
+    lead: 'The data you were viewing expired before the page finished loading. Reload this page to start over, or reach out to',
+    reloadLabel: 'Reload page',
+  },
+};
+
+export const GenericError = ({
+  message,
+  status,
+  error,
+}: {
+  message: string;
+  status?: number;
+  /** The route error body or thrown error; lets a 403 name the area and show the raw denial. */
+  error?: unknown;
+}) => {
+  const copy = (status !== undefined && STATUS_COPY[status]) || DEFAULT_COPY;
+  const description = describeErrorPage(error, status);
+  const primaryAction = resolvePrimaryAction(message, status === 404);
 
   return (
     <Card data-e2e="error-page" data-error-status={status ?? ''}>
       <CardContent className="flex min-h-[500px] flex-col items-center justify-center gap-6">
         <LogoIcon width={64} className="mb-4" />
-        <div className="flex max-w-xl flex-col gap-2">
+        <div className="flex w-full max-w-xl min-w-0 flex-col gap-2">
           <Text
             as="p"
             size="2xl"
             weight="bold"
             data-e2e="error-page-title"
             className="w-full text-center">
-            {title}
+            {description.title ?? copy.title}
           </Text>
-
           <Text as="p" textColor="muted" className="text-center">
-            {isNotFound ? (
-              <>
-                The page or resource you&apos;re looking for doesn&apos;t exist or has been moved.
-                Check the URL or head back to your organization. If you think this is a mistake,
-                reach out to{' '}
-              </>
-            ) : isForbidden ? (
-              <>
-                You don&apos;t have permission to view this resource. If you think you should, ask
-                an administrator for access or reach out to{' '}
-              </>
-            ) : isExpired ? (
-              <>
-                The data you were viewing expired before the page finished loading. Reload this page
-                to start over, or reach out to{' '}
-              </>
-            ) : (
-              <>
-                Something went wrong on our end. Our team has been notified, and we&apos;re working
-                to fix it. Please try again later. If the issue persists, reach out to{' '}
-              </>
-            )}
+            {copy.lead}{' '}
             <Link to={`mailto:support@datum.net`} className="text-primary underline">
               support@datum.net
             </Link>
             .
           </Text>
-          {/* {isDebug && ( */}
-          <Text
-            as="div"
-            textColor="muted"
-            className="rounded-r-md border-l-4 border-red-500 bg-red-50 p-4 text-center dark:bg-red-950/20">
-            {message}
-          </Text>
-          {/* )} */}
+          <ErrorPageMessage message={message} detail={description.detail} />
         </div>
-        <div className="flex items-center gap-2">
-          <a
-            href={primaryAction.to}
-            className={cn(
-              buttonVariants({ type: 'primary', theme: 'solid', size: 'small' }),
-              'bg-primary hover:bg-primary/90 active:bg-primary/80'
-            )}
-            data-e2e="error-page-primary-action">
-            <Icon icon={primaryAction.icon} className="size-4" />
-            {primaryAction.label}
-          </a>
-          <Button
-            type="quaternary"
-            theme="outline"
-            size="small"
-            onClick={() => {
-              void navigate(0);
-            }}>
-            <Icon icon={RefreshCcwIcon} className="size-4" />
-            {isExpired ? 'Reload page' : 'Refresh Page'}
-          </Button>
-        </div>
+        <ErrorPageActions primaryAction={primaryAction} reloadLabel={copy.reloadLabel} />
       </CardContent>
     </Card>
   );
 };
+
+/** The red box: the raw denial under "Error details" when there is one, else the message. */
+function ErrorPageMessage({ message, detail }: { message: string; detail?: string }) {
+  return (
+    <>
+      {detail ? (
+        <Text as="p" size="sm" weight="medium" textColor="muted" className="mt-2">
+          Error details
+        </Text>
+      ) : null}
+      <Text
+        as="div"
+        textColor="muted"
+        data-e2e="error-page-message"
+        className="rounded-r-md border-l-4 border-red-500 bg-red-50 p-4 text-center [overflow-wrap:anywhere] dark:bg-red-950/20">
+        {detail ?? message}
+      </Text>
+    </>
+  );
+}
+
+function ErrorPageActions({
+  primaryAction,
+  reloadLabel,
+}: {
+  primaryAction: ReturnType<typeof resolvePrimaryAction>;
+  reloadLabel: string;
+}) {
+  const navigate = useNavigate();
+  return (
+    <div className="flex items-center gap-2">
+      <a
+        href={primaryAction.to}
+        className={cn(
+          buttonVariants({ type: 'primary', theme: 'solid', size: 'small' }),
+          'bg-primary hover:bg-primary/90 active:bg-primary/80'
+        )}
+        data-e2e="error-page-primary-action">
+        <Icon icon={primaryAction.icon} className="size-4" />
+        {primaryAction.label}
+      </a>
+      <Button
+        type="quaternary"
+        theme="outline"
+        size="small"
+        onClick={() => {
+          void navigate(0);
+        }}>
+        <Icon icon={RefreshCcwIcon} className="size-4" />
+        {reloadLabel}
+      </Button>
+    </div>
+  );
+}

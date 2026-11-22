@@ -80,6 +80,22 @@ export function catalogServiceDisplayName(serviceName: string): string | undefin
 }
 
 /**
+ * Display name by Kubernetes API group: each catalog service under its own
+ * group, plus every bridged resource's group under the service it belongs to
+ * (so `gateway.networking.k8s.io` reads as Networking). Error messages use
+ * this to name the product area a permission denial is about.
+ */
+export function catalogApiGroupDisplayNames(): Readonly<Record<string, string>> {
+  const names: Record<string, string> = { ...SERVICE_DISPLAY_NAMES };
+  for (const [resourceType, serviceName] of Object.entries(RESOURCE_TYPE_BRIDGE)) {
+    const group = resourceType.split('/')[0];
+    const displayName = SERVICE_DISPLAY_NAMES[serviceName];
+    if (group && displayName && !(group in names)) names[group] = displayName;
+  }
+  return names;
+}
+
+/**
  * Resolve a quota's group display name. Prefers the server-authored owner
  * reference, then the interim resourceType bridge, then the Other group.
  */

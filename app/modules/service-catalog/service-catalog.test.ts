@@ -1,4 +1,5 @@
 import {
+  catalogApiGroupDisplayNames,
   catalogServiceDisplayName,
   resolveResourceDisplayName,
   resolveServiceDisplayName,
@@ -6,6 +7,22 @@ import {
   OTHER_GROUP,
 } from './service-catalog';
 import { describe, expect, it } from 'vitest';
+
+describe('catalogApiGroupDisplayNames', () => {
+  it('names catalog services', () => {
+    expect(catalogApiGroupDisplayNames()['dns.networking.miloapis.com']).toBe('DNS');
+    expect(catalogApiGroupDisplayNames()['resourcemanager.miloapis.com']).toBe(
+      'Organization & Projects'
+    );
+  });
+
+  it('maps bridged upstream groups to their owning service', () => {
+    const names = catalogApiGroupDisplayNames();
+    expect(names['gateway.networking.k8s.io']).toBe('Networking');
+    expect(names['gateway.envoyproxy.io']).toBe('Networking');
+    expect(names['discovery.k8s.io']).toBe('Networking');
+  });
+});
 
 describe('catalogServiceDisplayName', () => {
   it('returns the catalog title for DNS', () => {

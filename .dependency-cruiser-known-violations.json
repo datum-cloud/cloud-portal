@@ -41,17 +41,6 @@
   },
   {
     "type": "dependency",
-    "from": "app/modules/billing/usage-groups.ts",
-    "to": "app/features/quotas/service-catalog.ts",
-    "unresolvedTo": "@/features/quotas/service-catalog",
-    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
-    "rule": {
-      "severity": "error",
-      "name": "modules-not-to-features"
-    }
-  },
-  {
-    "type": "dependency",
     "from": "app/modules/billing/usage.server.ts",
     "to": "app/features/billing/types.ts",
     "unresolvedTo": "@/features/billing/types",
