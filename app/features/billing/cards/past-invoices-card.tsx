@@ -20,7 +20,7 @@ import {
   ChevronRightIcon,
   ChevronUpIcon,
   ChevronsUpDownIcon,
-  DownloadIcon,
+  ExternalLinkIcon,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -104,16 +104,24 @@ const SortableHead = ({ column, label, sort, onSort }: SortableHeadProps) => {
   );
 };
 
+/** Opens the invoice's page in Stripe, where it can be read, downloaded or paid. */
+const openInvoice = (invoice: PastInvoiceRow) => {
+  if (!invoice.url) return;
+  window.open(invoice.url, '_blank', 'noopener,noreferrer');
+};
+
 interface PastInvoicesCardProps {
   invoices: PastInvoiceRow[];
   pageSize?: number;
-  onDownload?: (invoice: PastInvoiceRow) => void;
 }
 
+/**
+ * The account's invoices. Clicking one opens it in Stripe, to read it,
+ * download its PDF or pay it.
+ */
 export const PastInvoicesCard = ({
   invoices,
   pageSize = DEFAULT_PAGE_SIZE,
-  onDownload,
 }: PastInvoicesCardProps) => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -209,15 +217,18 @@ export const PastInvoicesCard = ({
                   onSort={handleSort}
                 />
                 <SortableHead column="status" label="Status" sort={sort} onSort={handleSort} />
-                <TableHead className="w-12" />
+                <TableHead className="w-20" />
               </TableRow>
             </TableHeader>
             <TableBody>
               {visibleInvoices.map((invoice) => {
                 const badge = statusBadge[invoice.status];
-                const canDownload = Boolean(invoice.downloadUrl);
+                const canOpen = Boolean(invoice.url);
                 return (
-                  <TableRow key={invoice.id}>
+                  <TableRow
+                    key={invoice.id}
+                    className={cn(canOpen && 'cursor-pointer')}
+                    onClick={canOpen ? () => openInvoice(invoice) : undefined}>
                     <TableCell className="h-11 text-sm">{invoice.date}</TableCell>
                     <TableCell className="h-11 text-sm">{invoice.amount}</TableCell>
                     <TableCell className="h-11 text-sm">{invoice.invoiceNumber}</TableCell>
@@ -226,17 +237,23 @@ export const PastInvoicesCard = ({
                         {badge.label}
                       </Badge>
                     </TableCell>
-                    <TableCell className="h-11 w-12 text-right">
+                    <TableCell className="h-11 w-20 text-right">
                       <Button
                         htmlType="button"
                         type="quaternary"
                         theme="outline"
                         size="xs"
-                        disabled={!canDownload}
-                        onClick={() => canDownload && onDownload?.(invoice)}
-                        aria-label={`Download invoice ${invoice.invoiceNumber}`}
-                        icon={<Icon icon={DownloadIcon} className="size-3.5" />}
-                      />
+                        disabled={!canOpen}
+                        onClick={(event) => {
+                          // The row opens it too; open it once.
+                          event.stopPropagation();
+                          openInvoice(invoice);
+                        }}
+                        aria-label={`View invoice ${invoice.invoiceNumber}`}
+                        icon={<Icon icon={ExternalLinkIcon} className="size-3.5" />}
+                        iconPosition="right">
+                        View
+                      </Button>
                     </TableCell>
                   </TableRow>
                 );

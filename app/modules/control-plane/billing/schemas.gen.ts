@@ -2291,6 +2291,12 @@ export const com_miloapis_billing_v1alpha1_InvoiceSchema = {
           type: 'string',
           format: 'date-time',
         },
+        number: {
+          description:
+            "Number is the invoice's number as the customer sees it, on the\ninvoice document and for their accounting, such as \"DATUM-0042\".\nThe provider assigns it when the invoice is issued, so a draft has\nnone. It's not the object's name, which is internal.",
+          type: 'string',
+          maxLength: 64,
+        },
         observedGeneration: {
           description:
             'ObservedGeneration is the most recent generation observed by the\nreconciling provider controller.',

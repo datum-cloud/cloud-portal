@@ -1605,6 +1605,13 @@ export type ComMiloapisBillingV1Alpha1Invoice = {
      */
     dueDate?: string;
     /**
+     * Number is the invoice's number as the customer sees it, on the
+     * invoice document and for their accounting, such as "DATUM-0042".
+     * The provider assigns it when the invoice is issued, so a draft has
+     * none. It's not the object's name, which is internal.
+     */
+    number?: string;
+    /**
      * ObservedGeneration is the most recent generation observed by the
      * reconciling provider controller.
      */

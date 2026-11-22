@@ -49,9 +49,11 @@ export type PastInvoiceRow = {
   id: string;
   date: string;
   amount: string;
+  /** The number on the invoice, such as DATUM-0042, that customers quote. */
   invoiceNumber: string;
   status: PastInvoiceStatus;
-  downloadUrl?: string;
+  /** The invoice's page in Stripe, to view it, download its PDF or pay it. */
+  url?: string;
 };
 
 const phaseToStatus: Record<InvoicePhase, PastInvoiceStatus> = {
@@ -93,11 +95,13 @@ export const toPastInvoiceRow = (invoice: Invoice): PastInvoiceRow => {
   const phase = invoice.status?.phase;
   return {
     id: name,
-    invoiceNumber: name,
+    // The provider fills the number in once the invoice is issued. The
+    // object's name is internal, and shown only until then.
+    invoiceNumber: invoice.status?.number || name,
     date: formatInvoiceDate(invoice.spec?.period?.end),
     amount: formatInvoiceAmount(invoice.status?.total, invoice.status?.currencyCode),
     status: phase ? phaseToStatus[phase] : 'open',
-    downloadUrl: invoice.status?.documentUri,
+    url: invoice.status?.documentUri,
   };
 };
 
