@@ -1,3 +1,4 @@
+import { toastApiError } from '@/components/error/toast-api-error';
 import { CountryAutocomplete } from '@/features/address/country-autocomplete';
 import { AccountIdentitySummary } from '@/features/onboarding/account/account-identity-summary';
 import { OnboardingEntrance } from '@/features/onboarding/components/onboarding-entrance';
@@ -12,7 +13,6 @@ import { useUpdateUserPreferences, type LastLoginProviderValue } from '@/resourc
 import { paths } from '@/utils/config/paths.config';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { Link } from 'react-router';
@@ -45,9 +45,7 @@ export const AccountPage = ({
       trackAction(AnalyticsAction.AccountDetailsSaved);
     },
     onError: (error) => {
-      toast.error('Account information', {
-        description: error.message ?? 'Failed to save your country',
-      });
+      toastApiError(error, { title: 'Account information' });
     },
   });
 

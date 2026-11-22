@@ -1,3 +1,4 @@
+import { toastApiError } from '@/components/error/toast-api-error';
 import {
   useSetupOnboardingProject,
   type SetupOnboardingProjectInput,
@@ -17,7 +18,6 @@ import { DATUMCTL_DOWNLOAD_URL } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ArrowRightIcon, CheckIcon, ExternalLinkIcon, LoaderCircleIcon, XIcon } from 'lucide-react';
@@ -81,9 +81,7 @@ export const ProvisioningPage = ({ devBypass = false }: ProvisioningPageProps) =
 
   const setupProjectMutation = useSetupOnboardingProject({
     onError: (error) => {
-      toast.error('Project setup', {
-        description: error.message ?? 'Failed to create your first project',
-      });
+      toastApiError(error, { title: 'Project setup' });
     },
   });
   const {

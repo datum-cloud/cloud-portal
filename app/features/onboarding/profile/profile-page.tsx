@@ -1,3 +1,4 @@
+import { toastApiError } from '@/components/error/toast-api-error';
 import { OnboardingEntrance } from '@/features/onboarding/components/onboarding-entrance';
 import { onboardingCardClassName } from '@/features/onboarding/onboarding-layout';
 import { useTransitionNavigate } from '@/hooks/useTransitionNavigate';
@@ -12,7 +13,6 @@ import {
 import { paths } from '@/utils/config/paths.config';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryClient } from '@tanstack/react-query';
@@ -50,9 +50,7 @@ export const ProfilePage = ({
       trackAction(AnalyticsAction.ProfileDetailsSaved);
     },
     onError: (error) => {
-      toast.error('Profile', {
-        description: error.message ?? 'Failed to update your name',
-      });
+      toastApiError(error, { title: 'Profile' });
     },
   });
 

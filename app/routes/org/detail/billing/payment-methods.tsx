@@ -1,5 +1,6 @@
 import type { OrgBillingContext } from './layout';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { toastApiError } from '@/components/error/toast-api-error';
 import {
   BillingListUnloaded,
   PaymentMethodsCard,
@@ -192,9 +193,7 @@ export default function OrgBillingPaymentMethodsPage() {
   // The default card is the account's `spec.defaultPaymentMethodRef`.
   const setDefaultMutation = useUpdateBillingAccount({
     onError: (error) => {
-      toast.error('Could not update default payment method', {
-        description: error.message || 'Please try again.',
-      });
+      toastApiError(error, { title: 'Could not update default payment method' });
     },
   });
 
@@ -226,9 +225,7 @@ export default function OrgBillingPaymentMethodsPage() {
   const { confirm } = useConfirmationDialog();
   const deletePaymentMethodMutation = useDeletePaymentMethod({
     onError: (error) => {
-      toast.error('Could not remove payment method', {
-        description: error.message || 'Please try again.',
-      });
+      toastApiError(error, { title: 'Could not remove payment method' });
     },
   });
 

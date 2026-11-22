@@ -1,5 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DangerCard } from '@/components/danger-card/danger-card';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { useApp } from '@/providers/app.provider';
 import { useDeleteUser } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
@@ -20,7 +21,7 @@ export const AccountDangerSettingsCard = () => {
       void navigate(paths.auth.logOut, { replace: true });
     },
     onError: (error) => {
-      toast.error(error.message);
+      toastApiError(error);
     },
   });
 

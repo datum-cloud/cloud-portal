@@ -1,3 +1,4 @@
+import { toastApiError } from '@/components/error/toast-api-error';
 import { ProfileIdentity } from '@/components/profile-identity';
 import {
   useCompleteLegacyOrgSetup,
@@ -17,7 +18,6 @@ import { paths } from '@/utils/config/paths.config';
 import { env } from '@/utils/env';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useEffect, useRef } from 'react';
@@ -61,9 +61,7 @@ export const BillingForm = ({
 
   const completeLegacySetupMutation = useCompleteLegacyOrgSetup({
     onError: (error) => {
-      toast.error('Billing setup', {
-        description: error.message ?? 'Failed to finish organization billing setup',
-      });
+      toastApiError(error, { title: 'Billing setup' });
     },
   });
 

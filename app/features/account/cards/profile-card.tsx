@@ -1,3 +1,4 @@
+import { toastApiError } from '@/components/error/toast-api-error';
 import { BILLING_COUNTRIES } from '@/features/billing/constants';
 import { useApp } from '@/providers/app.provider';
 import { useUpdateUser, userSchema } from '@/resources/users';
@@ -36,9 +37,7 @@ export const AccountProfileSettingsCard = () => {
       });
     },
     onError: (error) => {
-      toast.error('Profile', {
-        description: error.message ?? 'Failed to update profile',
-      });
+      toastApiError(error, { title: 'Profile' });
     },
   });
 

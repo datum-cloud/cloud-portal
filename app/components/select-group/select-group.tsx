@@ -1,7 +1,7 @@
+import { toastApiError } from '@/components/error/toast-api-error';
 import type { Group } from '@/resources/groups';
 import { useGroups } from '@/resources/groups';
 import { Autocomplete, type AutocompleteOption } from '@datum-cloud/datum-ui/autocomplete';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { useEffect, useMemo } from 'react';
 
 export type SelectGroupOption = AutocompleteOption & Group;
@@ -25,7 +25,7 @@ export const SelectGroup = ({
 
   useEffect(() => {
     if (error) {
-      toast.error(error.message || 'Failed to load groups');
+      toastApiError(error, { title: 'Failed to load groups' });
     }
   }, [error]);
 

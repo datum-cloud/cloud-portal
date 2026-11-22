@@ -1,7 +1,7 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { useAccessReview } from '@/modules/rbac';
 import { useDeleteOrganization } from '@/resources/organizations';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { useCallback } from 'react';
 
 /**
@@ -33,9 +33,7 @@ export function useDeleteOrganizationConfirmation({
   const deleteOrganization = useDeleteOrganization({
     onSuccess,
     onError: (error) => {
-      toast.error('Organization', {
-        description: error.message || 'Failed to delete organization',
-      });
+      toastApiError(error, { title: 'Organization' });
     },
   });
 

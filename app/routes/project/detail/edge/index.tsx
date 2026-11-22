@@ -1,6 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { DateTime } from '@/components/date-time';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
 import { useDeleteProxy } from '@/features/edge/proxy/hooks/use-delete-proxy';
 import { ProxyRequestRatesProvider } from '@/features/edge/proxy/metrics/proxy-request-rates';
@@ -47,7 +48,6 @@ import { createProjectListClientLoaderFromQueryKey } from '@/utils/helpers/proje
 import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { PlusIcon, ShieldCheckIcon, ShieldOffIcon, SquareLibrary } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
@@ -177,7 +177,7 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
 
   const { confirmDelete } = useDeleteProxy(projectId, {
     onError: (error) => {
-      toast.error(error.message || 'Failed to delete Application Load Balancer');
+      toastApiError(error, { title: 'Failed to delete Application Load Balancer' });
     },
   });
 

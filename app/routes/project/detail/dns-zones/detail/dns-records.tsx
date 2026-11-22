@@ -1,4 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { toastApiError } from '@/components/error/toast-api-error';
 import {
   DnsRecordAlbCell,
   DnsRecordTable,
@@ -268,7 +269,7 @@ export default function DnsRecordsPage() {
   const { isReadOnly, reason: readOnlyReason } = useProjectMode();
   const deleteMutation = useDeleteDnsRecord(projectId, dnsZoneId, {
     onError: (error) => {
-      toast.error(error.message || 'Failed to delete DNS record');
+      toastApiError(error, { title: 'Failed to delete DNS record' });
     },
   });
 

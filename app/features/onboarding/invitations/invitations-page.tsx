@@ -1,5 +1,6 @@
 import { CREATE_OWN_ORGANIZATION_PATH } from './joinable-invitations';
 import { useJoinInvitation } from './use-join-invitation';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { OnboardingEntrance } from '@/features/onboarding/components/onboarding-entrance';
 import { onboardingCardClassName } from '@/features/onboarding/onboarding-layout';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
@@ -9,7 +10,6 @@ import { getInitials } from '@/utils/helpers/text.helper';
 import { Avatar, AvatarFallback } from '@datum-cloud/datum-ui/avatar';
 import { Button, LinkButton } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { Link, useRevalidator } from 'react-router';
@@ -31,9 +31,7 @@ export const InvitationsPage = ({ invitations }: InvitationsPageProps) => {
   const { join, isJoining, isSettlingAccess, joiningInvitationName } = useJoinInvitation({
     onAccepted: (orgId) => trackAction(AnalyticsAction.OnboardingInvitationAccepted, { orgId }),
     onError: (error) => {
-      toast.error('Join organization', {
-        description: error.message || 'Failed to accept the invitation',
-      });
+      toastApiError(error, { title: 'Join organization' });
     },
   });
 
@@ -41,9 +39,7 @@ export const InvitationsPage = ({ invitations }: InvitationsPageProps) => {
     // The loader moves the user on to org creation once nothing is left to join.
     onSuccess: () => revalidator.revalidate(),
     onError: (error) => {
-      toast.error('Decline invitation', {
-        description: error.message || 'Failed to decline the invitation',
-      });
+      toastApiError(error, { title: 'Decline invitation' });
     },
   });
 

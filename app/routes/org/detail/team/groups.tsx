@@ -1,5 +1,6 @@
 import { AvatarStack } from '@/components/avatar-stack';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
 import {
   GroupFormDialog,
@@ -25,7 +26,6 @@ import { getMemberDisplayName } from '@/utils/helpers/member.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useMemo, useCallback, useRef } from 'react';
@@ -88,7 +88,7 @@ function GroupsInner({ initialGroups }: { initialGroups: Group[] }) {
   const { data: members = [] } = useMembers(orgId);
 
   const { mutateAsync: deleteGroupAsync } = useDeleteGroup(orgId, {
-    onError: (error) => toast.error(error.message || 'Failed to delete group'),
+    onError: (error) => toastApiError(error, { title: 'Failed to delete group' }),
   });
 
   const groupRows = useMemo<GroupRow[]>(() => {

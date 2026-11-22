@@ -1,3 +1,4 @@
+import { toastApiError } from '@/components/error/toast-api-error';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { downloadFile } from '@/utils/common';
 import { transformRecordsToBindFormat } from '@/utils/helpers/dns-record.helper';
@@ -33,9 +34,7 @@ export function useDnsRecordExport({
       });
     } catch (error) {
       console.error(error);
-      toast.error('Failed to export DNS records', {
-        description: error instanceof Error ? error.message : 'Unknown error',
-      });
+      toastApiError(error, { title: 'Failed to export DNS records' });
     } finally {
       setIsExporting(false);
     }

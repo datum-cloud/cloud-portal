@@ -1,4 +1,5 @@
 import type { OrgBillingContext } from './layout';
+import { toastApiError } from '@/components/error/toast-api-error';
 import {
   BillingDetailsCard,
   BillingSection,
@@ -56,9 +57,7 @@ export default function OrgBillingOverviewPage() {
       });
     },
     onError: (error) => {
-      toast.error('Could not update billing details', {
-        description: error.message || 'Please try again.',
-      });
+      toastApiError(error, { title: 'Could not update billing details' });
     },
   });
 
