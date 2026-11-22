@@ -12,10 +12,12 @@ import { getQueryClient } from '@/modules/tanstack/query';
 import RootCSS from '@/styles/root.css?url';
 import { csrf, getSidebarState, getToastSession } from '@/utils/cookies';
 import { env } from '@/utils/env/env.server';
+import { API_GROUP_LABELS } from '@/utils/errors/api-group-labels';
 import { isUserFacingErrorStatus } from '@/utils/errors/app-error';
 import { serializeForInlineScript } from '@/utils/helpers/inline-script.helper';
 import { metaObject } from '@/utils/helpers/meta.helper';
 import { combineHeaders } from '@/utils/helpers/path.helper';
+import { ErrorDescriptionProvider } from '@datum-cloud/datum-ui/error-content';
 import CanelaFont from '@datum-cloud/datum-ui/fonts/CanelaText-Regular.ttf?url';
 import { ConformAdapter } from '@datum-cloud/datum-ui/form/adapters/conform';
 import { configureProgress, startProgress, stopProgress } from '@datum-cloud/datum-ui/nprogress';
@@ -309,7 +311,9 @@ export default function AppWithProviders() {
           <GraphQLProvider urqlState={urqlState}>
             <NuqsAdapter>
               <ConformAdapter>
-                <Outlet />
+                <ErrorDescriptionProvider apiGroupLabels={API_GROUP_LABELS}>
+                  <Outlet />
+                </ErrorDescriptionProvider>
               </ConformAdapter>
             </NuqsAdapter>
           </GraphQLProvider>
@@ -379,7 +383,11 @@ export function ErrorBoundary() {
 
   return (
     <ErrorLayout>
-      <GenericError message={message} status={status} />
+      <GenericError
+        message={message}
+        status={status}
+        error={isRouteErrorResponse(error) ? (error.data as unknown) : error}
+      />
     </ErrorLayout>
   );
 }
