@@ -20,7 +20,6 @@ import {
   type BillingArrangementApplication,
   type BillingDetailsValues,
   type Invoice,
-  type PastInvoiceRow,
   type PaymentMethod,
 } from '@/features/billing';
 import type {
@@ -459,11 +458,6 @@ export default function OrgBillingPage() {
     [confirm, deletePaymentMethodMutation, orgId]
   );
 
-  const handleDownloadInvoice = useCallback((invoice: PastInvoiceRow) => {
-    if (!invoice.downloadUrl) return;
-    window.open(invoice.downloadUrl, '_blank', 'noopener,noreferrer');
-  }, []);
-
   const usageLink = (
     <Link
       to={getPathWithParams(paths.org.detail.usage, { orgId })}
@@ -600,7 +594,7 @@ export default function OrgBillingPage() {
 
         <Section title="Invoices" description="Past invoices for this organization.">
           {invoicesQuery.data ? (
-            <PastInvoicesCard invoices={pastInvoices} onDownload={handleDownloadInvoice} />
+            <PastInvoicesCard invoices={pastInvoices} />
           ) : (
             <Unloaded
               what="invoices"
