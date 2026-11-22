@@ -98,9 +98,10 @@ Guards are pure cache readers; watch failure degrades to query staleness.
 
 ### `showMutationErrorToast(error, { fallbackTitle, scope, orgId?, projectId? })`
 
-Drop-in replacement for `toast.error(title, { description: error.message })`
-in mutation `onError`. Quota 403s get the quota toast (View quotas /
-Request increase); everything else falls back to the plain error toast.
+Use it in mutation `onError`. Quota 403s get the quota toast (View quotas /
+Request increase); everything else falls back to `toastApiError`, which
+explains the error (naming the product area for a permission denial) and
+keeps the raw text under Show details.
 
 ```tsx
 onError: (error) =>

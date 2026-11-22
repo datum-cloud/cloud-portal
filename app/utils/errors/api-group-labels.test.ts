@@ -1,9 +1,13 @@
 import { API_GROUP_LABELS } from './api-group-labels';
+import { rbacDenial } from '@/utils/errors/rbac-denial.fixture';
 import { describeApiError } from '@datum-cloud/datum-ui/error-content';
 import { describe, expect, it } from 'vitest';
 
-const HTTPROUTE_DENIAL =
-  'httproutes.gateway.networking.k8s.io is forbidden: User "jane@example.com" cannot list resource "httproutes" in API group "gateway.networking.k8s.io" in the namespace "default"';
+const HTTPROUTE_DENIAL = rbacDenial({
+  verb: 'list',
+  resource: 'httproutes',
+  group: 'gateway.networking.k8s.io',
+});
 
 describe('API_GROUP_LABELS', () => {
   it('uses catalog wording', () => {
