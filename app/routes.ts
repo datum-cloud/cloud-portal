@@ -130,6 +130,14 @@ export default [
           route('general', 'routes/project/detail/settings/general.tsx'),
         ]),
 
+        // Usage and billing are the organization's; old project links go there.
+        route('usage', 'routes/project/detail/legacy-org-redirect.tsx', {
+          id: 'project-usage-redirect',
+        }),
+        route('billing', 'routes/project/detail/legacy-org-redirect.tsx', {
+          id: 'project-billing-redirect',
+        }),
+
         // Project quotas (Manage project) — outside settings SubLayout
         route('quotas', 'routes/project/detail/settings/quotas.tsx'),
 

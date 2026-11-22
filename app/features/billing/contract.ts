@@ -180,10 +180,32 @@ export function nextInvoiceDayBilling(date: Date, invoiceDay: number, months = 1
   return billing;
 }
 
-/** Whether billing bills the contract on the account's invoice day, not its start's. */
+/**
+ * Whether billing bills the contract on the account's invoice day, not its
+ * start's. Billing before v0.11.1 doesn't publish billingDay, but a contract
+ * billed on its start day always has that day as its billingDayOfMonth, so a
+ * different day means the invoice day.
+ */
 function billsOnInvoiceDay(contract: StatusContract): boolean {
-  return contract.billingDay === 'InvoiceDay';
+  if (contract.billingDay) return contract.billingDay === 'InvoiceDay';
+  const startDay = new Date(contract.startsAt).getUTCDate();
+  return Number.isFinite(startDay) && contract.billingDayOfMonth !== startDay;
 }
+
+/**
+ * Whether the contract's dates can be scheduled: a readable start and, for
+ * one billed on the invoice day, a day of the month to bill on. Anything
+ * else would leave the schedule with no dates to stop at.
+ */
+function schedulable(contract: StatusContract): boolean {
+  if (!Number.isFinite(Date.parse(contract.startsAt))) return false;
+  if (!billsOnInvoiceDay(contract)) return true;
+  const day = contract.billingDayOfMonth;
+  return Number.isInteger(day) && day >= 1 && day <= 31;
+}
+
+/** The most periods a schedule counts for one fee, however its dates come out. */
+const MAX_PERIODS = 400;
 
 /**
  * The contract's invoices from its start through the next `months` months,
@@ -200,6 +222,7 @@ export function contractInvoiceSchedule(
   netDays: number | undefined,
   months = 12
 ): ScheduledInvoice[] {
+  if (!schedulable(contract)) return [];
   if (billsOnInvoiceDay(contract)) return invoiceDaySchedule(contract, netDays, months);
   const startsAt = new Date(contract.startsAt);
   const fees = contract.fees ?? [];
@@ -252,7 +275,8 @@ function invoiceDayPeriods(
     });
   }
   // A fee with renewals runs that many whole periods after the prorated one.
-  for (let i = 0; !fee.periods || i < fee.periods; i++) {
+  const count = fee.periods ? Math.min(fee.periods, MAX_PERIODS) : MAX_PERIODS;
+  for (let i = 0; i < count; i++) {
     const from = addMonthsUtc(first, i * every);
     if (from.getTime() > until) break;
     periods.push({ from, to: addMonthsUtc(first, (i + 1) * every), share: 1 });
@@ -324,13 +348,13 @@ function invoiceDaySchedule(
 }
 
 /**
- * When a contract billed on the invoice day finishes the first period it's
- * charged in part for: the latest of its recurring fees' first billing
- * dates, or undefined when it bills on its start day, or starts on all of
- * them.
+ * When a contract billed on the invoice day reaches its first invoice day
+ * after a period charged in part: the earliest of its recurring fees' first
+ * billing dates, from which it bills like the rest of the account. Undefined
+ * when it bills on its start day, or starts on all of them.
  */
 function proratedUntil(contract: StatusContract): Date | undefined {
-  if (!billsOnInvoiceDay(contract)) return undefined;
+  if (!schedulable(contract) || !billsOnInvoiceDay(contract)) return undefined;
   const startsAt = new Date(contract.startsAt);
   const ends = (contract.fees ?? [])
     .filter((fee) => fee.chargeType === 'Recurring')
@@ -342,7 +366,7 @@ function proratedUntil(contract: StatusContract): Date | undefined {
       )
     )
     .filter((end) => end > startsAt);
-  return ends.length > 0 ? new Date(Math.max(...ends.map((end) => end.getTime()))) : undefined;
+  return ends.length > 0 ? new Date(Math.min(...ends.map((end) => end.getTime()))) : undefined;
 }
 
 /**

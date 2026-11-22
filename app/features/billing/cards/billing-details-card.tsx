@@ -1,5 +1,7 @@
 import { AddressFields } from '@/features/address/address-fields';
+import { addressSchemaFields } from '@/features/address/address-schema';
 import { BILLING_COUNTRIES, BUSINESS_TAX_ID_TYPES } from '@/features/billing/constants';
+import { invoiceEmail } from '@/features/billing/invoice-email';
 import {
   BILLING_ACCOUNT_DISPLAY_NAME_ANNOTATION,
   getBillingAccountDisplayName,
@@ -12,7 +14,7 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useCallback, useRef, useState, type ReactNode } from 'react';
 import { z } from 'zod';
 
 // Bounds mirror the billing API: annotation values and contact fields are
@@ -40,15 +42,12 @@ export const billingDetailsSchema = z.object({
   // Conform submits an empty field as undefined, so optional covers "use the
   // billing contact" without marking the field required.
   invoiceEmail: z.email('Enter a valid email address').optional(),
+  ...addressSchemaFields,
+  // Billing needs a country to bill in, where onboarding can leave it empty.
   country: z
     .string({ error: 'Pick a country so we know where to bill' })
     .min(1, 'Pick a country so we know where to bill')
     .regex(/^[A-Z]{2}$/, 'Pick a country from the list'),
-  line1: z.string().max(256, 'Address line 1 is too long (256 characters max)').optional(),
-  line2: z.string().max(256, 'Address line 2 is too long (256 characters max)').optional(),
-  city: z.string().max(128, 'City is too long (128 characters max)').optional(),
-  region: z.string().max(128, 'State or region is too long (128 characters max)').optional(),
-  postalCode: z.string().max(32, 'Postal code is too long (32 characters max)').optional(),
   taxIds: z.array(taxIdSchema),
 });
 
@@ -58,9 +57,14 @@ function initialValues(account: BillingAccount): BillingDetailsValues {
   const contact = account.spec?.contactInfo;
   const address = contact?.address;
   return {
-    // The form edits the display-name annotation itself, so it doesn't fall
-    // back to the contact name the way the page title does.
-    displayName: account.metadata?.annotations?.[BILLING_ACCOUNT_DISPLAY_NAME_ANNOTATION] ?? '',
+    // Starts from the name the summary shows, so an account without the
+    // display-name annotation doesn't open with an empty required field.
+    displayName:
+      account.metadata?.annotations?.[BILLING_ACCOUNT_DISPLAY_NAME_ANNOTATION] ||
+      contact?.businessName ||
+      contact?.name ||
+      account.metadata?.name ||
+      '',
     name: contact?.name ?? '',
     businessName: contact?.businessName ?? '',
     invoiceEmail: contact?.invoiceEmails?.[0] ?? '',
@@ -72,6 +76,16 @@ function initialValues(account: BillingAccount): BillingDetailsValues {
     postalCode: address?.postalCode ?? '',
     taxIds: account.spec?.taxIds ?? [],
   };
+}
+
+/**
+ * The values as they'd be saved, for telling whether the form changed: empty
+ * fields count as unset, as the form submits them.
+ */
+function comparable(values: Partial<BillingDetailsValues>): string {
+  return JSON.stringify(values, (_key, value) =>
+    value === '' || (Array.isArray(value) && value.length === 0) ? undefined : value
+  );
 }
 
 const COUNTRY_LABELS = new Map(BILLING_COUNTRIES.map((c) => [c.value, c.label]));
@@ -117,14 +131,15 @@ function BillingDetailsView({ account }: { account: BillingAccount }) {
       </Detail>
       <Detail label="Business name">{contact?.businessName || <NotSet />}</Detail>
       <Detail label="Invoice email">
-        {contact?.invoiceEmails?.[0] ??
-          (contact?.email ? (
-            <span>
-              {contact.email} <span className="text-muted-foreground">(billing contact)</span>
-            </span>
-          ) : (
-            <NotSet />
-          ))}
+        {contact?.invoiceEmails?.[0] ? (
+          invoiceEmail(contact)
+        ) : contact?.email ? (
+          <span>
+            {contact.email} <span className="text-muted-foreground">(billing contact)</span>
+          </span>
+        ) : (
+          <NotSet />
+        )}
       </Detail>
       <Detail label="Billing address">
         {addressLines.length > 0 ? (
@@ -173,9 +188,11 @@ function TaxIdFields() {
           <div className="flex flex-col gap-3">
             {fields.map((field, index) => (
               <div key={field.key} className="flex flex-col items-start gap-2 sm:flex-row">
+                {/* Every row is labelled for screen readers; only the first shows it. */}
                 <Form.Field
                   name={`taxIds.${index}.type`}
-                  label={index === 0 ? 'Type' : undefined}
+                  label="Type"
+                  labelClassName={index === 0 ? undefined : 'sr-only'}
                   required
                   className="w-full sm:w-1/2">
                   <Form.Select placeholder="Select tax type">
@@ -188,7 +205,8 @@ function TaxIdFields() {
                 </Form.Field>
                 <Form.Field
                   name={`taxIds.${index}.value`}
-                  label={index === 0 ? 'Registration number' : undefined}
+                  label="Registration number"
+                  labelClassName={index === 0 ? undefined : 'sr-only'}
                   required
                   className="w-full sm:flex-1">
                   <Form.Input placeholder="e.g. GB123456789" />
@@ -224,8 +242,11 @@ function TaxIdFields() {
 
 interface BillingDetailsCardProps {
   account: BillingAccount;
-  /** From the `billingaccounts·patch` check; hides the Edit button when false. */
-  canEdit: boolean;
+  /**
+   * From the `billingaccounts·patch` check: false disables Edit and says
+   * why, undefined while the check is still running disables it quietly.
+   */
+  canEdit: boolean | undefined;
   isSubmitting?: boolean;
   /** Saves the details. Rejecting keeps the form open with the user's input. */
   onSubmit: (values: BillingDetailsValues) => Promise<void>;
@@ -234,7 +255,8 @@ interface BillingDetailsCardProps {
 /**
  * The billing account's name, contact, address, tax IDs and invoice email.
  * Read-only until the user clicks Edit, so the details can't be changed by
- * accident; Save or Cancel returns to the read-only view.
+ * accident; Save or Cancel returns to the read-only view, and focus goes back
+ * to Edit. Saving with nothing changed just closes the form.
  */
 export const BillingDetailsCard = ({
   account,
@@ -244,6 +266,18 @@ export const BillingDetailsCard = ({
 }: BillingDetailsCardProps) => {
   const [editing, setEditing] = useState(false);
   const contactEmail = account.spec?.contactInfo?.email;
+  // Edit unmounts while the form is open, so focus is handed back to it when
+  // the form closes rather than dropping to the top of the page.
+  const returnFocus = useRef(false);
+  const editRef = useCallback((node: HTMLSpanElement | null) => {
+    if (!node || !returnFocus.current) return;
+    returnFocus.current = false;
+    node.querySelector('button')?.focus();
+  }, []);
+  const close = () => {
+    returnFocus.current = true;
+    setEditing(false);
+  };
 
   if (!editing) {
     return (
@@ -252,17 +286,20 @@ export const BillingDetailsCard = ({
           <BillingDetailsView account={account} />
         </CardContent>
         <CardFooter bordered className="flex justify-end">
-          {canEdit ? (
-            <Button
-              htmlType="button"
-              type="quaternary"
-              theme="outline"
-              size="xs"
-              icon={<Icon icon={PencilIcon} className="size-3.5" />}
-              onClick={() => setEditing(true)}
-              data-e2e="billing-details-edit">
-              Edit
-            </Button>
+          {canEdit !== false ? (
+            <span ref={editRef}>
+              <Button
+                htmlType="button"
+                type="quaternary"
+                theme="outline"
+                size="xs"
+                disabled={canEdit === undefined}
+                icon={<Icon icon={PencilIcon} className="size-3.5" />}
+                onClick={() => setEditing(true)}
+                data-e2e="billing-details-edit">
+                Edit
+              </Button>
+            </span>
           ) : (
             <Tooltip message="You don't have permission to edit this billing account" side="top">
               <Button
@@ -291,9 +328,13 @@ export const BillingDetailsCard = ({
         defaultValues={initialValues(account)}
         isSubmitting={isSubmitting}
         onSubmit={async (values) => {
+          if (comparable(values) === comparable(initialValues(account))) {
+            close();
+            return;
+          }
           try {
             await onSubmit(values);
-            setEditing(false);
+            close();
           } catch {
             // The caller reports the failure; stay in edit mode so the
             // user's input isn't lost.
@@ -307,7 +348,7 @@ export const BillingDetailsCard = ({
             required
             description="How this billing account is labelled across the portal."
             className="max-w-md">
-            <Form.Input autoComplete="off" placeholder="e.g. Acme production billing" />
+            <Form.Input autoComplete="off" placeholder="e.g. Acme production billing" autoFocus />
           </Form.Field>
           <Form.Field
             name="name"
@@ -359,7 +400,7 @@ export const BillingDetailsCard = ({
             theme="outline"
             size="xs"
             disabled={isSubmitting}
-            onClick={() => setEditing(false)}>
+            onClick={close}>
             Cancel
           </Button>
           <Form.Submit size="xs" loadingText="Saving" data-e2e="billing-details-save">

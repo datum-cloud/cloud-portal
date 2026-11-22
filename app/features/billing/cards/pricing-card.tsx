@@ -7,6 +7,7 @@ import type {
   PriceRate,
   UsagePrice,
 } from '@/features/billing/pricing';
+import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Input } from '@datum-cloud/datum-ui/input';
@@ -144,6 +145,21 @@ function FeeCells({ fee }: { fee: FeePrice }) {
 }
 
 /**
+ * Everything a search can match on a row: its name, and the rest of what it
+ * shows (what a rate applies to, its tiers and prices, a fee's details).
+ */
+function searchText(item: PriceItem): string {
+  const parts =
+    item.kind === 'usage'
+      ? item.rates.flatMap((rate) => [
+          rate.match,
+          ...rate.bands.flatMap((band) => [band.range, band.price, band.perHour]),
+        ])
+      : [...item.details, item.amount, item.timing];
+  return [item.label, ...parts].filter(Boolean).join(' ').toLowerCase();
+}
+
+/**
  * The discount every item shares, when they all have the same one above 0%,
  * so it can be said once instead of on every row.
  */
@@ -169,7 +185,7 @@ export const PricingCard = ({ items, usageLink }: PricingCardProps) => {
   const [search, setSearch] = useState('');
   const [showAll, setShowAll] = useState(false);
   const query = search.trim().toLowerCase();
-  const matching = query ? items.filter((item) => item.label.toLowerCase().includes(query)) : items;
+  const matching = query ? items.filter((item) => searchText(item).includes(query)) : items;
   const shown = showAll || query ? matching : matching.slice(0, ITEMS_SHOWN);
   const long = items.length > ITEMS_SHOWN;
 
@@ -201,7 +217,7 @@ export const PricingCard = ({ items, usageLink }: PricingCardProps) => {
             </Text>
           </div>
         ) : null}
-        <Table className={cn(ROW_INSET, HEADER_DIVIDERS)} data-e2e="pricing-list">
+        <Table id="pricing-list" className={cn(ROW_INSET, HEADER_DIVIDERS)} data-e2e="pricing-list">
           <TableHeader>
             <TableRow className="bg-background hover:bg-background">
               <TableHead className="text-foreground w-[40%] text-xs font-medium">Item</TableHead>
@@ -237,23 +253,36 @@ export const PricingCard = ({ items, usageLink }: PricingCardProps) => {
         </Table>
         {long && !query ? (
           <div className="border-t px-5 py-3">
-            <button
-              type="button"
-              className="text-muted-foreground hover:text-foreground text-sm underline underline-offset-4 transition-colors"
+            <Button
+              htmlType="button"
+              type="quaternary"
+              theme="link"
+              size="xs"
+              className="w-fit px-0"
+              aria-expanded={showAll}
+              aria-controls="pricing-list"
               onClick={() => setShowAll((value) => !value)}>
               {showAll ? 'Show fewer' : `Show all ${items.length} prices`}
-            </button>
+            </Button>
           </div>
         ) : null}
       </CardContent>
       <CardFooter bordered className="text-muted-foreground bg-background py-3 text-xs">
         <span data-e2e="pricing-note">
-          {shared !== undefined ? (
+          {shared !== undefined && shared >= 100 ? (
             <span className="text-foreground font-medium">
-              {formatDiscountPercentage(shared)} discount on everything.{' '}
+              No charge: a 100% discount covers everything listed.
             </span>
-          ) : null}
-          Prices are before discounts and taxes.
+          ) : (
+            <>
+              {shared !== undefined ? (
+                <span className="text-foreground font-medium">
+                  {formatDiscountPercentage(shared)} discount on everything.{' '}
+                </span>
+              ) : null}
+              Prices are before discounts and taxes.
+            </>
+          )}
           {usageLink ? <> {usageLink}</> : null}
         </span>
       </CardFooter>

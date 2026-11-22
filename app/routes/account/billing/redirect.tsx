@@ -25,9 +25,10 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     .findByName(billingAccountId, orgIds)
     .catch(() => null);
   const orgId = orgIdFromNamespace(account?.metadata?.namespace);
+  // Name the account, so an org with more than one shows the one linked to.
   throw redirect(
     orgId
-      ? getPathWithParams(paths.org.detail.billing.root, { orgId })
+      ? `${getPathWithParams(paths.org.detail.billing.root, { orgId })}?account=${encodeURIComponent(billingAccountId)}`
       : paths.account.organizations.root
   );
 };

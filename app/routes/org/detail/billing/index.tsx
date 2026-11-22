@@ -27,6 +27,7 @@ import type {
   AddPaymentMethodValues,
   CreatePaymentMethodResult,
 } from '@/features/billing/dialogs/add-payment-method-dialog';
+import { withInvoiceEmail } from '@/features/billing/invoice-email';
 import { latestApplication, paymentTermsSummary } from '@/features/billing/payment-terms';
 import { requireBillingOwner } from '@/modules/billing/billing-access.server';
 import { logger } from '@/modules/logger';
@@ -59,6 +60,8 @@ import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { env } from '@/utils/env';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Alert, AlertDescription, AlertTitle } from '@datum-cloud/datum-ui/alert';
+import { Button } from '@datum-cloud/datum-ui/button';
 import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
@@ -77,8 +80,14 @@ interface LoaderData {
   orgId: string;
   account: BillingAccount;
   accounts: BillingAccount[];
-  paymentMethods: PaymentMethod[];
-  invoices: Invoice[];
+  /**
+   * An account a link asked for (`?account=`) that the org doesn't have, so
+   * the page says it's showing another one.
+   */
+  missingAccount: string | undefined;
+  /** Null when they couldn't be read, so the page doesn't say there are none. */
+  paymentMethods: PaymentMethod[] | null;
+  invoices: Invoice[] | null;
   /** The account's most recent application for payment terms. */
   paymentTermsApplication: BillingArrangementApplication | undefined;
   /** When the loader ran, so server and browser agree on terms ending soon. */
@@ -93,14 +102,20 @@ interface LoaderData {
  * details, what it's billed at, how it pays and its invoices. Only the org's
  * owners reach it (the billing layout enforces the same rule). An org that
  * hasn't set billing up yet goes to the billing step of setup instead.
+ *
+ * An org with more than one account, from before there was one per org,
+ * shows its default account and links to the others (`?account=`).
  */
-export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData> => {
+export const loader = async ({ params, request }: LoaderFunctionArgs): Promise<LoaderData> => {
   const { orgId } = params;
   await requireBillingOwner(orgId);
   if (!orgId) throw redirect(paths.account.root);
 
   const accounts = await createBillingAccountService().list(orgId);
-  const account = selectDefaultOrgBillingAccount(accounts);
+  const requested = new URL(request.url).searchParams.get('account') ?? undefined;
+  const account =
+    liveAccounts(accounts).find((a) => a.metadata?.name === requested) ??
+    selectDefaultOrgBillingAccount(accounts);
   if (!account?.metadata?.name) {
     throw redirect(`${paths.onboarding.billing}?orgId=${encodeURIComponent(orgId)}`);
   }
@@ -108,13 +123,17 @@ export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData
 
   // Independent reads; the page renders meaningful partial state from any
   // subset, so one failure doesn't blank it.
+  const unreadable = (what: string) => (error: unknown) => {
+    logger.warn(`[org/billing] Could not list ${what}`, {
+      orgId,
+      fallback: 'loaded in the browser',
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  };
   const [paymentMethods, invoices, applications, stripeConfigs] = await Promise.all([
-    createPaymentMethodService()
-      .list(orgId)
-      .catch(() => [] as PaymentMethod[]),
-    createInvoiceService()
-      .list(orgId)
-      .catch(() => [] as Invoice[]),
+    createPaymentMethodService().list(orgId).catch(unreadable('payment methods')),
+    createInvoiceService().list(orgId).catch(unreadable('invoices')),
     createBillingArrangementApplicationService()
       .list(orgId)
       .catch((error): BillingArrangementApplication[] => {
@@ -134,6 +153,7 @@ export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData
     orgId,
     account,
     accounts,
+    missingAccount: requested && requested !== accountName ? requested : undefined,
     paymentMethods,
     invoices,
     paymentTermsApplication: latestApplication(applications, accountName),
@@ -142,6 +162,40 @@ export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData
     stripePublishableKey: stripeConfigs[0]?.spec?.publishableKey ?? undefined,
   };
 };
+
+/** The org's accounts that aren't being deleted. */
+function liveAccounts(accounts: BillingAccount[]): BillingAccount[] {
+  return accounts.filter((a) => !a.metadata?.deletionTimestamp);
+}
+
+/**
+ * Where a list the page couldn't read goes, instead of a card saying there
+ * are none: loading in the browser, then an error with a retry.
+ */
+const Unloaded = ({
+  what,
+  isError,
+  onRetry,
+}: {
+  what: string;
+  isError: boolean;
+  onRetry: () => void;
+}) =>
+  isError ? (
+    <Alert variant="destructive" data-e2e="billing-load-error">
+      <AlertTitle className="text-sm">Couldn&apos;t load {what}</AlertTitle>
+      <AlertDescription className="flex flex-col items-start gap-2">
+        <span>Billing didn&apos;t answer. Your {what} are unchanged.</span>
+        <Button htmlType="button" type="quaternary" theme="outline" size="xs" onClick={onRetry}>
+          Try again
+        </Button>
+      </AlertDescription>
+    </Alert>
+  ) : (
+    <Text as="p" size="sm" textColor="muted">
+      Loading {what}…
+    </Text>
+  );
 
 /**
  * Two-column section: the title and supporting copy on the left, the card(s)
@@ -174,6 +228,7 @@ export default function OrgBillingPage() {
     orgId,
     account: initialAccount,
     accounts: initialAccounts,
+    missingAccount,
     paymentMethods: initialPaymentMethods,
     invoices: initialInvoices,
     paymentTermsApplication,
@@ -199,14 +254,15 @@ export default function OrgBillingPage() {
     initialDataUpdatedAt: Date.now(),
     staleTime: QUERY_STALE_TIME,
   });
+  // Lists the loader couldn't read are fetched in the browser instead.
   const paymentMethodsQuery = usePaymentMethods(orgId, {
-    initialData: initialPaymentMethods,
-    initialDataUpdatedAt: Date.now(),
+    ...(initialPaymentMethods
+      ? { initialData: initialPaymentMethods, initialDataUpdatedAt: Date.now() }
+      : {}),
     staleTime: QUERY_STALE_TIME,
   });
   const invoicesQuery = useInvoices(orgId, {
-    initialData: initialInvoices,
-    initialDataUpdatedAt: Date.now(),
+    ...(initialInvoices ? { initialData: initialInvoices, initialDataUpdatedAt: Date.now() } : {}),
     staleTime: QUERY_STALE_TIME,
   });
   const stripeConfigsQuery = useStripeProviderConfigs({ staleTime: QUERY_STALE_TIME });
@@ -215,27 +271,28 @@ export default function OrgBillingPage() {
   usePaymentMethodsWatch(orgId);
   useInvoicesWatch(orgId);
 
-  const account =
-    accountsQuery.data?.find((a) => a.metadata?.name === accountName) ?? initialAccount;
+  const accounts = accountsQuery.data ?? initialAccounts;
+  const account = accounts.find((a) => a.metadata?.name === accountName) ?? initialAccount;
+  const otherAccounts = liveAccounts(accounts).filter((a) => a.metadata?.name !== accountName);
   const paymentMethods = useMemo(
     () =>
-      (paymentMethodsQuery.data ?? initialPaymentMethods).filter(
+      (paymentMethodsQuery.data ?? []).filter(
         (pm) => pm.spec?.billingAccountRef?.name === accountName
       ),
-    [paymentMethodsQuery.data, initialPaymentMethods, accountName]
+    [paymentMethodsQuery.data, accountName]
   );
   const pastInvoices = useMemo(
     () =>
-      (invoicesQuery.data ?? initialInvoices)
+      (invoicesQuery.data ?? [])
         .filter((inv) => inv.spec?.billingAccountRef?.name === accountName && !isStaleInvoice(inv))
         .map(toPastInvoiceRow),
-    [invoicesQuery.data, initialInvoices, accountName]
+    [invoicesQuery.data, accountName]
   );
   const stripePublishableKey =
     stripeConfigsQuery.data?.[0]?.spec?.publishableKey ?? initialPublishableKey;
 
   const contactInfo = account.spec?.contactInfo;
-  const contract = contractSummary(account, renderedAt);
+  const contract = useMemo(() => contractSummary(account, renderedAt), [account, renderedAt]);
   // One list of what the account pays: the contract's fees, any other plan
   // fees and the usage rates.
   const prices = useMemo(() => priceList(account, contract), [account, contract]);
@@ -263,18 +320,16 @@ export default function OrgBillingPage() {
 
   const handleSaveDetails = useCallback(
     async (values: BillingDetailsValues) => {
-      const invoiceEmail = values.invoiceEmail?.trim().toLowerCase();
-      // Send the whole contact block: billing drops nested contactInfo fields
-      // a patch leaves out, so the existing email is carried forward.
+      // The whole contact block, as the invoice email card sends it: billing
+      // drops nested contactInfo fields a patch leaves out.
       await detailsMutation.mutateAsync({
         orgId,
         name: accountName,
         displayName: values.displayName,
         contactInfo: {
+          ...withInvoiceEmail(contactInfo, values.invoiceEmail ?? ''),
           name: values.name,
           businessName: values.businessName,
-          email: contactInfo?.email,
-          invoiceEmails: invoiceEmail ? [invoiceEmail] : [],
           address: {
             country: values.country,
             line1: values.line1,
@@ -287,7 +342,7 @@ export default function OrgBillingPage() {
         taxIds: values.taxIds,
       });
     },
-    [detailsMutation, orgId, accountName, contactInfo?.email]
+    [detailsMutation, orgId, accountName, contactInfo]
   );
 
   // ─── Payment methods ──────────────────────────────────────────────────
@@ -425,13 +480,40 @@ export default function OrgBillingPage() {
         titleClassName="text-3xl"
       />
 
+      {missingAccount || otherAccounts.length > 0 ? (
+        <Alert variant="info" data-e2e="billing-other-accounts">
+          <AlertTitle className="text-sm">
+            {missingAccount
+              ? `This organization has no billing account named ${missingAccount}`
+              : `This organization has ${otherAccounts.length + 1} billing accounts`}
+          </AlertTitle>
+          <AlertDescription>
+            <span>
+              This page shows {getBillingAccountDisplayName(account)}.
+              {otherAccounts.length > 0 ? ' Also on this organization: ' : null}
+              {otherAccounts.map((other, index) => (
+                <span key={other.metadata?.name}>
+                  {index > 0 ? ', ' : null}
+                  <Link
+                    to={`${getPathWithParams(paths.org.detail.billing.root, { orgId })}?account=${encodeURIComponent(other.metadata?.name ?? '')}`}
+                    className="text-primary hover:text-primary/80 font-medium">
+                    {getBillingAccountDisplayName(other)}
+                  </Link>
+                </span>
+              ))}
+              {otherAccounts.length > 0 ? '.' : null}
+            </span>
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
       <div className="border-border border-t">
         <Section
           title="Billing details"
           description="Who's billed and where invoices go. Changes show on upcoming invoices; past invoices aren't affected.">
           <BillingDetailsCard
             account={account}
-            canEdit={!editCheckLoading && canEditAccount}
+            canEdit={editCheckLoading ? undefined : canEditAccount}
             isSubmitting={detailsMutation.isPending}
             onSubmit={handleSaveDetails}
           />
@@ -479,37 +561,53 @@ export default function OrgBillingPage() {
             canApply={canApplyForPaymentTerms}
             now={renderedAt}
           />
-          <PaymentMethodsCard
-            footerNote={
-              paymentTerms ? undefined : (
-                <PaymentTermsPrompt
-                  orgId={orgId}
-                  billingAccountName={accountName}
-                  application={paymentTermsApplication}
-                  canApply={canApplyForPaymentTerms}
-                />
-              )
-            }
-            paymentMethods={paymentMethods}
-            billingAccount={account}
-            stripePublishableKey={stripePublishableKey}
-            billingDetailsPrefill={{
-              email: contactInfo?.email,
-              name: contactInfo?.name,
-              address: buildContactAddressPrefill(contactInfo?.address),
-            }}
-            onCreatePaymentMethod={createPaymentMethod}
-            onPaymentMethodConfirmed={handleConfirmed}
-            onSetAsDefault={handleSetDefaultPaymentMethod}
-            onRemove={handleRemovePaymentMethod}
-            emptyMessage={
-              paymentTerms ? 'No card on file. This account pays by invoice.' : undefined
-            }
-          />
+          {paymentMethodsQuery.data ? (
+            <PaymentMethodsCard
+              footerNote={
+                paymentTerms ? undefined : (
+                  <PaymentTermsPrompt
+                    orgId={orgId}
+                    billingAccountName={accountName}
+                    application={paymentTermsApplication}
+                    canApply={canApplyForPaymentTerms}
+                  />
+                )
+              }
+              paymentMethods={paymentMethods}
+              billingAccount={account}
+              stripePublishableKey={stripePublishableKey}
+              billingDetailsPrefill={{
+                email: contactInfo?.email,
+                name: contactInfo?.name,
+                address: buildContactAddressPrefill(contactInfo?.address),
+              }}
+              onCreatePaymentMethod={createPaymentMethod}
+              onPaymentMethodConfirmed={handleConfirmed}
+              onSetAsDefault={handleSetDefaultPaymentMethod}
+              onRemove={handleRemovePaymentMethod}
+              emptyMessage={
+                paymentTerms ? 'No card on file. This account pays by invoice.' : undefined
+              }
+            />
+          ) : (
+            <Unloaded
+              what="payment methods"
+              isError={paymentMethodsQuery.isError}
+              onRetry={() => void paymentMethodsQuery.refetch()}
+            />
+          )}
         </Section>
 
         <Section title="Invoices" description="Past invoices for this organization.">
-          <PastInvoicesCard invoices={pastInvoices} onDownload={handleDownloadInvoice} />
+          {invoicesQuery.data ? (
+            <PastInvoicesCard invoices={pastInvoices} onDownload={handleDownloadInvoice} />
+          ) : (
+            <Unloaded
+              what="invoices"
+              isError={invoicesQuery.isError}
+              onRetry={() => void invoicesQuery.refetch()}
+            />
+          )}
         </Section>
       </div>
     </div>

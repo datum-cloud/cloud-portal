@@ -81,7 +81,13 @@ const UNIT_WORDS: Record<string, string> = {
 };
 
 /** Data units and the unit 1,024 of them make, for tier ranges in TB. */
-const LARGER_DATA_UNIT: Record<string, string> = { GB: 'TB', GiB: 'TiB', MB: 'GB', MiB: 'GiB' };
+/** The next data unit up, and how many of this one make it: decimal for GB, binary for GiB. */
+const LARGER_DATA_UNIT: Record<string, { unit: string; size: number }> = {
+  GB: { unit: 'TB', size: 1000 },
+  MB: { unit: 'GB', size: 1000 },
+  GiB: { unit: 'TiB', size: 1024 },
+  MiB: { unit: 'GiB', size: 1024 },
+};
 
 const TIME_UNITS = new Set(['second', 'minute', 'hour', 'day', 'month']);
 
@@ -167,14 +173,14 @@ function formatRate(
   };
 }
 
-/** A tier boundary with its unit: 10,240 GB → "10" TB, 500,000 requests → "500K". */
+/** A tier boundary with its unit: 10,000 GB → "10" TB, 10,240 GiB → "10" TiB, 500,000 requests → "500K". */
 function formatAmount(raw: string, unit: RateUnit): { n: string; unit: string } {
   const value = Number(raw);
   if (!Number.isFinite(value)) return { n: raw, unit: unit.thing };
 
   const larger = LARGER_DATA_UNIT[unit.thing];
-  if (larger && value >= 1024 && value % 1024 === 0) {
-    return { n: (value / 1024).toLocaleString('en-US'), unit: larger };
+  if (larger && value >= larger.size && value % larger.size === 0) {
+    return { n: (value / larger.size).toLocaleString('en-US'), unit: larger.unit };
   }
   if (unit.counted) {
     const things = plural(unit.thing);

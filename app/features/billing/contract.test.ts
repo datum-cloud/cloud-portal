@@ -300,16 +300,55 @@ describe('contractSummary', () => {
 
     it('says when the first period charged in part ends, until it has', () => {
       const summary = contractSummary(invoiceDay, Date.parse('2026-11-10T00:00:00Z'));
-      expect(summary?.proratedUntil).toBe('2027-01-01T00:00:00.000Z');
+      // The monthly fee reaches the invoice day first; from then the contract
+      // bills on the 1st like the rest of the account.
+      expect(summary?.proratedUntil).toBe('2026-12-01T00:00:00.000Z');
       expect(summary?.upcomingInvoices.map((invoice) => invoice.date.slice(0, 10))).toEqual([
         '2026-11-15',
         '2027-01-01',
         '2027-04-01',
         '2027-07-01',
       ]);
-      expect(contractSummary(invoiceDay, Date.parse('2027-01-02T00:00:00Z'))?.proratedUntil).toBe(
+      expect(contractSummary(invoiceDay, Date.parse('2026-12-02T00:00:00Z'))?.proratedUntil).toBe(
         undefined
       );
+    });
+
+    it('reads a contract from billing before billingDay as billed on the invoice day', () => {
+      const { billingDay: _billingDay, ...contract } = invoiceDay.status!.contract!;
+      const dates = contractInvoiceSchedule(contract, undefined).map((invoice) =>
+        invoice.date.slice(0, 10)
+      );
+      expect(dates.slice(0, 3)).toEqual(['2026-11-15', '2026-12-01', '2027-01-01']);
+    });
+
+    it('schedules nothing when the dates are unreadable, instead of looping', () => {
+      const fees = [
+        {
+          name: 'rack',
+          chargeType: 'Recurring' as const,
+          amount: '3000.00',
+          currency: 'USD',
+          interval: 'monthly' as const,
+        },
+      ];
+      expect(
+        contractInvoiceSchedule(
+          { startsAt: 'not a date', billingDay: 'InvoiceDay', billingDayOfMonth: 1, fees },
+          undefined
+        )
+      ).toEqual([]);
+      expect(
+        contractInvoiceSchedule(
+          {
+            startsAt: '2026-11-15T00:00:00Z',
+            billingDay: 'InvoiceDay',
+            billingDayOfMonth: undefined as unknown as number,
+            fees,
+          },
+          undefined
+        )
+      ).toEqual([]);
     });
 
     it('charges a quarterly fee in part even when the contract starts on the invoice day', () => {

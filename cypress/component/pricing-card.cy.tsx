@@ -87,7 +87,9 @@ describe('PricingCard', () => {
       },
     } as unknown as BillingAccount;
     cy.mount(<PricingCard items={items(discounted)} />);
-    cy.get('[data-e2e="pricing-note"]').should('contain.text', '100% discount on everything.');
+    cy.get('[data-e2e="pricing-note"]')
+      .should('contain.text', 'No charge')
+      .and('not.contain.text', 'before discounts');
     cy.get('[data-e2e="pricing-list"]').should('not.contain.text', 'Discount');
   });
 
@@ -108,8 +110,32 @@ describe('PricingCard', () => {
     cy.get('[data-e2e="pricing-list"] tbody tr').should('have.length', 8);
     cy.contains('button', 'Show all 12 prices').click();
     cy.get('[data-e2e="pricing-list"] tbody tr').should('have.length', 12);
+    cy.contains('button', 'Show fewer').should('have.attr', 'aria-expanded', 'true');
     cy.get('input[aria-label="Search prices"]').type('Fee 11');
     cy.get('[data-e2e="pricing-list"] tbody tr').should('have.length', 1);
     cy.contains('1 of 12 prices').should('exist');
+  });
+
+  it('finds a price by its rate as well as its name', () => {
+    const many = {
+      status: {
+        prices: [
+          ...prices,
+          ...Array.from({ length: 8 }, (_, i) => ({
+            name: `fee-${i}`,
+            displayName: `Fee ${i}`,
+            chargeType: 'Recurring',
+            interval: 'monthly',
+            currency: 'USD',
+            amount: '100',
+          })),
+        ],
+      },
+    } as unknown as BillingAccount;
+    cy.mount(<PricingCard items={items(many)} />);
+    cy.get('input[aria-label="Search prices"]').type('per million');
+    cy.get('[data-e2e="pricing-list"] tbody tr')
+      .should('have.length', 1)
+      .and('contain.text', 'ALB Requests');
   });
 });

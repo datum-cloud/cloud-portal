@@ -206,8 +206,8 @@ describe('priceList', () => {
             {
               tiered: [
                 { upTo: '200', rate: '0' },
-                { upTo: '10240', rate: '0.05' },
-                { upTo: '153600', rate: '0.04' },
+                { upTo: '10000', rate: '0.05' },
+                { upTo: '150000', rate: '0.04' },
                 { rate: '0.03' },
               ],
             },
@@ -223,6 +223,23 @@ describe('priceList', () => {
       { range: '150 TB+', price: '$0.03 per GB' },
     ]);
     expect(summary?.usage[0]?.discountPercentage).toBe(20);
+  });
+
+  it('counts GiB tiers in 1,024s and GB tiers in 1,000s', () => {
+    const tiers = (pricingUnit: string) =>
+      pricingSummary(
+        account([
+          {
+            name: 'egress',
+            chargeType: 'Usage',
+            currency: 'USD',
+            pricingUnit,
+            rates: [{ tiered: [{ upTo: '10240', rate: '0.05' }, { rate: '0.04' }] }],
+          },
+        ])
+      )?.usage[0]?.rates[0]?.bands.map((band) => band.range);
+    expect(tiers('gib')).toEqual(['0 – 10 TiB', '10 TiB+']);
+    expect(tiers('GB')).toEqual(['0 – 10,240 GB', '10,240 GB+']);
   });
 
   it('abbreviates counted tier boundaries', () => {
