@@ -16,7 +16,7 @@ The design follows the same idiom the service catalog already uses for billing a
 
 The portal is becoming the bottleneck for platform growth. Each new service (compute, networking, DNS, telemetry, …) lands in the portal only as fast as the portal team can hand-build its pages. Meanwhile the service catalog already gives services a self-service registration path for identity, billing, quota, and metering — the UI is the one capability a service cannot yet bring with it.
 
-`app/features/quotas/service-catalog.ts` is the symptom: a hardcoded, manually-maintained mirror of the service registry inside the portal, annotated as an "interim mirror of the future milo-os/service-catalog `Service` registry." This enhancement replaces hand-maintained coupling with platform-driven discovery.
+`app/modules/service-catalog/service-catalog.ts` is the symptom: a hardcoded, manually-maintained mirror of the service registry inside the portal, annotated as an "interim mirror of the future milo-os/service-catalog `Service` registry." This enhancement replaces hand-maintained coupling with platform-driven discovery.
 
 ### User stories
 
@@ -407,4 +407,4 @@ Portal contributors use the same two tiers, plus `examples/sample-plugin/`: a re
 4. **Gated services** — entitlement gating makes pending/rejected services invisible; should a pending request instead render a "request access" teaser?
 5. **Dev-mode gating posture** — the local environment skips entitlement gating and downgrades RBAC failures to warnings for dev-sourced plugins; confirm that default, or keep RBAC blocking with a per-run opt-out.
 6. **Pre-release staging path** — once a plugin passes the local Tier 1 loop, what's the process for registering the service in the staging catalog so the team can validate with real entitlements before production?
-7. **Interim catalog mirror** — `app/features/quotas/service-catalog.ts` should collapse onto `PortalPlugin`/`Service` display metadata once this ships; that migration should be sequenced with this work.
+7. **Interim catalog mirror** — `app/modules/service-catalog/service-catalog.ts` should collapse onto `PortalPlugin`/`Service` display metadata once this ships; that migration should be sequenced with this work.

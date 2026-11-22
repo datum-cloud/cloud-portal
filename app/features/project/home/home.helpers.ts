@@ -1,6 +1,6 @@
-import { resolveResourceDisplayName, resolveServiceName } from '@/features/quotas/service-catalog';
 import { kindToHref } from '@/features/search/shared/kindToHref';
 import { isServiceVisible } from '@/modules/entitlements/entitled-services';
+import { resolveResourceDisplayName, resolveServiceName } from '@/modules/service-catalog';
 import type { AllowanceBucket } from '@/resources/allowance-buckets';
 import { ControlPlaneStatus } from '@/resources/base';
 import type { DnsZone } from '@/resources/dns-zones';

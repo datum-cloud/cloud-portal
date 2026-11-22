@@ -1,5 +1,5 @@
 import type { UsageSummaryRow } from './usage.types';
-import { OTHER_GROUP } from '@/features/quotas/service-catalog';
+import { OTHER_GROUP } from '@/modules/service-catalog';
 
 export interface UsageSummaryGroup {
   group: string;

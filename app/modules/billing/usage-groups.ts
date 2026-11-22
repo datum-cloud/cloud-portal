@@ -1,4 +1,4 @@
-import { catalogServiceDisplayName } from '@/features/quotas/service-catalog';
+import { catalogServiceDisplayName } from '@/modules/service-catalog';
 
 /**
  * Reverse-DNS service domain that owns a meter, e.g.
