@@ -5,13 +5,15 @@ import { NameserverTable } from '@/features/edge/nameservers';
 import { useGuardedRouteData } from '@/modules/rbac';
 import type { DnsZone } from '@/resources/dns-zones';
 import { useDomain, useDomainWatch, type Domain } from '@/resources/domains';
+import { paths } from '@/utils/config/paths.config';
 import { getDnsZoneDelegationState, getNameserverSetupStatus } from '@/utils/helpers/dns';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { InfoIcon, RefreshCcwIcon } from 'lucide-react';
 import { useMemo } from 'react';
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Nameservers</span>,
@@ -86,8 +88,16 @@ export default function DnsZoneNameserversPage() {
                   {awaitingVerification ? (
                     <>
                       Datum assigns nameservers to this zone once you verify that you own the
-                      domain. Complete verification from the domain page, then come back here to
-                      point {registrarLabel} at them.
+                      domain. Complete verification from the{' '}
+                      <Link
+                        to={getPathWithParams(paths.project.detail.domains.detail.overview, {
+                          projectId,
+                          domainId: domain.name,
+                        })}
+                        className="underline">
+                        domain page
+                      </Link>
+                      , then come back here to point {registrarLabel} at them.
                     </>
                   ) : datumNameservers.length === 0 ? (
                     <>

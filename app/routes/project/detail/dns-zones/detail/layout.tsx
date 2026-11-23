@@ -9,8 +9,11 @@ import { createDomainService, domainKeys, type Domain } from '@/resources/domain
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { skipRevalidateWithinSameProjectResource } from '@/utils/helpers/revalidate.helper';
+import { LinkButton } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { GlobeIcon } from 'lucide-react';
 import { useMemo } from 'react';
-import { type LoaderFunctionArgs, Outlet, useLocation, useParams } from 'react-router';
+import { type LoaderFunctionArgs, Link, Outlet, useLocation, useParams } from 'react-router';
 
 type DnsZoneDetailCompanions = { domain: Domain | null };
 
@@ -72,8 +75,11 @@ export const meta = route.meta;
 
 export const shouldRevalidate = skipRevalidateWithinSameProjectResource('dnsZoneId');
 
-export default route.Page(({ data: dnsZone }) => {
+export default route.Page(({ data: dnsZone, companions }) => {
   const { projectId = '' } = useParams<{ projectId: string }>();
+  // The domain only loads when the zone points at one and the user can read it,
+  // so the link never leads to a missing or forbidden page.
+  const domain = companions.domain;
   const { pathname } = useLocation();
   const nameserversHref = getPathWithParams(paths.project.detail.dnsZones.detail.nameservers, {
     projectId,
@@ -121,7 +127,26 @@ export default route.Page(({ data: dnsZone }) => {
   );
 
   return (
-    <SubLayout title={dnsZone?.domainName} navItems={navItems}>
+    <SubLayout
+      title={dnsZone?.domainName}
+      navItems={navItems}
+      actions={
+        domain && (
+          <LinkButton
+            as={Link}
+            href={getPathWithParams(paths.project.detail.domains.detail.overview, {
+              projectId,
+              domainId: domain.name,
+            })}
+            type="secondary"
+            theme="outline"
+            size="small"
+            icon={<Icon icon={GlobeIcon} size={14} />}
+            data-e2e="dns-zone-view-domain">
+            View Domain
+          </LinkButton>
+        )
+      }>
       <DnsZoneErrorBanner zone={dnsZone} className="mb-6" />
       {!isNameserversTab && (
         <DnsZoneDelegationNotice zone={dnsZone} projectId={projectId} className="mb-6" />
