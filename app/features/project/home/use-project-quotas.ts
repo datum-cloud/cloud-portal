@@ -1,7 +1,7 @@
 import { topQuotas, type QuotaItem } from './home.helpers';
-import { useActiveServiceEntitlements } from '@/modules/plugins/client/use-active-service-entitlements';
 import { useAllowanceBuckets } from '@/resources/allowance-buckets';
 import { useResourceRegistrations } from '@/resources/resource-registrations';
+import { useActiveServiceEntitlements } from '@/resources/service-entitlements';
 
 /**
  * Every quota the project can see, fullest first, for the home page's Quotas

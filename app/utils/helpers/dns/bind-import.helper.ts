@@ -4,7 +4,7 @@
  */
 // Import ParsedDnsRecord type for local use
 import type { ParsedDnsRecord } from './bind-parser';
-import { isDuplicateRecord } from './record-comparison.helper';
+import { isDuplicateRecord, type ComparableDnsRecord } from './record-comparison.helper';
 import { ensureFqdn, hasFqdnFields, transformFqdnFields } from './record-type.helper';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { DNSRecordType, TTL_OPTIONS } from '@/resources/dns-records';
@@ -96,10 +96,12 @@ export function deduplicateParsedRecords(records: ParsedDnsRecord[]): {
   let duplicateCount = 0;
 
   // Group records by type for efficient duplicate checking
-  const byType = new Map<string, any[]>();
+  const byType = new Map<string, ComparableDnsRecord[]>();
 
   for (const record of records) {
-    const rawData = buildRawDataFromParsed(record);
+    // The parser hands rdata over as untyped fields; this is where it takes
+    // the record-set entry shape the comparators read.
+    const rawData = buildRawDataFromParsed(record) as ComparableDnsRecord;
     const existingOfType = byType.get(record.type) || [];
 
     // Check if this record is a duplicate of any we've already seen
@@ -319,7 +321,7 @@ export function transformParsedToRecordSets(
 
       // Normalize FQDN fields for domain name types
       const normalizedData = hasFqdnFields(record.type)
-        ? transformFqdnFields(record.type, record.data as Record<string, unknown>, ensureFqdn)
+        ? transformFqdnFields(record.type, record.data, ensureFqdn)
         : record.data;
 
       const entry: Record<string, unknown> = {

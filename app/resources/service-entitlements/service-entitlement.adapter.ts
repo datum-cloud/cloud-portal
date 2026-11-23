@@ -14,6 +14,22 @@ export function entitlementServiceIds(item: ServiceEntitlement): string[] {
   return ids;
 }
 
+/**
+ * Unique service ids across the entitlements whose phase is Active.
+ *
+ * Matching uses `status.serviceName` and `spec.serviceRef.name`, never
+ * `metadata.name`, which is an opaque object name such as
+ * `my-project--compute-miloapis-com`.
+ */
+export function activeEntitlementServiceIds(items: readonly ServiceEntitlement[]): string[] {
+  const ids = new Set<string>();
+  for (const item of items) {
+    if (item.status?.phase !== 'Active') continue;
+    for (const id of entitlementServiceIds(item)) ids.add(id);
+  }
+  return [...ids];
+}
+
 export function findEntitlementForService(
   items: readonly ServiceEntitlement[],
   serviceIds: string | readonly string[]
