@@ -24,7 +24,7 @@ export const ProjectDangerCard = ({ project }: { project: Project }) => {
     scope: 'user',
   });
 
-  const deleteMutation = useDeleteProject({
+  const deleteMutation = useDeleteProject(project.organizationId, {
     onSuccess: () => {
       void navigate(
         getPathWithParams(paths.org.detail.projects.root, {
