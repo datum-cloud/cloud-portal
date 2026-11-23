@@ -66,7 +66,10 @@ export function cardSetupPath(
   return `${paths.onboarding.billing}?${params.toString()}`;
 }
 
-/** The org's billing page, where its billing account is managed. */
+/**
+ * Where the payment terms pages lead back to: the billing page's Payment
+ * Methods tab, which shows the terms and the account's cards.
+ */
 export function billingSettingsPath(orgId: string): string {
-  return getPathWithParams(paths.org.detail.billing.root, { orgId });
+  return getPathWithParams(paths.org.detail.billing.paymentMethods, { orgId });
 }

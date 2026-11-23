@@ -41,7 +41,7 @@ describe('payment terms paths', () => {
     );
     expect(
       cardSetupPath({ orgId: 'acme', entry: 'settings', billingAccountName: 'acme-billing' })
-    ).toBe('/org/acme/billing');
+    ).toBe('/org/acme/billing/payment-methods');
   });
 
   it('treats a new org from the organizations page like onboarding, but keeps its id', () => {

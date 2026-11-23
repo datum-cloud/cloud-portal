@@ -1,4 +1,7 @@
+export * from './billing-period';
+export * from './billing-tabs';
 export * from './cards';
+export * from './components/billing-section';
 export * from './components/card-brand-icon';
 export * from './constants';
 export * from './contract';
