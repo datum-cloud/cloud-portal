@@ -57,13 +57,9 @@ export default function OrgBillingSubscriptionsPage() {
 
   return (
     <div className="flex flex-col gap-10">
-      {contract ? (
-        <BillingSection
-          title="Contract"
-          description="The contract this account is billed under, set up with our team. To change it, contact support.">
-          <ContractCard contract={contract} />
-        </BillingSection>
-      ) : null}
+      {/* The contract card carries its own title, and says how to change
+          it, so it needs no section heading. */}
+      {contract ? <ContractCard contract={contract} /> : null}
 
       {prices ? (
         <BillingSection

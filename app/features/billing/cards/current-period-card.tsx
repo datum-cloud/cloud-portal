@@ -61,14 +61,16 @@ export const CurrentPeriodCard = ({
           <Text as="span" size="xs" textColor="muted">
             Spend this period
           </Text>
-          <Text as="span" size="xl" weight="semibold" className="sm:text-2xl">
+          {/* Headline figures: a step above the cards' 14px values, but
+              under the section heading's weight. */}
+          <Text as="span" size="lg" weight="medium">
             {spendLoading ? (
-              <Skeleton className="h-8 w-24" />
+              <Skeleton className="h-7 w-24" />
             ) : (
               <SpendValue
                 spend={spend}
                 unavailable={spendUnavailable}
-                className="text-xl sm:text-2xl"
+                className="text-lg font-medium"
               />
             )}
           </Text>
@@ -82,10 +84,10 @@ export const CurrentPeriodCard = ({
           <Text as="span" size="xs" textColor="muted">
             Next invoice
           </Text>
-          <Text as="span" size="xl" weight="semibold" className="sm:text-2xl">
+          <Text as="span" size="lg" weight="medium">
             <PeriodDate date={nextInvoice.date} />
           </Text>
-          <Text as="span" size="sm" className="tabular-nums">
+          <Text as="span" size="sm" weight="medium" className="tabular-nums">
             {nextInvoice.total
               ? `${nextInvoice.total}${nextInvoice.billsUsage ? ' plus usage' : ''}`
               : "This period's usage"}
