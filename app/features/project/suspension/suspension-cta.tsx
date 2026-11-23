@@ -43,7 +43,9 @@ export function SuspensionCta({ className }: { className?: string }) {
 
   if (getSuspensionTier(verdict) === 'remediable') {
     if (!isOrgOwner) return null;
-    const billingHref = getPathWithParams(paths.org.detail.billing.root, {
+    // A remediable suspension is a billing one, so this opens the tab where
+    // an owner changes how the account pays.
+    const billingHref = getPathWithParams(paths.org.detail.billing.paymentMethods, {
       orgId: project.organizationId,
     });
     return (

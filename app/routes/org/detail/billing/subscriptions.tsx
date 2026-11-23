@@ -57,8 +57,8 @@ export default function OrgBillingSubscriptionsPage() {
 
   return (
     <div className="flex flex-col gap-10">
-      {/* The contract card carries its own title, and says how to change
-          it, so it needs no section heading. */}
+      {/* The contract card carries its own title, so it needs no section
+          heading. */}
       {contract ? <ContractCard contract={contract} /> : null}
 
       {prices ? (
