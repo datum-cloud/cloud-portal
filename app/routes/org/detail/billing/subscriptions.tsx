@@ -64,7 +64,7 @@ export default function OrgBillingSubscriptionsPage() {
       {prices ? (
         <BillingSection
           title="Pricing"
-          description="Everything this account is charged for, with your discounts: each fee and the rate for each kind of usage. To change your plan or contract, contact support.">
+          description="Everything this account is charged for, with your discounts: each fee and the rate for each kind of usage.">
           <PricingCard items={prices} usageLink={usageLink} />
         </BillingSection>
       ) : null}
