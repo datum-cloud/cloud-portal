@@ -18,7 +18,7 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
   const { setProject } = useApp();
   const queryClient = useQueryClient();
 
-  const updateMutation = useUpdateProject(project?.name ?? '', {
+  const updateMutation = useUpdateProject(project?.organizationId ?? '', project?.name ?? '', {
     onSuccess: (updatedProject) => {
       setProject(updatedProject);
       toast.success('Project', {

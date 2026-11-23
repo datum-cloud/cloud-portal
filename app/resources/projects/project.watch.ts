@@ -151,7 +151,7 @@ export async function awaitProjectReady(
   }
 
   try {
-    const current = await createProjectService().get(projectName);
+    const current = await createProjectService().get(projectName, orgId);
     const ready = inspectProjectReady(current);
     if (ready !== 'pending') {
       return ready;

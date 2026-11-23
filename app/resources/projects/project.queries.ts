@@ -140,6 +140,7 @@ export function useCreateProject(options?: UseMutationOptions<Project, Error, Cr
 }
 
 export function useUpdateProject(
+  orgId: string,
   name: string,
   options?: UseMutationOptions<Project, Error, UpdateProjectInput>
 ) {
@@ -151,16 +152,16 @@ export function useUpdateProject(
   // project argument, and deletes are never gated.
   return useGuardedMutation({
     operation: 'write',
-    mutationFn: (input: UpdateProjectInput) => createProjectService().update(name, input),
+    mutationFn: (input: UpdateProjectInput) => createProjectService().update(orgId, name, input),
     ...withResourceHandlers(projectUpdateHandlers(queryClient, name), options),
   });
 }
 
-export function useDeleteProject(options?: UseMutationOptions<void, Error, string>) {
+export function useDeleteProject(orgId: string, options?: UseMutationOptions<void, Error, string>) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (name: string) => createProjectService().delete(name),
+    mutationFn: (name: string) => createProjectService().delete(orgId, name),
     ...options,
     onSuccess: async (...args) => {
       const [, name] = args;

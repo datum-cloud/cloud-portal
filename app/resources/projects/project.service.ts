@@ -123,14 +123,19 @@ export function createProjectService() {
       }
     },
 
-    async get(name: string, _options?: ServiceOptions): Promise<Project> {
+    /**
+     * Pass `orgId` whenever the caller knows it, so Milo records the read
+     * against the organization. Callers that only have the project name read
+     * it at the root, since that read is how they learn the organization.
+     */
+    async get(name: string, orgId?: string): Promise<Project> {
       const startTime = Date.now();
 
       try {
-        const result = await this.fetchOne(name);
+        const result = await this.fetchOne(name, orgId);
 
         logger.service(SERVICE_NAME, 'get', {
-          input: { name },
+          input: { name, orgId },
           duration: Date.now() - startTime,
         });
 
@@ -141,8 +146,9 @@ export function createProjectService() {
       }
     },
 
-    async fetchOne(name: string): Promise<Project> {
+    async fetchOne(name: string, orgId?: string): Promise<Project> {
       const response = await readResourcemanagerMiloapisComV1Alpha1Project({
+        ...(orgId ? { baseURL: getOrgScopedBase(orgId) } : {}),
         path: { name },
       });
 
@@ -196,6 +202,7 @@ export function createProjectService() {
     },
 
     async update(
+      orgId: string,
       name: string,
       input: UpdateProjectInput,
       options?: ServiceOptions
@@ -206,6 +213,7 @@ export function createProjectService() {
         const payload = toUpdatePayload(input);
 
         const response = await patchResourcemanagerMiloapisComV1Alpha1Project({
+          baseURL: getOrgScopedBase(orgId),
           path: { name },
           body: payload,
           query: {
@@ -222,7 +230,7 @@ export function createProjectService() {
         const project = toProject(response.data);
 
         logger.service(SERVICE_NAME, 'update', {
-          input: { name },
+          input: { orgId, name },
           duration: Date.now() - startTime,
         });
 
@@ -233,16 +241,17 @@ export function createProjectService() {
       }
     },
 
-    async delete(name: string): Promise<void> {
+    async delete(orgId: string, name: string): Promise<void> {
       const startTime = Date.now();
 
       try {
         await deleteResourcemanagerMiloapisComV1Alpha1Project({
+          baseURL: getOrgScopedBase(orgId),
           path: { name },
         });
 
         logger.service(SERVICE_NAME, 'delete', {
-          input: { name },
+          input: { orgId, name },
           duration: Date.now() - startTime,
         });
       } catch (error) {
