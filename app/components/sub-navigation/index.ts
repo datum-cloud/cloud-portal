@@ -1,1 +1,1 @@
-export { SubNavigationTabs, type SubNavigationTab } from './sub-navigation-tabs';
+export { SubNavigationTabs, activeTabHref, type SubNavigationTab } from './sub-navigation-tabs';

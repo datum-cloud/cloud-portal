@@ -4,6 +4,7 @@ export {
   type BillingDetailsValues,
 } from './billing-details-card';
 export { ContractCard } from './contract-card';
+export { CurrentPeriodCard } from './current-period-card';
 export { DiscountsCard } from './discounts-card';
 export { PastInvoicesCard } from './past-invoices-card';
 export { PaymentMethodsCard } from './payment-methods-card';

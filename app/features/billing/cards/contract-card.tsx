@@ -130,7 +130,7 @@ export const ContractCard = ({ contract }: ContractCardProps) => {
       ) : null}
       <CardFooter bordered className="text-muted-foreground bg-background py-3 text-xs">
         {started
-          ? "The contract's fees are listed with their prices under Pricing. To change your contract, contact support."
+          ? "The contract's fees are listed with their prices under Pricing."
           : "One-time fees, and fees billed in advance, are charged when the contract starts. The contract's fees are listed under Pricing."}
         {proratedUntil ? (
           <>

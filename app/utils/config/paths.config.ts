@@ -62,9 +62,13 @@ export const paths = {
       projects: {
         root: '/org/[orgId]/projects',
       },
-      // The org's billing account: details, pricing, payment and invoices.
+      // The org's billing account, in tabs: overview (the root), what it's
+      // billed at, its invoices and how it pays.
       billing: {
         root: '/org/[orgId]/billing',
+        subscriptions: '/org/[orgId]/billing/subscriptions',
+        invoices: '/org/[orgId]/billing/invoices',
+        paymentMethods: '/org/[orgId]/billing/payment-methods',
       },
       // Org-wide metering dashboard. Aggregates usage across every billing
       // account in the org's namespace.

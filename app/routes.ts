@@ -77,9 +77,13 @@ export default [
           index('routes/org/detail/projects/index.tsx'),
         ]),
 
-        // Billing of an organization — the org's one billing account.
-        route('billing', 'routes/org/detail/billing/layout.tsx', [
+        // Billing of an organization — the org's one billing account, in
+        // tabs. The overview is the index so old links still land on it.
+        route('billing', 'routes/org/detail/billing/layout.tsx', { id: 'org-billing' }, [
           index('routes/org/detail/billing/index.tsx'),
+          route('subscriptions', 'routes/org/detail/billing/subscriptions.tsx'),
+          route('invoices', 'routes/org/detail/billing/invoices.tsx'),
+          route('payment-methods', 'routes/org/detail/billing/payment-methods.tsx'),
         ]),
 
         // Usage — org-wide metering dashboard. Sums per-meter usage across
