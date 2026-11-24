@@ -2,7 +2,7 @@
  * Pure logic behind the SDK's quota bindings (see plugin-sdk-bindings.tsx),
  * kept separate so it can be tested without a DOM.
  */
-import { buildQuotaIncreaseRequest } from '@/features/quotas/build-quota-increase-request';
+import { buildQuotaIncreaseRequest } from '@/modules/quota/build-quota-increase-request';
 import { formatQuotaDeniedReason } from '@/modules/quota/derive-quota-verdict';
 import type { QuotaVerdict } from '@/modules/quota/types';
 import type {
