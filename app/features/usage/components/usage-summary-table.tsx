@@ -1,5 +1,5 @@
 import { groupUsageSummaryRows } from '../usage-summary-grouping';
-import { formatUsagePair } from '../usage.format';
+import { formatDiscount, formatUsagePair, spendDiscount } from '../usage.format';
 import type { UsageSummaryRow } from '../usage.types';
 import { QuotaIndicator } from './quota-ring';
 import { SpendValue } from './spend-value';
@@ -18,6 +18,8 @@ interface UsageSummaryTableProps {
 
 export function UsageSummaryTable({ rows }: UsageSummaryTableProps) {
   const grouped = useMemo(() => groupUsageSummaryRows(rows), [rows]);
+  // The discount columns only appear when something in the period was discounted.
+  const showDiscounts = useMemo(() => rows.some((row) => spendDiscount(row.spend)), [rows]);
 
   const columns = useMemo<ColumnDef<UsageSummaryRow, unknown>[]>(
     () => [
@@ -68,9 +70,51 @@ export function UsageSummaryTable({ rows }: UsageSummaryTableProps) {
           </Text>
         ),
       },
+      ...(showDiscounts
+        ? ([
+            {
+              id: 'beforeDiscount',
+              header: sortableHeader<UsageSummaryRow>('Before discount'),
+              accessorFn: (row) => row.spend?.beforeDiscounts ?? row.spend?.amount ?? -1,
+              size: 128,
+              cell: ({ row }) => {
+                const { spend, spendUnavailable } = row.original;
+                return (
+                  <Text textColor="muted" ellipsis className="block text-right">
+                    <SpendValue
+                      spend={spend && { ...spend, amount: spend.beforeDiscounts ?? spend.amount }}
+                      unavailable={spendUnavailable}
+                    />
+                  </Text>
+                );
+              },
+            },
+            {
+              id: 'discount',
+              header: sortableHeader<UsageSummaryRow>('Discount'),
+              accessorFn: (row) => row.spend?.discount ?? 0,
+              size: 128,
+              cell: ({ row }) => {
+                const discount = spendDiscount(row.original.spend);
+                return discount ? (
+                  <Text ellipsis className="block text-right tabular-nums">
+                    {formatDiscount(discount.discount)}
+                    <Text as="span" size="xs" textColor="muted" className="ml-1">
+                      {discount.percent}%
+                    </Text>
+                  </Text>
+                ) : (
+                  <Text textColor="muted" className="block text-right">
+                    —
+                  </Text>
+                );
+              },
+            },
+          ] satisfies ColumnDef<UsageSummaryRow, unknown>[])
+        : []),
       {
         id: 'spend',
-        header: sortableHeader<UsageSummaryRow>('Spend'),
+        header: sortableHeader<UsageSummaryRow>('Cost'),
         accessorFn: (row) => row.spend?.amount ?? -1,
         size: 112,
         cell: ({ row }) => (
@@ -84,7 +128,7 @@ export function UsageSummaryTable({ rows }: UsageSummaryTableProps) {
         ),
       },
     ],
-    []
+    [showDiscounts]
   );
 
   const groups = useMemo(
@@ -139,5 +183,5 @@ export const usageSummaryTableColumns: ColumnDef<UsageSummaryRow, unknown>[] = [
   { id: 'product', header: 'Product', size: 300 },
   { id: 'trend', header: 'Trend', size: 144 },
   { id: 'usage', header: 'Usage', size: 140 },
-  { id: 'spend', header: 'Spend', size: 112 },
+  { id: 'spend', header: 'Cost', size: 112 },
 ];

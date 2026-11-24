@@ -55,10 +55,20 @@ export interface MeterSeries {
   spendUnavailable?: boolean;
 }
 
-/** An amount in an ISO 4217 currency, before taxes, credits and discounts. */
+/**
+ * What usage costs in an ISO 4217 currency, before taxes and credits.
+ * `amount` is after the Offer's discounts: what the invoice charges.
+ */
 export interface UsageSpend {
   amount: number;
   currency: string;
+  /**
+   * What the usage costs before the Offer's discounts, at the account's own
+   * rates. Unset when the API doesn't report it.
+   */
+  beforeDiscounts?: number;
+  /** What the discounts take off `beforeDiscounts`; set with it. */
+  discount?: number;
 }
 
 export interface MeterDefinition {

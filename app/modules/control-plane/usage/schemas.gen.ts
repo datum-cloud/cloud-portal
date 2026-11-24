@@ -409,18 +409,31 @@ export const com_miloapis_go_billing_api_usage_v1alpha1_UsageSeriesSchema = {
 } as const;
 
 export const com_miloapis_go_billing_api_usage_v1alpha1_UsageSpendSchema = {
-  description: 'UsageSpend is what usage costs.',
+  description:
+    "UsageSpend is what usage costs.\n\nThe usage is priced at the billing account's own rates: those of the pricings in its Offer, including a customer pricing that replaces a list price (spec.basedOn), never the list price it replaces. The Offer's discounts then come off, as they do on the invoice:\n\n\tamount = amountBeforeDiscounts - discountAmount",
   type: 'object',
   required: ['amount', 'currency'],
   properties: {
     amount: {
       description:
-        'Amount is the cost as a decimal string in Currency (for example "12.5"), before taxes, credits, discounts and minimum commitments. In a project, or with spec.projects set, it prices only that usage, as if it were the billing account\'s only usage.',
+        'Amount is what the usage costs as a decimal string in Currency (for example "12.5"), after the Offer\'s discounts, as the invoice charges it. It is before taxes, credits and minimum commitments. In a project, or with spec.projects set, it prices only that usage, as if it were the billing account\'s only usage.',
+      type: 'string',
+      default: '',
+    },
+    amountBeforeDiscounts: {
+      description:
+        "AmountBeforeDiscounts is what the usage costs before the Offer's discounts, as a decimal string in Currency: the amount the invoice shows before its discount lines. Left empty by providers that don't report it; Amount is then all that is known.",
       type: 'string',
       default: '',
     },
     currency: {
-      description: 'Currency is the ISO 4217 code of Amount, for example "USD".',
+      description: 'Currency is the ISO 4217 code of the amounts, for example "USD".',
+      type: 'string',
+      default: '',
+    },
+    discountAmount: {
+      description:
+        'DiscountAmount is what the Offer\'s discounts take off AmountBeforeDiscounts, as a decimal string in Currency: "0" when nothing is discounted. Set whenever AmountBeforeDiscounts is.',
       type: 'string',
       default: '',
     },

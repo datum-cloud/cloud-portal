@@ -2,7 +2,9 @@ import {
   aggregationQualifier,
   formatAxisValue,
   formatCurrency,
+  formatDiscount,
   formatByUnit,
+  spendDiscount,
   ucumToMeterUnit,
 } from './usage.format';
 import { describe, expect, it } from 'vitest';
@@ -103,5 +105,34 @@ describe('formatCurrency', () => {
   it('shows zero and missing spend plainly', () => {
     expect(formatCurrency({ amount: 0, currency: 'USD' })).toBe('$0');
     expect(formatCurrency(undefined)).toBe('—');
+  });
+});
+
+describe('spendDiscount', () => {
+  it('gives the amount before the discount, the discount and its percentage', () => {
+    expect(
+      spendDiscount({ amount: 0, beforeDiscounts: 40, discount: 40, currency: 'USD' })
+    ).toEqual({
+      beforeDiscounts: { amount: 40, currency: 'USD' },
+      discount: { amount: 40, currency: 'USD' },
+      percent: 100,
+    });
+    expect(
+      spendDiscount({ amount: 17, beforeDiscounts: 20, discount: 3, currency: 'USD' })?.percent
+    ).toBe(15);
+  });
+
+  it('is undefined when nothing was discounted or the API did not say', () => {
+    expect(
+      spendDiscount({ amount: 20, beforeDiscounts: 20, discount: 0, currency: 'USD' })
+    ).toBeUndefined();
+    expect(spendDiscount({ amount: 20, currency: 'USD' })).toBeUndefined();
+    expect(spendDiscount(undefined)).toBeUndefined();
+  });
+});
+
+describe('formatDiscount', () => {
+  it('reads as an amount taken off', () => {
+    expect(formatDiscount({ amount: 412.3, currency: 'USD' })).toBe('\u2212$412.30');
   });
 });

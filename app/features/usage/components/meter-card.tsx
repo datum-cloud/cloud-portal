@@ -1,10 +1,18 @@
-import { formatAxisValue, formatByUnit, formatUsagePair } from '../usage.format';
+import {
+  formatAxisValue,
+  formatByUnit,
+  formatCurrency,
+  formatDiscount,
+  formatUsagePair,
+  spendDiscount,
+} from '../usage.format';
 import type { MeterPoint, UsageMeter } from '../usage.types';
 import { humanizeDimension } from '../usage.view';
 import { QuotaIndicator } from './quota-ring';
 import { SpendValue } from './spend-value';
 import { Card, CardContent, CardHeader } from '@datum-cloud/datum-ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@datum-cloud/datum-ui/tabs';
+import { Tooltip as HintTooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { format } from 'date-fns';
@@ -82,6 +90,7 @@ export function MeterCard({ meter }: MeterCardProps) {
   const chartData = isStackedChart ? stack!.data : meter.series;
   const hasBreakdownTabs = (meter.breakdowns?.length ?? 0) > 0;
   const showSpend = Boolean(meter.spend || meter.spendUnavailable);
+  const discount = spendDiscount(meter.spend);
 
   return (
     <Card size="sm" sectioned className="@container h-full min-w-0 overflow-hidden">
@@ -118,6 +127,14 @@ export function MeterCard({ meter }: MeterCardProps) {
             )}
             {showSpend ? (
               <Text as="p" size="xs" textColor="muted" className="shrink-0 text-right">
+                {discount ? (
+                  <HintTooltip
+                    message={`${formatDiscount(discount.discount)} (${discount.percent}% off)`}>
+                    <span className="mr-1 cursor-help tabular-nums line-through">
+                      {formatCurrency(discount.beforeDiscounts)}
+                    </span>
+                  </HintTooltip>
+                ) : null}
                 <SpendValue
                   spend={meter.spend}
                   unavailable={meter.spendUnavailable}
