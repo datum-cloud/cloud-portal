@@ -9,6 +9,7 @@ import type {
   MeterDimensionBreakdown,
   MeterPoint,
   MeterSeries,
+  UsageSpend,
 } from './usage.types';
 import type {
   ComMiloapisGoBillingApiUsageV1Alpha1MeterUsage as MeterUsage,
@@ -97,11 +98,22 @@ export function collectMeterResults(
   return byMeter;
 }
 
-/** `UsageSpend` with its decimal amount parsed. */
+/**
+ * `UsageSpend` with its decimal amounts parsed. The amount before discounts
+ * and the discount come together or not at all.
+ */
 export function toSpend(
-  spend: { amount: string; currency: string } | undefined
+  spend:
+    | { amount: string; currency: string; amountBeforeDiscounts?: string; discountAmount?: string }
+    | undefined
 ): MeterSeries['spend'] {
-  return spend ? { amount: parseDecimal(spend.amount), currency: spend.currency } : undefined;
+  if (!spend) return undefined;
+  const out: UsageSpend = { amount: parseDecimal(spend.amount), currency: spend.currency };
+  if (spend.amountBeforeDiscounts && spend.discountAmount) {
+    out.beforeDiscounts = parseDecimal(spend.amountBeforeDiscounts);
+    out.discount = parseDecimal(spend.discountAmount);
+  }
+  return out;
 }
 
 function parseDecimal(value: string | undefined): number {

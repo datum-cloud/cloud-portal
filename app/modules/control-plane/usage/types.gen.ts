@@ -43,7 +43,7 @@ export type ComMiloapisGoBillingApiUsageV1Alpha1MeterUsage = {
    */
   meterName?: string;
   /**
-   * Spend is what the meter's usage over the time range costs, when spec.includeSpend is set. It is priced with the prices of each billing account's plan in effect at the time, the same way its invoice is, so tiered prices continue from the usage earlier in the billing period. Left empty when no billing account's plan prices this meter.
+   * Spend is what the meter's usage over the time range costs, when spec.includeSpend is set. It is priced with the prices of each billing account's plan in effect at the time, the same way its invoice is, so tiered prices continue from the usage earlier in the billing period, and the Offer's discounts come off. Left empty when no billing account's plan prices this meter.
    */
   spend?: ComMiloapisGoBillingApiUsageV1Alpha1UsageSpend;
   /**
@@ -208,7 +208,7 @@ export type ComMiloapisGoBillingApiUsageV1Alpha1UsageQueryStatus = {
    */
   scope?: ComMiloapisGoBillingApiUsageV1Alpha1UsageScope;
   /**
-   * Spend is the sum of every meter's spend in Meters, when spec.includeSpend is set: what the usage the query read costs altogether. Meters no plan prices add nothing. Left empty when no meter is priced, or when SpendError is set.
+   * Spend is the sum of every meter's spend in Meters, when spec.includeSpend is set: what the usage the query read costs altogether. Meters no plan prices add nothing. Each amount is the sum of the meters' amounts; AmountBeforeDiscounts and DiscountAmount are left empty when any priced meter lacks them. Left empty when no meter is priced, or when SpendError is set.
    */
   spend?: ComMiloapisGoBillingApiUsageV1Alpha1UsageSpend;
   /**
@@ -259,16 +259,28 @@ export type ComMiloapisGoBillingApiUsageV1Alpha1UsageSeries = {
 
 /**
  * UsageSpend is what usage costs.
+ *
+ * The usage is priced at the billing account's own rates: those of the pricings in its Offer, including a customer pricing that replaces a list price (spec.basedOn), never the list price it replaces. The Offer's discounts then come off, as they do on the invoice:
+ *
+ * 	amount = amountBeforeDiscounts - discountAmount
  */
 export type ComMiloapisGoBillingApiUsageV1Alpha1UsageSpend = {
   /**
-   * Amount is the cost as a decimal string in Currency (for example "12.5"), before taxes, credits, discounts and minimum commitments. In a project, or with spec.projects set, it prices only that usage, as if it were the billing account's only usage.
+   * Amount is what the usage costs as a decimal string in Currency (for example "12.5"), after the Offer's discounts, as the invoice charges it. It is before taxes, credits and minimum commitments. In a project, or with spec.projects set, it prices only that usage, as if it were the billing account's only usage.
    */
   amount: string;
   /**
-   * Currency is the ISO 4217 code of Amount, for example "USD".
+   * AmountBeforeDiscounts is what the usage costs before the Offer's discounts, as a decimal string in Currency: the amount the invoice shows before its discount lines. Left empty by providers that don't report it; Amount is then all that is known.
+   */
+  amountBeforeDiscounts?: string;
+  /**
+   * Currency is the ISO 4217 code of the amounts, for example "USD".
    */
   currency: string;
+  /**
+   * DiscountAmount is what the Offer's discounts take off AmountBeforeDiscounts, as a decimal string in Currency: "0" when nothing is discounted. Set whenever AmountBeforeDiscounts is.
+   */
+  discountAmount?: string;
 };
 
 /**

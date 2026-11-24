@@ -1,10 +1,12 @@
 import { BillingCycleAlert } from './components/billing-cycle-alert';
 import { IdleMeterList } from './components/idle-meter-list';
 import { MeterCard } from './components/meter-card';
+import { SpendBreakdown } from './components/spend-breakdown';
 import { SpendValue } from './components/spend-value';
 import { UsageDashboardSkeleton } from './components/usage-dashboard-skeleton';
 import { UsageSummaryTable } from './components/usage-summary-table';
 import { UsageToolbar } from './components/usage-toolbar';
+import { spendDiscount } from './usage.format';
 import type { UsageDisplayNameOption, UsageProjectOption } from './usage.types';
 import { toUsageView } from './usage.view';
 import { useOrgUsageDashboard } from '@/modules/billing/usage.queries';
@@ -121,11 +123,12 @@ function UsagePageHeader({
         {spend || spendUnavailable ? (
           <div className="shrink-0 text-left lg:text-right">
             <Text as="p" size="xs" textColor="muted">
-              Spend this period
+              {spendDiscount(spend) ? 'Due this period' : 'Spend this period'}
             </Text>
             <Text as="p" size="xl" weight="semibold" textColor="default" className="sm:text-2xl">
               <SpendValue spend={spend} unavailable={spendUnavailable} />
             </Text>
+            <SpendBreakdown spend={spend} className="mt-0.5" />
           </div>
         ) : null}
       </div>

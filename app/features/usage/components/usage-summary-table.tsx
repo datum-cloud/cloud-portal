@@ -1,8 +1,8 @@
 import { groupUsageSummaryRows } from '../usage-summary-grouping';
-import { formatUsagePair } from '../usage.format';
+import { formatUsagePair, spendDiscount } from '../usage.format';
 import type { UsageSummaryRow } from '../usage.types';
+import { DiscountedSpend } from './discounted-spend';
 import { QuotaIndicator } from './quota-ring';
-import { SpendValue } from './spend-value';
 import { UsageSparkline } from './usage-sparkline';
 import { type ColumnDef, sortableHeader } from '@/components/table';
 import { Badge } from '@datum-cloud/datum-ui/badge';
@@ -18,6 +18,8 @@ interface UsageSummaryTableProps {
 
 export function UsageSummaryTable({ rows }: UsageSummaryTableProps) {
   const grouped = useMemo(() => groupUsageSummaryRows(rows), [rows]);
+  // The cost column widens when something in the period was discounted.
+  const showDiscounts = useMemo(() => rows.some((row) => spendDiscount(row.spend)), [rows]);
 
   const columns = useMemo<ColumnDef<UsageSummaryRow, unknown>[]>(
     () => [
@@ -70,12 +72,13 @@ export function UsageSummaryTable({ rows }: UsageSummaryTableProps) {
       },
       {
         id: 'spend',
-        header: sortableHeader<UsageSummaryRow>('Spend'),
+        header: sortableHeader<UsageSummaryRow>('Cost'),
         accessorFn: (row) => row.spend?.amount ?? -1,
-        size: 112,
+        // Room for the struck-through amount before a discount.
+        size: showDiscounts ? 168 : 112,
         cell: ({ row }) => (
           <Text ellipsis className="block text-right">
-            <SpendValue
+            <DiscountedSpend
               spend={row.original.spend}
               unavailable={row.original.spendUnavailable}
               className="font-medium"
@@ -84,7 +87,7 @@ export function UsageSummaryTable({ rows }: UsageSummaryTableProps) {
         ),
       },
     ],
-    []
+    [showDiscounts]
   );
 
   const groups = useMemo(
@@ -139,5 +142,5 @@ export const usageSummaryTableColumns: ColumnDef<UsageSummaryRow, unknown>[] = [
   { id: 'product', header: 'Product', size: 300 },
   { id: 'trend', header: 'Trend', size: 144 },
   { id: 'usage', header: 'Usage', size: 140 },
-  { id: 'spend', header: 'Spend', size: 112 },
+  { id: 'spend', header: 'Cost', size: 112 },
 ];

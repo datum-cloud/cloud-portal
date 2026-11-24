@@ -197,3 +197,33 @@ export function formatCurrency(spend: UsageSpend | undefined): string {
     return `${amount.toFixed(maxDigits)} ${currency}`;
   }
 }
+
+/** A spend's discount, when its Offer took anything off it. */
+export interface SpendDiscount {
+  /** What the usage costs before the discount. */
+  beforeDiscounts: UsageSpend;
+  /** What the discount takes off, as a positive amount. */
+  discount: UsageSpend;
+  /** The discount as a whole percentage of `beforeDiscounts`, e.g. `100`. */
+  percent: number;
+}
+
+/**
+ * The discount on a spend, or `undefined` when nothing was taken off or the
+ * API didn't say. The percentage is worked out from the amounts, so a
+ * period with two different discounts shows what they took off together.
+ */
+export function spendDiscount(spend: UsageSpend | undefined): SpendDiscount | undefined {
+  if (!spend?.discount || spend.discount <= 0 || !spend.beforeDiscounts) return undefined;
+  const { currency } = spend;
+  return {
+    beforeDiscounts: { amount: spend.beforeDiscounts, currency },
+    discount: { amount: spend.discount, currency },
+    percent: Math.round((spend.discount / spend.beforeDiscounts) * 100),
+  };
+}
+
+/** A discount as it reads beside a price, e.g. `−$12.50`. */
+export function formatDiscount(discount: UsageSpend): string {
+  return `\u2212${formatCurrency(discount)}`;
+}

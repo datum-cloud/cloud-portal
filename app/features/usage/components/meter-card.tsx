@@ -1,8 +1,8 @@
 import { formatAxisValue, formatByUnit, formatUsagePair } from '../usage.format';
 import type { MeterPoint, UsageMeter } from '../usage.types';
 import { humanizeDimension } from '../usage.view';
+import { DiscountedSpend } from './discounted-spend';
 import { QuotaIndicator } from './quota-ring';
-import { SpendValue } from './spend-value';
 import { Card, CardContent, CardHeader } from '@datum-cloud/datum-ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@datum-cloud/datum-ui/tabs';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
@@ -118,10 +118,11 @@ export function MeterCard({ meter }: MeterCardProps) {
             )}
             {showSpend ? (
               <Text as="p" size="xs" textColor="muted" className="shrink-0 text-right">
-                <SpendValue
+                <DiscountedSpend
                   spend={meter.spend}
                   unavailable={meter.spendUnavailable}
                   className="text-foreground font-medium"
+                  beforeClassName="mr-1"
                 />{' '}
                 spent
               </Text>

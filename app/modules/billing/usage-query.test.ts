@@ -5,6 +5,7 @@ import {
   dayBuckets,
   planGroupings,
   toMeterSeries,
+  toSpend,
 } from './usage-query';
 import type { MeterDefinition } from './usage.types';
 import { describe, expect, test } from 'vitest';
@@ -159,5 +160,26 @@ describe('toMeterSeries', () => {
   test('shows a meter the query did not return empty', () => {
     const series = toMeterSeries(def('requests'), undefined, [], buckets);
     expect(series.values).toEqual([]);
+  });
+});
+
+describe('toSpend', () => {
+  test('parses the amount before discounts and the discount', () => {
+    expect(
+      toSpend({
+        amount: '0',
+        amountBeforeDiscounts: '412.3',
+        discountAmount: '412.3',
+        currency: 'USD',
+      })
+    ).toEqual({ amount: 0, beforeDiscounts: 412.3, discount: 412.3, currency: 'USD' });
+  });
+
+  test('leaves them out when the API does not report them', () => {
+    expect(toSpend({ amount: '12.5', currency: 'USD' })).toEqual({
+      amount: 12.5,
+      currency: 'USD',
+    });
+    expect(toSpend(undefined)).toBeUndefined();
   });
 });
