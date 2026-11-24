@@ -54,7 +54,7 @@ describe('UsageSummaryTable', () => {
     expect(headers()).toEqual(['Product', 'Trend', 'Usage', 'Cost']);
   });
 
-  it('shows the cost before discount and the discount when something is discounted', () => {
+  it('strikes through the cost before discount beside a discounted cost', () => {
     act(() =>
       root.render(
         <UsageSummaryTable
@@ -65,9 +65,12 @@ describe('UsageSummaryTable', () => {
         />
       )
     );
-    expect(headers()).toEqual(['Product', 'Trend', 'Usage', 'Before discount', 'Discount', 'Cost']);
-    expect(container.textContent).toContain('$40.00');
-    expect(container.textContent).toContain('−$40.00100%');
+    expect(headers()).toEqual(['Product', 'Trend', 'Usage', 'Cost']);
+    const struck = [...container.querySelectorAll('.line-through')].map((el) => el.textContent);
+    // Only the discounted row shows an amount before discount.
+    expect(struck).toEqual(['$40.00']);
+    expect(container.textContent).toContain('$40.00$0');
+    expect(container.textContent).toContain('$20.00');
   });
 });
 

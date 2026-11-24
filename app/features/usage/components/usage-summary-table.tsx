@@ -1,8 +1,8 @@
 import { groupUsageSummaryRows } from '../usage-summary-grouping';
-import { formatDiscount, formatUsagePair, spendDiscount } from '../usage.format';
+import { formatUsagePair, spendDiscount } from '../usage.format';
 import type { UsageSummaryRow } from '../usage.types';
+import { DiscountedSpend } from './discounted-spend';
 import { QuotaIndicator } from './quota-ring';
-import { SpendValue } from './spend-value';
 import { UsageSparkline } from './usage-sparkline';
 import { type ColumnDef, sortableHeader } from '@/components/table';
 import { Badge } from '@datum-cloud/datum-ui/badge';
@@ -18,7 +18,7 @@ interface UsageSummaryTableProps {
 
 export function UsageSummaryTable({ rows }: UsageSummaryTableProps) {
   const grouped = useMemo(() => groupUsageSummaryRows(rows), [rows]);
-  // The discount columns only appear when something in the period was discounted.
+  // The cost column widens when something in the period was discounted.
   const showDiscounts = useMemo(() => rows.some((row) => spendDiscount(row.spend)), [rows]);
 
   const columns = useMemo<ColumnDef<UsageSummaryRow, unknown>[]>(
@@ -70,56 +70,15 @@ export function UsageSummaryTable({ rows }: UsageSummaryTableProps) {
           </Text>
         ),
       },
-      ...(showDiscounts
-        ? ([
-            {
-              id: 'beforeDiscount',
-              header: sortableHeader<UsageSummaryRow>('Before discount'),
-              accessorFn: (row) => row.spend?.beforeDiscounts ?? row.spend?.amount ?? -1,
-              size: 128,
-              cell: ({ row }) => {
-                const { spend, spendUnavailable } = row.original;
-                return (
-                  <Text textColor="muted" ellipsis className="block text-right">
-                    <SpendValue
-                      spend={spend && { ...spend, amount: spend.beforeDiscounts ?? spend.amount }}
-                      unavailable={spendUnavailable}
-                    />
-                  </Text>
-                );
-              },
-            },
-            {
-              id: 'discount',
-              header: sortableHeader<UsageSummaryRow>('Discount'),
-              accessorFn: (row) => row.spend?.discount ?? 0,
-              size: 128,
-              cell: ({ row }) => {
-                const discount = spendDiscount(row.original.spend);
-                return discount ? (
-                  <Text ellipsis className="block text-right tabular-nums">
-                    {formatDiscount(discount.discount)}
-                    <Text as="span" size="xs" textColor="muted" className="ml-1">
-                      {discount.percent}%
-                    </Text>
-                  </Text>
-                ) : (
-                  <Text textColor="muted" className="block text-right">
-                    —
-                  </Text>
-                );
-              },
-            },
-          ] satisfies ColumnDef<UsageSummaryRow, unknown>[])
-        : []),
       {
         id: 'spend',
         header: sortableHeader<UsageSummaryRow>('Cost'),
         accessorFn: (row) => row.spend?.amount ?? -1,
-        size: 112,
+        // Room for the struck-through amount before a discount.
+        size: showDiscounts ? 168 : 112,
         cell: ({ row }) => (
           <Text ellipsis className="block text-right">
-            <SpendValue
+            <DiscountedSpend
               spend={row.original.spend}
               unavailable={row.original.spendUnavailable}
               className="font-medium"
