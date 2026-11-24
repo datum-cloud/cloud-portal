@@ -4,6 +4,8 @@ export interface QuotaIncreaseContext {
   scope: 'organization' | 'project';
   name?: string;
   displayName?: string;
+  /** Optional caller context, e.g. from a plugin: "Public IPv4 for a network load balancer." */
+  context?: string;
 }
 
 export function buildQuotaIncreaseRequest(resourceType: string, ctx: QuotaIncreaseContext) {
@@ -15,6 +17,7 @@ export function buildQuotaIncreaseRequest(resourceType: string, ctx: QuotaIncrea
       `Hello team,\n\n` +
       `I'd like to request an increase for the "${resourceType}" quota.\n\n` +
       `Details:\n- ${label}: ${who}\n` +
+      (ctx.context ? `- Context: ${ctx.context}\n` : '') +
       `- Requested new limit: [please specify]\n` +
       `- Reason/justification: [brief context, e.g., upcoming workload/traffic]\n\n` +
       `Thank you!`,

@@ -80,6 +80,16 @@ you want on :7777:
   Use `dev` for the **standalone** preview at `http://localhost:7777/` (direct,
   no proxy) and for iterating on components in isolation.
 
+## Quota-gated create (SDK 1.1.0+)
+
+The home page's **Create DNS zone** button shows how to gate an action on
+quota with `useResourceQuota` and offer the portal's prefilled request with
+`useRequestQuotaIncrease` (see `src/components/quota-gated-create.tsx`). DNS
+zones fail open, so the sample gates on `denied` only; a resource that
+defaults to zero, such as public IPv4, should gate on `denied || isUnknown`.
+The standalone preview supplies stub bindings, so the quota reads as unknown
+there.
+
 ## What it serves
 
 | Server       | Path                    | What                                         | Who fetches it                            |
@@ -101,8 +111,8 @@ fine.
 ```jsonc
 {
   "name": "sample.miloapis.com", // MUST equal the MF container name
-  "version": "0.3.0",
-  "sdk": { "name": "@datum-cloud/portal-plugin-sdk", "range": "^1.0.0" },
+  "version": "0.4.0",
+  "sdk": { "name": "@datum-cloud/portal-plugin-sdk", "range": "^1.1.0" }, // 1.1.0: quota hooks
   "remoteEntry": "remoteEntry.js", // MUST equal vite.config federation `filename`
   "exposedModules": {
     // keys are the $codeRef targets
@@ -131,7 +141,7 @@ subpaths (see `DATUM_UI_SHARED` in
 backed by the host's own instances, so the host always wins and the plugin
 renders with the host's exact React, router, query client, and design system.
 `vite.config.ts` marks the ones this sample uses (`react`, `react-dom`,
-`react-router`, `@tanstack/react-query`, and the datum-ui `badge`, `button`,
+`react-router`, `@tanstack/react-query`, `@datum-cloud/portal-plugin-sdk`, and the datum-ui `badge`, `button`,
 `card`, `separator`, and `skeleton` subpaths) `singleton: true`, with the host's
 majors for the framework packages. Declare shared deps in the
 `shared` block — do **not** externalize them (`import: false`), which breaks the
