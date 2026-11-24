@@ -78,28 +78,25 @@ export interface UpdateBillingAccountInput {
    */
   defaultPaymentMethodName?: string;
   /**
-   * Billing contact + postal address (`spec.contactInfo`). Patched as
-   * a nested object via JSON Merge Patch. In theory RFC 7396 would
-   * preserve keys omitted from the patch, but the milo billing
-   * apiserver empirically does not preserve nested fields on
-   * partial contactInfo patches — so callers should send every
-   * field they want preserved, not just the ones they're changing.
-   * Pass `undefined` to leave the whole contactInfo block alone.
+   * Billing contact + postal address (`spec.contactInfo`), patched as a
+   * nested object via JSON Merge Patch: a key left out keeps its stored
+   * value, and null removes it. Pass `undefined` to leave the whole
+   * contactInfo block alone.
    */
   contactInfo?: {
-    name?: string;
-    businessName?: string;
+    name?: string | null;
+    businessName?: string | null;
     /** Primary contact email. Required server-side; preserve when patching. */
     email?: string;
     /** Invoice recipient list. Replace-all semantics — send the full list. */
     invoiceEmails?: string[];
     address?: {
       country: string;
-      line1?: string;
-      line2?: string;
-      city?: string;
-      region?: string;
-      postalCode?: string;
+      line1?: string | null;
+      line2?: string | null;
+      city?: string | null;
+      region?: string | null;
+      postalCode?: string | null;
     };
   };
   /**

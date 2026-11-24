@@ -7,7 +7,7 @@ import {
   contractSummary,
   type BillingDetailsValues,
 } from '@/features/billing';
-import { withInvoiceEmail } from '@/features/billing/invoice-email';
+import { billingDetailsPatch } from '@/features/billing/billing-details-patch';
 import { useOrgUsageDashboard } from '@/modules/billing/usage.queries';
 import { usePermission } from '@/modules/rbac';
 import { useUpdateBillingAccount } from '@/resources/billing-accounts';
@@ -48,7 +48,6 @@ export default function OrgBillingOverviewPage() {
   const usageQuery = useOrgUsageDashboard(orgId, 'all', 'current', 'organization');
   const usage = usageQuery.data?.usage;
 
-  const contactInfo = account.spec?.contactInfo;
   const detailsMutation = useUpdateBillingAccount({
     onSuccess: () => {
       toast.success('Billing details updated', {
@@ -64,29 +63,14 @@ export default function OrgBillingOverviewPage() {
 
   const handleSaveDetails = useCallback(
     async (values: BillingDetailsValues) => {
-      // The whole contact block, as the invoice email card sends it: billing
-      // drops nested contactInfo fields a patch leaves out.
       await detailsMutation.mutateAsync({
         orgId,
         name: accountName,
         displayName: values.displayName,
-        contactInfo: {
-          ...withInvoiceEmail(contactInfo, values.invoiceEmail ?? ''),
-          name: values.name,
-          businessName: values.businessName,
-          address: {
-            country: values.country,
-            line1: values.line1,
-            line2: values.line2,
-            city: values.city,
-            region: values.region,
-            postalCode: values.postalCode,
-          },
-        },
-        taxIds: values.taxIds,
+        ...billingDetailsPatch(values),
       });
     },
-    [detailsMutation, orgId, accountName, contactInfo]
+    [detailsMutation, orgId, accountName]
   );
 
   return (

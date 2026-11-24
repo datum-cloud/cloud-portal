@@ -9,7 +9,7 @@ import {
 } from '@/features/billing/types';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter } from '@datum-cloud/datum-ui/card';
-import { Form } from '@datum-cloud/datum-ui/form';
+import { Form, useWatch } from '@datum-cloud/datum-ui/form';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
@@ -39,6 +39,16 @@ export const billingDetailsSchema = z.object({
     .max(256, 'Name is too long (256 characters max)'),
   name: z.string().max(256, 'Name is too long (256 characters max)').optional(),
   businessName: z.string().max(256, 'Business name is too long (256 characters max)').optional(),
+  // Required by billing: it gets billing notifications, and invoices when
+  // there's no invoice email.
+  email: z
+    .email({
+      error: (issue) =>
+        issue.input === undefined
+          ? 'Enter an email for the billing contact'
+          : 'Enter a valid email address',
+    })
+    .max(256, 'Email is too long (256 characters max)'),
   // Conform submits an empty field as undefined, so optional covers "use the
   // billing contact" without marking the field required.
   invoiceEmail: z.email('Enter a valid email address').optional(),
@@ -67,6 +77,7 @@ function initialValues(account: BillingAccount): BillingDetailsValues {
       '',
     name: contact?.name ?? '',
     businessName: contact?.businessName ?? '',
+    email: contact?.email ?? '',
     invoiceEmail: contact?.invoiceEmails?.[0] ?? '',
     country: address?.country ?? 'US',
     line1: address?.line1 ?? '',
@@ -121,9 +132,13 @@ function BillingDetailsView({ account }: { account: BillingAccount }) {
       <Detail label="Account name">{getBillingAccountDisplayName(account)}</Detail>
       <Detail label="Billing contact">
         {contact?.name || contact?.email ? (
-          <span className="flex flex-col">
+          <span className="flex flex-col" data-e2e="billing-contact">
             {contact?.name ? <span>{contact.name}</span> : null}
-            {contact?.email ? <span className="text-muted-foreground">{contact.email}</span> : null}
+            {contact?.email ? (
+              <span className="text-muted-foreground">{contact.email}</span>
+            ) : (
+              <span className="text-muted-foreground">No email set</span>
+            )}
           </span>
         ) : (
           <NotSet />
@@ -135,7 +150,7 @@ function BillingDetailsView({ account }: { account: BillingAccount }) {
           invoiceEmail(contact)
         ) : contact?.email ? (
           <span>
-            {contact.email} <span className="text-muted-foreground">(billing contact)</span>
+            {contact.email} <span className="text-muted-foreground">(contact email)</span>
           </span>
         ) : (
           <NotSet />
@@ -169,6 +184,29 @@ function BillingDetailsView({ account }: { account: BillingAccount }) {
         )}
       </Detail>
     </dl>
+  );
+}
+
+/** The invoice email, whose help text names the contact email as typed. */
+function InvoiceEmailField() {
+  const contactEmail = (useWatch<string | undefined>('email') ?? '').trim();
+  return (
+    <Form.Field
+      name="invoiceEmail"
+      label="Invoice email"
+      description={
+        contactEmail
+          ? `Invoices and receipts are emailed here. Leave empty to use the contact email (${contactEmail}).`
+          : 'Invoices and receipts are emailed here. Leave empty to use the contact email.'
+      }
+      className="max-w-md">
+      <Form.Input
+        type="email"
+        placeholder={contactEmail || 'finance@example.com'}
+        autoComplete="email"
+        data-e2e="invoice-email"
+      />
+    </Form.Field>
   );
 }
 
@@ -265,7 +303,6 @@ export const BillingDetailsCard = ({
   onSubmit,
 }: BillingDetailsCardProps) => {
   const [editing, setEditing] = useState(false);
-  const contactEmail = account.spec?.contactInfo?.email;
   // Edit unmounts while the form is open, so focus is handed back to it when
   // the form closes rather than dropping to the top of the page.
   const returnFocus = useRef(false);
@@ -358,28 +395,26 @@ export const BillingDetailsCard = ({
             <Form.Input autoComplete="name" />
           </Form.Field>
           <Form.Field
+            name="email"
+            label="Contact email"
+            required
+            description="Billing notifications go here, and invoices too unless you set an invoice email."
+            className="max-w-md">
+            <Form.Input
+              type="email"
+              placeholder="billing@example.com"
+              autoComplete="email"
+              data-e2e="contact-email"
+            />
+          </Form.Field>
+          <Form.Field
             name="businessName"
             label="Business name"
             description="Legal entity that pays. Leave blank for personal accounts; we print it on invoices for business billing."
             className="max-w-md">
             <Form.Input autoComplete="organization" />
           </Form.Field>
-          <Form.Field
-            name="invoiceEmail"
-            label="Invoice email"
-            description={
-              contactEmail
-                ? `Invoices and receipts are emailed here. Leave empty to use your billing contact's email (${contactEmail}).`
-                : "Invoices and receipts are emailed here. Leave empty to use your billing contact's email."
-            }
-            className="max-w-md">
-            <Form.Input
-              type="email"
-              placeholder={contactEmail || 'finance@example.com'}
-              autoComplete="email"
-              data-e2e="invoice-email"
-            />
-          </Form.Field>
+          <InvoiceEmailField />
           <div className="border-border space-y-3 border-t pt-5">
             <div className="flex flex-col gap-1">
               <Title as="h3" level={7} weight="medium" textColor="default">
