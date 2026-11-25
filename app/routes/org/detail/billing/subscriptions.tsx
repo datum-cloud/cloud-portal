@@ -12,7 +12,7 @@ import {
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { EmptyContent } from '@datum-cloud/datum-ui/empty-content';
 import { useMemo } from 'react';
 import { type MetaFunction, Link, useOutletContext } from 'react-router';
 
@@ -48,10 +48,13 @@ export default function OrgBillingSubscriptionsPage() {
 
   if (!contract && !prices && !showDiscounts) {
     return (
-      <Text as="p" textColor="muted" data-e2e="billing-no-pricing">
-        This account&apos;s prices aren&apos;t published yet. To ask about your plan, contact
-        support.
-      </Text>
+      <div data-e2e="billing-no-pricing">
+        <EmptyContent
+          title="pricing isn't published yet"
+          subtitle="This account's prices will appear here once they're published."
+          className="w-full"
+        />
+      </div>
     );
   }
 
