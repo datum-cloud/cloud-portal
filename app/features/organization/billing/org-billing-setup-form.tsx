@@ -1,3 +1,4 @@
+import { toastApiError } from '@/components/error/toast-api-error';
 import { CardBrandIcon } from '@/features/billing/components/card-brand-icon';
 import { CARD_BRAND_LABELS } from '@/features/billing/constants';
 import { AddPaymentMethodDialog } from '@/features/billing/dialogs/add-payment-method-dialog';
@@ -32,7 +33,6 @@ import { openSupportMessage } from '@/utils/open-support-message';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Input } from '@datum-cloud/datum-ui/input';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ClockIcon, CheckIcon } from 'lucide-react';
@@ -154,9 +154,7 @@ export const OrgBillingSetupForm = ({
 
   const setupBillingMutation = useSetupOnboardingBilling({
     onError: (error) => {
-      toast.error('Contact information', {
-        description: error.message ?? 'Failed to set up organization billing',
-      });
+      toastApiError(error, { title: 'Contact information' });
     },
   });
 

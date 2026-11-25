@@ -6,9 +6,8 @@
  *
  * The message is the sanitized read-only reason — never the Suspended
  * condition message, operator identity, or a raw reason enum. That matters
- * beyond this file: any caller that does the common
- * `toast.error(title, { description: error.message })` still renders redacted
- * copy.
+ * beyond this file: any caller that toasts it directly with
+ * `toastApiError(error, { title })` still renders redacted copy.
  */
 export class ProjectReadOnlyError extends Error {
   public readonly code = 'PROJECT_READ_ONLY';

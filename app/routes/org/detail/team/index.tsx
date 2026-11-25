@@ -1,5 +1,6 @@
 import { ChipsOverflow } from '@/components/chips-overflow';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { ProfileIdentity } from '@/components/profile-identity';
 import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
 import { InvitationExpiry } from '@/features/organization/team/invitation-expiry';
@@ -162,7 +163,7 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
   // Mutation hooks
   const cancelInvitationMutation = useCancelInvitation(orgId, {
     onError: (error) => {
-      toast.error(error.message || 'Failed to cancel invitation');
+      toastApiError(error, { title: 'Failed to cancel invitation' });
     },
   });
 
@@ -171,13 +172,13 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
       toast.success('Invitation resent successfully');
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to resend invitation');
+      toastApiError(error, { title: 'Failed to resend invitation' });
     },
   });
 
   const removeMemberMutation = useRemoveMember(orgId, {
     onError: (error) => {
-      toast.error(error.message || 'Failed to remove member');
+      toastApiError(error, { title: 'Failed to remove member' });
     },
   });
 
@@ -186,7 +187,7 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
       void navigate(paths.account.organizations.root);
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to leave organization');
+      toastApiError(error, { title: 'Failed to leave organization' });
     },
   });
 

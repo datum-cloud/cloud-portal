@@ -45,8 +45,8 @@ Note the inverted polarity: on the `Suspended` condition, `'False'` is the
 
 The `Suspended` condition `message`, operator identity, case notes, and raw
 reason enums are never rendered. `ProjectReadOnlyError.message` carries the
-sanitized reason, so even a call site that hand-rolls
-`toast.error(title, { description: error.message })` stays redacted. Server-side
+sanitized reason, so even a call site that toasts it directly with
+`toastApiError(error, { title })` stays redacted. Server-side
 403s are sanitized by `showMutationErrorToast`, which every project-scoped
 mutation `onError` should route through.
 

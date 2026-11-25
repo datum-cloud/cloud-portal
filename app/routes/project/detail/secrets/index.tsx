@@ -1,5 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
 import type { ActionItem } from '@/components/table';
 import {
@@ -30,7 +31,6 @@ import { createProjectListClientLoaderFromQueryKey } from '@/utils/helpers/proje
 import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { PlusIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';
 import { LoaderFunctionArgs, useNavigate, useParams } from 'react-router';
@@ -105,7 +105,7 @@ function SecretsInner({ initialData }: { initialData: Secret[] }) {
 
   const deleteSecretMutation = useDeleteSecret(projectId ?? '', {
     onError: (error) => {
-      toast.error(error.message);
+      toastApiError(error);
     },
   });
 

@@ -1,3 +1,4 @@
+import { toastApiError } from '@/components/error/toast-api-error';
 import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import {
   ProjectDockPanel,
@@ -36,7 +37,6 @@ import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
 import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
 import { projectLegacySetupMiddleware, withMiddleware } from '@/utils/middlewares';
 import { useBreakpoint } from '@datum-cloud/datum-ui/hooks';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { PortalPluginHostProvider } from '@datum-cloud/portal-plugin-sdk/host';
 import { useQueryClient } from '@tanstack/react-query';
@@ -231,8 +231,8 @@ function ProjectDetailLayoutContent({
 
   useEffect(() => {
     if (projectError && projectId) {
-      toast.error('Project unavailable', {
-        description: projectErrorDetail?.message ?? 'Project not found',
+      toastApiError(projectErrorDetail ?? new Error('Project not found'), {
+        title: 'Project unavailable',
       });
       const redirectPath = appOrg?.name
         ? getPathWithParams(paths.org.detail.projects.root, { orgId: appOrg.name })

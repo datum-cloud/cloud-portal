@@ -1,5 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
 import {
   deriveGuardedAction,
@@ -114,7 +115,7 @@ function ServiceAccountsInner({ initialData }: { initialData: ServiceAccount[] }
       });
     },
     onError: (error) => {
-      toast.error('Error', { description: error.message });
+      toastApiError(error, { title: 'Error' });
     },
   });
 

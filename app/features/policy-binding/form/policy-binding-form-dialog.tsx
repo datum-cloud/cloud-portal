@@ -1,3 +1,4 @@
+import { toastApiError } from '@/components/error/toast-api-error';
 import { SelectGroup } from '@/components/select-group/select-group';
 import { SelectMember } from '@/components/select-member/select-member';
 import { SelectProject } from '@/components/select-project/select-project';
@@ -287,7 +288,7 @@ export const PolicyBindingFormDialog = forwardRef<
     });
     setOpen(false);
   };
-  const onError = (error: Error) => toast.error('Error', { description: error.message });
+  const onError = (error: Error) => toastApiError(error, { title: 'Error' });
 
   const createMutation = useCreatePolicyBinding(orgId, { onSuccess, onError });
   const updateMutation = useUpdatePolicyBinding(orgId, editName, { onSuccess, onError });

@@ -1,6 +1,7 @@
 import { annotateSummaryItems } from './annotate-summary';
 import { renderBulkSummaryContent } from './bulk-summary-content';
 import { DuplicateDomainNotice } from './duplicate-domain-notice';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { showMutationErrorToast } from '@/modules/quota';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import { useApp } from '@/providers/app.provider';
@@ -318,7 +319,7 @@ export const AddDomainsDialog = ({
               theme="outline"
               size="small"
               onFileSelect={handleFileSelect}
-              onFileError={(error) => toast.error('Domains', { description: error.message })}>
+              onFileError={(error) => toastApiError(error, { title: 'Domains' })}>
               Choose CSV file
             </FileInputButton>
           </div>

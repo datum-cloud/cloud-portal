@@ -1,4 +1,5 @@
 import { DateTime } from '@/components/date-time';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
 import { useApp } from '@/providers/app.provider';
 import {
@@ -12,7 +13,6 @@ import { getIdTokenSession } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { jwtDecode } from 'jwt-decode';
 import { Trash2Icon } from 'lucide-react';
@@ -59,9 +59,7 @@ export default function AccountActiveSessionsPage() {
       setSelectedSession(null);
     },
     onError: (error) => {
-      toast.error('Session', {
-        description: error.message || 'Failed to revoke session',
-      });
+      toastApiError(error, { title: 'Session' });
     },
   });
 

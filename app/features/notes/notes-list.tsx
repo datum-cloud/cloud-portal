@@ -1,6 +1,7 @@
 import { NoteCard } from './note-card';
 import { NoteFormDialog } from './note-form-dialog';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { useApp } from '@/providers/app.provider';
 import { useDeleteNote, useNotes } from '@/resources/notes/note.queries';
 import type { Note, SubjectRef } from '@/resources/notes/note.schema';
@@ -34,7 +35,7 @@ export function NotesList({ projectId, subjectRef }: NotesListProps) {
       toast.success('Note', { description: 'Note deleted successfully' });
     },
     onError: (error) => {
-      toast.error('Note', { description: error.message });
+      toastApiError(error, { title: 'Note' });
     },
   });
 

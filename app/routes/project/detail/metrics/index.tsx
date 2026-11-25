@@ -1,5 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
 import { ExportPolicyStatus } from '@/features/metric/export-policies/status';
 import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
@@ -22,7 +23,6 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { createProjectListClientLoaderFromQueryKey } from '@/utils/helpers/project-list-client-loader';
 import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { PlusIcon } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { LoaderFunctionArgs, useNavigate, useParams } from 'react-router';
@@ -87,7 +87,7 @@ function ExportPoliciesInner({ initialData }: { initialData: ExportPolicy[] }) {
 
   const deleteExportPolicyMutation = useDeleteExportPolicy(projectId ?? '', {
     onError: (error) => {
-      toast.error(error.message);
+      toastApiError(error);
     },
   });
 

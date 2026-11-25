@@ -1,6 +1,7 @@
 import { SinksForm } from './sink/sinks-form';
 import { SourcesForm } from './source/sources-form';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { MetadataForm } from '@/components/metadata/metadata-form';
 import { showMutationErrorToast } from '@/modules/quota';
 import {
@@ -32,7 +33,6 @@ import {
 } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { has } from 'es-toolkit/compat';
 import { FileIcon, Layers, Terminal } from 'lucide-react';
@@ -97,9 +97,7 @@ export const ExportPolicyUpdateForm = ({
       );
     },
     onError: (error) => {
-      toast.error('Error', {
-        description: error.message || 'Failed to delete export policy',
-      });
+      toastApiError(error, { title: 'Error' });
     },
   });
 

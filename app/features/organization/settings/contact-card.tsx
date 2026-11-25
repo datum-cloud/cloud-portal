@@ -1,4 +1,5 @@
 import { OwnerOnlyNote } from './owner-only-note';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { AddressFields } from '@/features/address/address-fields';
 import { CountryAutocomplete } from '@/features/address/country-autocomplete';
 import {
@@ -37,9 +38,7 @@ export const OrganizationContactCard = ({
       });
     },
     onError: (error) => {
-      toast.error('Contact information', {
-        description: error.message || 'Failed to update contact details',
-      });
+      toastApiError(error, { title: 'Contact information' });
     },
   });
 

@@ -1,8 +1,8 @@
+import { toastApiError } from '@/components/error/toast-api-error';
 import { filterActiveProjects } from '@/resources/projects';
 import { useProjects } from '@/resources/projects/project.queries';
 import type { Project } from '@/resources/projects/project.schema';
 import { Autocomplete, type AutocompleteOption } from '@datum-cloud/datum-ui/autocomplete';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { useEffect, useMemo } from 'react';
 
 export type SelectProjectOption = AutocompleteOption & Project;
@@ -29,7 +29,7 @@ export const SelectProject = ({
 
   useEffect(() => {
     if (error) {
-      toast.error(error.message || 'Failed to load projects');
+      toastApiError(error, { title: 'Failed to load projects' });
     }
   }, [error]);
 

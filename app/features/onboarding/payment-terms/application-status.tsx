@@ -1,4 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { toastApiError } from '@/components/error/toast-api-error';
 import {
   applicationPhase,
   reviewPollInterval,
@@ -27,7 +28,6 @@ import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button, LinkButton } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { CircleCheckIcon, CircleXIcon, HourglassIcon } from 'lucide-react';
@@ -189,8 +189,9 @@ export function ApplicationUnderReview({
         try {
           await withdraw.mutateAsync({ orgId: context.orgId, name: application.name });
         } catch (error) {
-          toast.error('Payment terms', {
-            description:
+          toastApiError(error, {
+            title: 'Payment terms',
+            message:
               error instanceof Error && error.message
                 ? parseK8sMessage(error.message)
                 : "We couldn't withdraw your application",
@@ -341,12 +342,7 @@ export function ApplicationApproved({
         { replace: true }
       );
     } catch (error) {
-      toast.error('Organization setup', {
-        description:
-          error instanceof Error
-            ? error.message
-            : "We couldn't finish setting up your organization",
-      });
+      toastApiError(error, { title: 'Organization setup' });
     }
   };
 

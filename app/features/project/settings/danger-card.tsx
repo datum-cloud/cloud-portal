@@ -1,5 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DangerCard } from '@/components/danger-card/danger-card';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
 import { useAccessReview } from '@/modules/rbac';
 import type { Project } from '@/resources/projects';
@@ -7,7 +8,6 @@ import { useDeleteProject } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { useNavigate } from 'react-router';
 
 export const ProjectDangerCard = ({ project }: { project: Project }) => {
@@ -34,9 +34,7 @@ export const ProjectDangerCard = ({ project }: { project: Project }) => {
       );
     },
     onError: (error) => {
-      toast.error('Project', {
-        description: error.message || 'Failed to delete project',
-      });
+      toastApiError(error, { title: 'Project' });
     },
   });
 

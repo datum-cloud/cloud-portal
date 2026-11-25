@@ -1,4 +1,5 @@
 import { OrganizationItem } from './organization-item';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { useOrganizationsGql, type Organization } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -13,7 +14,6 @@ import {
 } from '@datum-cloud/datum-ui/command';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { BuildingIcon, CheckIcon, ChevronDown } from 'lucide-react';
@@ -50,7 +50,7 @@ export const SelectOrganization = ({
 
   useEffect(() => {
     if (error) {
-      toast.error(error.message || 'Failed to load organizations');
+      toastApiError(error, { title: 'Failed to load organizations' });
     }
   }, [error]);
 

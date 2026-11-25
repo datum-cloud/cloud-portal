@@ -2,6 +2,7 @@ import { BadgeProgrammingError } from '@/components/badge/badge-programming-erro
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { NameserverChips } from '@/components/nameserver-chips';
 import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
 import {
@@ -181,9 +182,7 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
 
   const deleteMutation = useDeleteDnsZone(projectId, {
     onError: (error) => {
-      toast.error('DNS', {
-        description: error.message || 'Failed to delete DNS',
-      });
+      toastApiError(error, { title: 'DNS' });
     },
   });
 
@@ -194,9 +193,7 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
       });
     },
     onError: (error) => {
-      toast.error('DNS', {
-        description: error.message || 'Failed to refresh DNS',
-      });
+      toastApiError(error, { title: 'DNS' });
     },
   });
 

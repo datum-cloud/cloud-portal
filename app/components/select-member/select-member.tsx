@@ -1,7 +1,7 @@
+import { toastApiError } from '@/components/error/toast-api-error';
 import type { Member } from '@/resources/members';
 import { useMembers } from '@/resources/members/member.queries';
 import { Autocomplete, type AutocompleteOption } from '@datum-cloud/datum-ui/autocomplete';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { useEffect, useMemo } from 'react';
 
 export type SelectMemberOption = AutocompleteOption & Member;
@@ -27,7 +27,7 @@ export const SelectMember = ({
 
   useEffect(() => {
     if (error) {
-      toast.error(error.message || 'Failed to load members');
+      toastApiError(error, { title: 'Failed to load members' });
     }
   }, [error]);
 

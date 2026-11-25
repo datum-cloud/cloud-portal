@@ -127,7 +127,7 @@ function appErrorFromK8sStatus(data: K8sStatus, httpStatus: number, cause: Axios
   });
 }
 
-function appErrorFromSerialized(data: SerializedError, cause: AxiosError): AppError {
+export function appErrorFromSerialized(data: SerializedError, cause: AxiosError): AppError {
   return new AppError(data.message, {
     code: data.code,
     status: data.status,
@@ -135,6 +135,11 @@ function appErrorFromSerialized(data: SerializedError, cause: AxiosError): AppEr
     requestId: data.requestId,
     sentryEventId: data.sentryEventId,
     upstreamStatus: data.upstreamStatus,
+    // The raw denial and K8s reason let the UI name the product area and show
+    // what was refused; without them the error arrives as generic text.
+    originalMessage: data.originalMessage,
+    k8sReason: data.k8sReason,
+    k8sDetails: data.k8sDetails,
     cause,
     captureToSentry: false,
   });

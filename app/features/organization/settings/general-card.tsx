@@ -1,4 +1,5 @@
 import { OwnerOnlyNote } from './owner-only-note';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { useApp } from '@/providers/app.provider';
 import { type Organization, useUpdateOrganization } from '@/resources/organizations';
 import { updateOrganizationSchema } from '@/resources/organizations';
@@ -33,9 +34,7 @@ export const OrganizationGeneralCard = ({
       });
     },
     onError: (error) => {
-      toast.error('Organization', {
-        description: error.message || 'Failed to update organization',
-      });
+      toastApiError(error, { title: 'Organization' });
     },
   });
 

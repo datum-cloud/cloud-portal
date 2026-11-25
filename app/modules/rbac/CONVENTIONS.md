@@ -70,7 +70,7 @@ const handleEdit = (r) => {
 
 // REQUIRED — gate the button, never the handler
 <PermissionButton verb="patch" ...>Edit</PermissionButton>
-mutation.onError: (e) => toast.error(e.message || 'Failed to update')
+mutation.onError: (e) => toastApiError(e, { title: 'Failed to update' })
 ```
 
 Enforcement: PR review.
