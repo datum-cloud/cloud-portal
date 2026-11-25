@@ -43,6 +43,7 @@ describe('BillingDetailsCard', () => {
     cy.get('[data-e2e="billing-details"]')
       .should('contain.text', 'Acme billing')
       .and('contain.text', 'Jane Doe')
+      .and('contain.text', 'jane@acme.com')
       .and('contain.text', 'finance@acme.com')
       .and('contain.text', '1 Main St')
       .and('contain.text', '12-3456789');
@@ -124,6 +125,51 @@ describe('BillingDetailsCard', () => {
     cy.get('[data-e2e="billing-details-save"]').click();
     cy.contains('Enter a valid email address').should('exist');
     cy.get('@submit').should('not.have.been.called');
+  });
+
+  it('edits the contact email, which the invoice email help text follows', () => {
+    mountCard();
+    cy.get('[data-e2e="billing-details-edit"]').click();
+    cy.contains('label', 'Contact email').should('contain.text', '*');
+    cy.get('[data-e2e="contact-email"]').should('have.value', 'jane@acme.com');
+    cy.contains('Leave empty to use the contact email (jane@acme.com).').should('exist');
+    cy.get('[data-e2e="contact-email"]').clear().type('billing@acme.com');
+    cy.contains('Leave empty to use the contact email (billing@acme.com).').should('exist');
+    cy.get('[data-e2e="invoice-email"]').should('have.attr', 'placeholder', 'billing@acme.com');
+    cy.get('[data-e2e="billing-details-save"]').click();
+    cy.get('@submit').should('have.been.calledWithMatch', { email: 'billing@acme.com' });
+  });
+
+  it('requires a contact email', () => {
+    mountCard();
+    cy.get('[data-e2e="billing-details-edit"]').click();
+    cy.get('[data-e2e="contact-email"]').clear();
+    cy.get('[data-e2e="billing-details-save"]').click();
+    cy.contains('Enter an email for the billing contact').should('exist');
+    cy.get('@submit').should('not.have.been.called');
+  });
+
+  it('rejects a contact email that is not an email', () => {
+    mountCard();
+    cy.get('[data-e2e="billing-details-edit"]').click();
+    cy.get('[data-e2e="contact-email"]').clear().type('jane-at-acme');
+    cy.get('[data-e2e="billing-details-save"]').click();
+    cy.contains('Enter a valid email address').should('exist');
+    cy.get('@submit').should('not.have.been.called');
+  });
+
+  it('says when the billing contact has no email', () => {
+    const noEmail = {
+      ...account,
+      spec: {
+        ...account.spec,
+        contactInfo: { ...account.spec!.contactInfo!, email: '', invoiceEmails: [] },
+      },
+    } as BillingAccount;
+    mountCard(true, undefined, noEmail);
+    cy.get('[data-e2e="billing-contact"]')
+      .should('contain.text', 'Jane Doe')
+      .and('contain.text', 'No email set');
   });
 
   it('disables Edit without permission', () => {
