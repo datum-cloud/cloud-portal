@@ -70,3 +70,10 @@ export { getDnsHostProviders } from './nameserver.helper';
 
 // Sibling domain lookup exports
 export * from './domain.lookup';
+
+// Registration status label exports
+export {
+  describeRegistrationStatus,
+  registrationCheckedAt,
+  type RegistrationStatusLabel,
+} from './registration-status';
