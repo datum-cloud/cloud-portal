@@ -1,7 +1,7 @@
 {
   "name": "@datum-cloud/sample-portal-plugin",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "description": "Reference Portal Plugin: a Module Federation remote exercising every v1 extension point (nav, page, home card), reading data exclusively through the portal's Milo control-plane proxy.",
   "scripts": {
@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@datum-cloud/datum-ui": "^3.4.0",
+    "@datum-cloud/portal-plugin-sdk": "^1.1.0",
     "@tanstack/react-query": "5.101.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",

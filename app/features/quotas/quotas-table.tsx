@@ -1,6 +1,9 @@
-import { buildQuotaIncreaseRequest, isBucketExhausted } from './build-quota-increase-request';
 import { buildQuotaRows, calculateUsage, groupQuotas, type QuotaTableRow } from './quotas-grouping';
 import { type ColumnDef, sortableHeader, TableSearch } from '@/components/table';
+import {
+  buildQuotaIncreaseRequest,
+  isBucketExhausted,
+} from '@/modules/quota/build-quota-increase-request';
 import type { AllowanceBucket } from '@/resources/allowance-buckets';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';

@@ -2,6 +2,10 @@ import SampleHomeCard from './cards/sample-home-card';
 import PlatformData from './pages/platform-data';
 import { DetailView } from './pages/sample-detail';
 import SamplePage from './pages/sample-page';
+import {
+  PortalPluginHostProvider,
+  type PortalPluginHostBindings,
+} from '@datum-cloud/portal-plugin-sdk/host';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -15,32 +19,56 @@ import { Link, MemoryRouter, Route, Routes } from 'react-router';
 // see live data.
 const queryClient = new QueryClient();
 
+// Stand-ins for the portal's SDK bindings, so pages that call SDK hooks render
+// here. A real plugin never imports `/host`; only this preview harness does.
+// Quota reads as unknown, which is what a fail-open resource shows when the
+// host can't read it.
+const previewBindings: PortalPluginHostBindings = {
+  useProjectContext: () => ({
+    project: { name: 'demo-project' },
+    org: undefined,
+    isLoading: false,
+    error: null,
+  }),
+  usePluginFetch: () => (path, init) => fetch(path, init),
+  useResourceWatch: () => ({ lastEvent: null, isConnected: false, error: null }),
+  useResourceQuota: () => ({ isLoading: false, isUnknown: true, denied: false }),
+  useRequestQuotaIncrease: () => (request) => console.info('Quota increase request', request),
+};
+
 const base = '/project/:projectId/services/:serviceSlug';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <div
-        style={{ maxWidth: 820, margin: '2rem auto', padding: '0 1rem', fontFamily: 'system-ui' }}>
-        <p style={{ opacity: 0.6 }}>
-          Standalone preview — the portal loads this plugin via
-          <code> /plugin-manifest.json</code> and <code>/remoteEntry.js</code>, not this page. Data
-          pages 404 here (no portal proxy).
-        </p>
-        <MemoryRouter initialEntries={['/project/demo-project/services/sample/home']}>
-          <nav style={{ display: 'flex', gap: '1rem', margin: '0 0 1rem' }}>
-            <Link to="/project/demo-project/services/sample/home">Home</Link>
-            <Link to="/project/demo-project/services/sample/platform">Platform data</Link>
-          </nav>
-          <Routes>
-            <Route path={`${base}/home`} element={<SamplePage />} />
-            <Route path={`${base}/items/:itemId`} element={<DetailView />} />
-            <Route path={`${base}/platform`} element={<PlatformData />} />
-          </Routes>
-        </MemoryRouter>
-        <hr style={{ margin: '2rem 0' }} />
-        <SampleHomeCard />
-      </div>
+      <PortalPluginHostProvider bindings={previewBindings}>
+        <div
+          style={{
+            maxWidth: 820,
+            margin: '2rem auto',
+            padding: '0 1rem',
+            fontFamily: 'system-ui',
+          }}>
+          <p style={{ opacity: 0.6 }}>
+            Standalone preview — the portal loads this plugin via
+            <code> /plugin-manifest.json</code> and <code>/remoteEntry.js</code>, not this page.
+            Data pages 404 here (no portal proxy).
+          </p>
+          <MemoryRouter initialEntries={['/project/demo-project/services/sample/home']}>
+            <nav style={{ display: 'flex', gap: '1rem', margin: '0 0 1rem' }}>
+              <Link to="/project/demo-project/services/sample/home">Home</Link>
+              <Link to="/project/demo-project/services/sample/platform">Platform data</Link>
+            </nav>
+            <Routes>
+              <Route path={`${base}/home`} element={<SamplePage />} />
+              <Route path={`${base}/items/:itemId`} element={<DetailView />} />
+              <Route path={`${base}/platform`} element={<PlatformData />} />
+            </Routes>
+          </MemoryRouter>
+          <hr style={{ margin: '2rem 0' }} />
+          <SampleHomeCard />
+        </div>
+      </PortalPluginHostProvider>
     </QueryClientProvider>
   </StrictMode>
 );

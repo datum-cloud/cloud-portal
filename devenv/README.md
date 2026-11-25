@@ -83,7 +83,7 @@ Inspect the registry the same way production is inspected:
 ```bash
 kubectl --kubeconfig .devenv/kubeconfig get portalplugins
 # NAME                  SLUG     READY   VERSION   AGE
-# sample.miloapis.com   sample   True    0.3.0     30s
+# sample.miloapis.com   sample   True    0.4.0     30s
 ```
 
 `READY` / `VERSION` are written by the **portal** (`task devenv:portal`) once it

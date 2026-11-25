@@ -1,10 +1,10 @@
+import { buildQuotaIncreaseRequest } from './build-quota-increase-request';
 import { classifyQuotaError, parseQuotaError } from './quota-error';
 import { toastApiError } from '@/components/error/toast-api-error';
 import { isEmailNotVerifiedError } from '@/features/account/email-verification/email-verification-error';
 import { isProjectReadOnlyError } from '@/features/project/read-only/project-read-only-error';
 import { isProjectSuspendedError } from '@/features/project/suspension/classify-suspension-error';
 import { showProjectSuspendedToast } from '@/features/project/suspension/suspension-toast';
-import { buildQuotaIncreaseRequest } from '@/features/quotas/build-quota-increase-request';
 import { logger } from '@/modules/logger';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';

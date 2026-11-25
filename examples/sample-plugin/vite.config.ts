@@ -59,6 +59,10 @@ export default defineConfig({
         'react-dom': { singleton: true, requiredVersion: '^19.0.0' },
         'react-router': { singleton: true, requiredVersion: '^7.0.0' },
         '@tanstack/react-query': { singleton: true, requiredVersion: '^5.0.0' },
+        // The SDK's hooks read a Context only the host's copy provides, so this
+        // MUST resolve to the host's instance. requiredVersion:false — SDK
+        // compatibility is checked by the manifest's `sdk.range` instead.
+        '@datum-cloud/portal-plugin-sdk': { singleton: true, requiredVersion: false },
         // Curated datum-ui subset shared by the host (see the host's
         // federation-host.ts DATUM_UI_SHARED). requiredVersion:false — the
         // host's copy always wins, which is what keeps styling identical to

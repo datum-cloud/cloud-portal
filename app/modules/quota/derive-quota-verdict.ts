@@ -3,6 +3,18 @@ import type { AllowanceBucket } from '@/resources/allowance-buckets';
 import type { ResourceRegistration } from '@/resources/resource-registrations';
 
 /**
+ * The "used up" sentence on its own, without the portal's "Settings → Quotas"
+ * pointer. Plugins get this form, because they offer their own request action.
+ */
+export function formatQuotaDeniedReason(input: {
+  label: string;
+  allocated: number;
+  limit: number;
+}): string {
+  return `You've reached your ${input.label} quota (${input.allocated}/${input.limit}).`;
+}
+
+/**
  * Fail-open rule: `hasQuota` is `false` ONLY when a bucket exists AND
  * `status.available <= 0`. Missing bucket, LIST error/403, or `Feature`-type
  * registration → `isUnknown: true` → callers render children unmodified.
@@ -27,7 +39,7 @@ export function deriveQuotaVerdict(input: {
     isUnknown: false,
     denied,
     deniedReason: denied
-      ? `You've reached your ${label} quota (${allocated}/${limit}). Request an increase from Settings → Quotas.`
+      ? `${formatQuotaDeniedReason({ label, allocated, limit })} Request an increase from Settings → Quotas.`
       : undefined,
     limit,
     allocated,

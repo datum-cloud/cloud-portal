@@ -12,8 +12,13 @@ export default [
   {
     // Generated code: gqlts writes app/modules/graphql/generated and
     // @hey-api/openapi-ts writes the control-plane *.gen.ts files, so a hand
-    // fix in either is lost on the next regeneration.
-    ignores: ['app/modules/graphql/generated/**', 'app/modules/control-plane/**/*.gen.ts'],
+    // fix in either is lost on the next regeneration. examples/ are separate
+    // projects with their own tsconfig, outside this config's type info.
+    ignores: [
+      'app/modules/graphql/generated/**',
+      'app/modules/control-plane/**/*.gen.ts',
+      'examples/**',
+    ],
   },
   {
     files: ['**/*.ts', '**/*.tsx'],

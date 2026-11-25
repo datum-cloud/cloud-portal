@@ -1,6 +1,6 @@
+import { buildQuotaIncreaseRequest } from '../build-quota-increase-request';
 import type { QuotaScope } from '../types';
 import { useResourceQuota } from '../use-resource-quota';
-import { buildQuotaIncreaseRequest } from '@/features/quotas/build-quota-increase-request';
 import { usePermissions } from '@/modules/rbac';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';

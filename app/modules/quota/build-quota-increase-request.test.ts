@@ -20,6 +20,22 @@ describe('buildQuotaIncreaseRequest', () => {
       }).text
     ).toContain('- Organization:');
   });
+  test('adds a context line only when context is given', () => {
+    const withContext = buildQuotaIncreaseRequest('ipam.miloapis.com/public-ipv4claims', {
+      scope: 'project',
+      name: 'proj-1',
+      context: 'Public IPv4 for a network load balancer.',
+    }).text;
+    expect(withContext).toContain(
+      '- Project: proj-1 (proj-1)\n- Context: Public IPv4 for a network load balancer.\n'
+    );
+    expect(
+      buildQuotaIncreaseRequest('ipam.miloapis.com/public-ipv4claims', {
+        scope: 'project',
+        name: 'proj-1',
+      }).text
+    ).not.toContain('Context:');
+  });
 });
 
 describe('isBucketExhausted', () => {

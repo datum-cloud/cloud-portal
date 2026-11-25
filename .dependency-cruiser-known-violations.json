@@ -59,17 +59,6 @@
   },
   {
     "type": "dependency",
-    "from": "app/modules/quota/components/QuotaExhaustedAlert.tsx",
-    "to": "app/features/quotas/build-quota-increase-request.ts",
-    "unresolvedTo": "@/features/quotas/build-quota-increase-request",
-    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
-    "rule": {
-      "severity": "error",
-      "name": "modules-not-to-features"
-    }
-  },
-  {
-    "type": "dependency",
     "from": "app/modules/quota/quota-toast.tsx",
     "to": "app/features/account/email-verification/email-verification-error.ts",
     "unresolvedTo": "@/features/account/email-verification/email-verification-error",
@@ -106,17 +95,6 @@
     "from": "app/modules/quota/quota-toast.tsx",
     "to": "app/features/project/suspension/suspension-toast.ts",
     "unresolvedTo": "@/features/project/suspension/suspension-toast",
-    "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
-    "rule": {
-      "severity": "error",
-      "name": "modules-not-to-features"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "app/modules/quota/quota-toast.tsx",
-    "to": "app/features/quotas/build-quota-increase-request.ts",
-    "unresolvedTo": "@/features/quotas/build-quota-increase-request",
     "dependencyTypes": ["aliased", "aliased-tsconfig", "aliased-tsconfig-paths", "local", "import"],
     "rule": {
       "severity": "error",

@@ -1,3 +1,4 @@
+import { QuotaGatedCreate } from '../components/quota-gated-create';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { useState } from 'react';
@@ -57,6 +58,8 @@ export default function SamplePage() {
           Clicked <strong>{count}</strong> {count === 1 ? 'time' : 'times'}
         </Button>
       </div>
+
+      <QuotaGatedCreate />
 
       <p className="text-sm">
         <Link

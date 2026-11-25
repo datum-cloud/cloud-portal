@@ -1,8 +1,8 @@
 /**
- * Real implementations behind `@datum-cloud/portal-plugin-sdk`'s three hooks
+ * Real implementations behind `@datum-cloud/portal-plugin-sdk`'s hooks
  * — CLIENT-ONLY. This is the piece that turns the SDK from a contract into
  * something that actually works: it reads the host's own project state,
- * proxy client, and watch manager, and exposes them through the SDK's
+ * proxy client, watch manager, and quota module, and exposes them through the SDK's
  * `PortalPluginHostBindings` shape via `PortalPluginHostProvider`.
  *
  * Mount `<PortalPluginHostProvider bindings={pluginHostBindings}>` around
@@ -10,13 +10,21 @@
  * plugin pages, dock widgets, and home cards in one place — see
  * app/routes/project/detail/layout.tsx).
  */
+import { buildPluginQuotaIncreaseRequest, toPluginQuotaVerdict } from './plugin-quota';
+import { deriveQuotaVerdict } from '@/modules/quota/derive-quota-verdict';
 import { useResourceWatch as useHostResourceWatch } from '@/modules/watch/use-resource-watch';
 import { useOptionalProjectContext } from '@/providers/project.provider';
+import { useAllowanceBuckets, useAllowanceBucketsWatch } from '@/resources/allowance-buckets';
 import { getProjectScopedBase } from '@/resources/base/utils';
+import { useResourceRegistrations } from '@/resources/resource-registrations';
+import { openSupportMessage } from '@/utils/open-support-message';
 import type {
   PluginFetch,
   PluginProjectContextValue,
   PluginWatchEvent,
+  RequestQuotaIncrease,
+  ResourceQuotaVerdict,
+  UseResourceQuotaOptions,
   UseResourceWatchOptions,
   UseResourceWatchResult,
 } from '@datum-cloud/portal-plugin-sdk';
@@ -125,8 +133,50 @@ function useResourceWatchBinding<T = unknown>(
   return { lastEvent, isConnected: enabled && !error, error };
 }
 
+function useResourceQuotaBinding({
+  resourceType,
+  scope,
+}: UseResourceQuotaOptions): ResourceQuotaVerdict {
+  const ctx = useOptionalProjectContext();
+  const scopeId = (scope === 'organization' ? ctx?.org?.name : ctx?.project?.name) ?? '';
+  const buckets = useAllowanceBuckets(scope, scopeId, { enabled: !!scopeId });
+  const registrations = useResourceRegistrations(scope, scopeId, { enabled: !!scopeId });
+  // Live updates: the project layout's QuotaWatchBridge already watches project
+  // buckets, but nothing in the project layout watches org buckets. The watch
+  // manager ref-counts subscribers, so several plugin callers share one channel.
+  useAllowanceBucketsWatch(scope, scopeId, { enabled: scope === 'organization' && !!scopeId });
+
+  return useMemo(
+    () =>
+      toPluginQuotaVerdict(
+        deriveQuotaVerdict({
+          resourceType,
+          buckets: buckets.data,
+          registrations: registrations.data,
+          isError: buckets.isError,
+        }),
+        // isPending (not isLoading): a disabled query must read as "still resolving".
+        { resourceType, isLoading: buckets.isPending }
+      ),
+    [resourceType, buckets.data, buckets.isError, buckets.isPending, registrations.data]
+  );
+}
+
+function useRequestQuotaIncreaseBinding(): RequestQuotaIncrease {
+  const ctx = useOptionalProjectContext();
+  const project = ctx?.project;
+  const org = ctx?.org;
+
+  return useCallback<RequestQuotaIncrease>(
+    (request) => openSupportMessage(buildPluginQuotaIncreaseRequest(request, { project, org })),
+    [project, org]
+  );
+}
+
 export const pluginHostBindings: PortalPluginHostBindings = {
   useProjectContext: useProjectContextBinding,
   usePluginFetch: usePluginFetchBinding,
   useResourceWatch: useResourceWatchBinding,
+  useResourceQuota: useResourceQuotaBinding,
+  useRequestQuotaIncrease: useRequestQuotaIncreaseBinding,
 };
