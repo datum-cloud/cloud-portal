@@ -1,6 +1,7 @@
 import { NotificationItemWrapper } from '../notification-item-wrapper';
 import type { ResourceNotificationItemProps } from '../types';
 import { DateTime } from '@/components/date-time';
+import { toastApiError } from '@/components/error/toast-api-error';
 import {
   useAcceptInvitation,
   useRejectInvitation,
@@ -10,7 +11,6 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { getInitials } from '@/utils/helpers/text.helper';
 import { Avatar, AvatarFallback, AvatarImage } from '@datum-cloud/datum-ui/avatar';
 import { Button } from '@datum-cloud/datum-ui/button';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -43,7 +43,7 @@ export function InvitationNotificationItem({ notification }: ResourceNotificatio
       );
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to accept invitation');
+      toastApiError(error, { title: 'Failed to accept invitation' });
     },
   });
 
@@ -52,7 +52,7 @@ export function InvitationNotificationItem({ notification }: ResourceNotificatio
       // Watch stream removes the invitation from the cache automatically
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to decline invitation');
+      toastApiError(error, { title: 'Failed to decline invitation' });
     },
   });
 

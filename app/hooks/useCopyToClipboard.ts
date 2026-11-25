@@ -1,6 +1,9 @@
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+/** How long a copy confirmation (or failure) stays on screen. */
+export const COPY_FEEDBACK_MS = 2000;
+
 interface CopyOptions {
   withToast?: boolean;
   toastMessage?: string;
@@ -38,7 +41,7 @@ export function useCopyToClipboard(): [boolean, CopyFn, (value: string) => boole
       }
       timeoutRef.current = setTimeout(() => {
         setCopiedText('');
-      }, 2000);
+      }, COPY_FEEDBACK_MS);
 
       return true;
     } catch {

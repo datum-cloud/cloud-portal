@@ -1,6 +1,6 @@
+import { toastApiError } from '@/components/error/toast-api-error';
 import { createGroupSchema, useCreateGroup, type CreateGroupInput } from '@/resources/groups';
 import { Form } from '@datum-cloud/datum-ui/form';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
 export interface GroupFormDialogRef {
@@ -27,7 +27,7 @@ export const GroupFormDialog = forwardRef<GroupFormDialogRef, GroupFormDialogPro
         onCreated?.(group.name);
       },
       onError: (error) => {
-        toast.error('Error', { description: error.message });
+        toastApiError(error, { title: 'Error' });
       },
     });
 

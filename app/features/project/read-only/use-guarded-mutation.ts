@@ -31,8 +31,8 @@ export type GuardedMutationOperation = 'write' | 'delete';
  * the gate rejects. Duplicate messaging is handled at the toast layer instead:
  * the read-only toast is idempotent (stable toast id) and
  * `showMutationErrorToast` routes ProjectReadOnlyError to it, so the shared
- * error paths collapse onto a single toast. Call sites that hand-roll
- * `toast.error(title, { description: error.message })` still render their own
+ * error paths collapse onto a single toast. Call sites that call
+ * `toastApiError(error, { title })` directly still render their own
  * copy — sanitized, since ProjectReadOnlyError.message is the redacted reason.
  *
  * The gate is evaluated inside `mutationFn`, i.e. at mutate() time, not at

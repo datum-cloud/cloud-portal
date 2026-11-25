@@ -1,4 +1,5 @@
 import { DangerCard } from '@/components/danger-card/danger-card';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
 import { useAlbTrafficProtection } from '@/features/edge/proxy/hooks/use-alb-traffic-protection';
 import { useDeleteProxy } from '@/features/edge/proxy/hooks/use-delete-proxy';
@@ -18,7 +19,6 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { SettingsNav, SettingsNavItem, SettingsNavLabel } from '@datum-cloud/datum-ui/settings-nav';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { Title } from '@datum-cloud/datum-ui/typography';
 import {
   GlobeIcon,
@@ -189,7 +189,7 @@ export default function HttpProxyConfigurationPage() {
       void navigate(getPathWithParams(paths.project.detail.proxy.root, { projectId }));
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to delete proxy');
+      toastApiError(error, { title: 'Failed to delete proxy' });
     },
   });
 

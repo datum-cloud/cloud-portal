@@ -109,12 +109,11 @@ describe('mergePluginNavIntoTree', () => {
     expect(objectStorage?.icon).toBeDefined();
     expect(build?.children?.some((c) => c.title === 'Compute')).toBe(false);
 
-    const deliver = tree.find((item) => item.sectionId === 'deliver');
-    const gslb = deliver?.children?.find((c) => c.title === 'GSLB');
-    expect(gslb?.type).toBe('link');
-    expect(gslb?.badge?.label).toBe('Soon');
-    expect(gslb?.href).toBe('/project/proj-1/coming-soon/gslb');
-    expect(gslb?.disabled).not.toBe(true);
+    const edgeApps = build?.children?.find((c) => c.title === 'Edge Apps');
+    expect(edgeApps?.type).toBe('link');
+    expect(edgeApps?.badge?.label).toBe('Soon');
+    expect(edgeApps?.href).toBe('/project/proj-1/coming-soon/edge-apps');
+    expect(edgeApps?.disabled).not.toBe(true);
   });
 
   test('service categories are always-open groups; settings stays collapsible', () => {

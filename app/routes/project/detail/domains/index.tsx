@@ -1,5 +1,6 @@
 import { readDomainsClientData, type DomainsListData } from './domains-client-data';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { NameserverChips } from '@/components/nameserver-chips';
 import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
 import { AddDomainsDialog } from '@/features/edge/domain/add';
@@ -244,9 +245,7 @@ function DomainsInner({
       });
     },
     onError: (error) => {
-      toast.error('Domain', {
-        description: error.message || 'Failed to refresh domain',
-      });
+      toastApiError(error, { title: 'Domain' });
     },
   });
 
@@ -276,9 +275,7 @@ function DomainsInner({
               });
               return;
             }
-            toast.error('Domain', {
-              description: (error as Error).message || 'Failed to delete domain',
-            });
+            toastApiError(error, { title: 'Domain' });
           }
         },
       });

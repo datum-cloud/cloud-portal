@@ -1,3 +1,4 @@
+import { toastApiError } from '@/components/error/toast-api-error';
 import { DnsRecordTable } from '@/features/edge/dns-records';
 import { showMutationErrorToast } from '@/modules/quota';
 import { type IFlattenedDnsRecord, useBulkImportDnsRecords } from '@/resources/dns-records';
@@ -152,7 +153,7 @@ export const DnsZoneDiscoveryPreview = ({
 
   useEffect(() => {
     if (discoveryError) {
-      toast.error(discoveryError.message || 'An unexpected error occurred');
+      toastApiError(discoveryError);
     }
   }, [discoveryError]);
 

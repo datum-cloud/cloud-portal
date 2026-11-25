@@ -1,7 +1,7 @@
+import { toastApiError } from '@/components/error/toast-api-error';
 import type { Role } from '@/resources/roles';
 import { useRoles } from '@/resources/roles';
 import { Autocomplete, type AutocompleteOption } from '@datum-cloud/datum-ui/autocomplete';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { useEffect, useMemo } from 'react';
 
 export type SelectRoleOption = AutocompleteOption &
@@ -31,7 +31,7 @@ export const SelectRole = ({
 
   useEffect(() => {
     if (error) {
-      toast.error(error.message || 'Failed to load roles');
+      toastApiError(error, { title: 'Failed to load roles' });
     }
   }, [error]);
 

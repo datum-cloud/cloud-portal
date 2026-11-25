@@ -1,6 +1,7 @@
 import type { ServiceAccountDetailContext } from './layout';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DangerCard } from '@/components/danger-card/danger-card';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
 import { DisplayNameFormCard } from '@/features/service-account';
 import { useResourcePermissions } from '@/modules/rbac';
@@ -52,7 +53,7 @@ export default function ServiceAccountSettingsPage() {
     },
     onError: (error) => {
       setIsDeleting(false);
-      toast.error('Error', { description: error.message });
+      toastApiError(error, { title: 'Error' });
     },
   });
 

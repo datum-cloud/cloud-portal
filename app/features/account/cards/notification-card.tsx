@@ -4,6 +4,7 @@ import {
   type SubscriptionSavePlan,
   type SubscriptionState,
 } from './notification-subscriptions';
+import { toastApiError } from '@/components/error/toast-api-error';
 import {
   NotificationSettingsCard,
   NotificationSettingsCardSkeleton,
@@ -178,7 +179,7 @@ export const AccountNotificationSettingsCard = () => {
       await readStored();
       toast.success('Marketing & Events Notifications updated');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Unable to update notification groups');
+      toastApiError(error, { title: 'Unable to update notification groups' });
     } finally {
       setIsSubmitting(false);
       setFormGeneration((generation) => generation + 1);

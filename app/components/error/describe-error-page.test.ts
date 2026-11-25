@@ -1,11 +1,15 @@
 import { describeErrorPage } from './describe-error-page';
 import { AppError, AuthorizationError } from '@/utils/errors/app-error';
 import { PERMISSION_DENIED_MESSAGE } from '@/utils/errors/authorization-message';
+import { rbacDenial } from '@/utils/errors/rbac-denial.fixture';
 import { AxiosError } from 'axios';
 import { describe, expect, it } from 'vitest';
 
-const RAW =
-  'dnsrecordsets.dns.networking.miloapis.com is forbidden: User "jane@example.com" cannot list resource "dnsrecordsets" in API group "dns.networking.miloapis.com" in the namespace "default"';
+const RAW = rbacDenial({
+  verb: 'list',
+  resource: 'dnsrecordsets',
+  group: 'dns.networking.miloapis.com',
+});
 const PLAIN = PERMISSION_DENIED_MESSAGE;
 
 describe('describeErrorPage', () => {

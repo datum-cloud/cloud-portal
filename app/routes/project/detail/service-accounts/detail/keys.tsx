@@ -2,6 +2,7 @@ import type { ServiceAccountDetailContext } from './layout';
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
 import type { ActionItem } from '@/components/table';
 import { KeyRevealPanel } from '@/features/service-account/components/key-reveal-panel';
@@ -88,7 +89,7 @@ export default function ServiceAccountKeysPage() {
       toast.success('Key revoked', { description: 'The key has been revoked successfully.' });
     },
     onError: (error) => {
-      toast.error('Error', { description: error.message });
+      toastApiError(error, { title: 'Error' });
     },
   });
 

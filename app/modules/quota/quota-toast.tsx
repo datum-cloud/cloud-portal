@@ -1,5 +1,6 @@
 import { buildQuotaIncreaseRequest } from './build-quota-increase-request';
 import { classifyQuotaError, parseQuotaError } from './quota-error';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { isEmailNotVerifiedError } from '@/features/account/email-verification/email-verification-error';
 import { isProjectReadOnlyError } from '@/features/project/read-only/project-read-only-error';
 import { isProjectSuspendedError } from '@/features/project/suspension/classify-suspension-error';
@@ -62,7 +63,8 @@ export function showQuotaExceededToast(error: unknown, opts: QuotaToastContext):
 }
 
 /**
- * Drop-in replacement for `toast.error(title, { description: error.message })` in mutation onError.
+ * Error toast for mutation onError: quota, suspension and email verification get
+ * their own handling, and everything else goes through `toastApiError`.
  *
  * `fallbackDescription` lets a caller keep its own domain-specific formatting
  * for the generic branch without losing the suspension/quota handling above it
@@ -105,8 +107,5 @@ export function showMutationErrorToast(
     showQuotaExceededToast(error, opts);
     return;
   }
-  toast.error(opts.fallbackTitle, {
-    description:
-      opts.fallbackDescription ?? (error instanceof Error ? error.message : 'Something went wrong'),
-  });
+  toastApiError(error, { title: opts.fallbackTitle, message: opts.fallbackDescription });
 }

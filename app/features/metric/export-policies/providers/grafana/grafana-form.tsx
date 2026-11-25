@@ -1,4 +1,5 @@
 import type { GrafanaFormProps } from './grafana.types';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
 import { TextCopyBox } from '@/components/text-copy/text-copy-box';
@@ -28,7 +29,6 @@ import {
   StepperNavigation,
   StepperControls,
 } from '@datum-cloud/datum-ui/form/stepper';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { ChevronDownIcon, ExternalLinkIcon } from 'lucide-react';
 import { z } from 'zod';
@@ -205,18 +205,14 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
 
       if (onSuccess) {
         onSuccess({
-          exportPolicy: exportPolicy as unknown as Parameters<
-            NonNullable<typeof onSuccess>
-          >[0]['exportPolicy'],
+          exportPolicy: exportPolicy,
           secret: secret as unknown as Parameters<NonNullable<typeof onSuccess>>[0]['secret'],
         });
       } else {
         onClose();
       }
     } catch (error) {
-      toast.error('Export policy', {
-        description: error instanceof Error ? error.message : 'Failed to create export policy',
-      });
+      toastApiError(error, { title: 'Export policy' });
     }
   };
 

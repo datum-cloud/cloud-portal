@@ -16,16 +16,18 @@ describe('resolveComingSoonService', () => {
     const service = resolveComingSoonService('object-storage');
     expect(service?.title).toBe('Object Storage');
     expect(service?.description).toContain('object storage');
-    expect(service?.roadmapUrl).toBe('https://www.datum.net/platform/build#object-storage');
+    expect(service?.roadmapUrl).toBe('https://github.com/datum-cloud/enhancements/issues/837');
   });
 
-  test('resolves deliver / connect platform anchors', () => {
-    expect(resolveComingSoonService('gslb')?.roadmapUrl).toBe(
-      'https://www.datum.net/platform/deliver#global-load-balancer'
+  test('links planned services to their enhancement issues', () => {
+    expect(resolveComingSoonService('edge-apps')?.roadmapUrl).toBe(
+      'https://github.com/datum-cloud/enhancements/issues/826'
     );
-    expect(resolveComingSoonService('interconnects')?.roadmapUrl).toBe(
-      'https://www.datum.net/platform/connect#interconnect'
-    );
+  });
+
+  test('no longer lists GSLB or Interconnects', () => {
+    expect(resolveComingSoonService('gslb')).toBeUndefined();
+    expect(resolveComingSoonService('interconnects')).toBeUndefined();
   });
 
   test('resolves plugin nav entries by id', () => {

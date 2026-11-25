@@ -1,5 +1,6 @@
 import type { ServiceAccountDetailContext } from './layout';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { toastApiError } from '@/components/error/toast-api-error';
 import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { PolicyBindingTable } from '@/features/policy-binding';
 import type { PolicyBindingTableRowAction } from '@/features/policy-binding';
@@ -113,7 +114,7 @@ function BindingsPanel({ orgId }: { orgId: string }) {
 
   const deleteMutation = useDeletePolicyBinding(orgId, {
     onSuccess: () => toast.success('Role deleted'),
-    onError: (error) => toast.error('Error', { description: error.message }),
+    onError: (error) => toastApiError(error, { title: 'Error' }),
   });
 
   const deletePolicyBinding = useCallback(
