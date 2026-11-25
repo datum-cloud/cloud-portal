@@ -27,5 +27,27 @@ export function isUpstreamTimeout(error: unknown): boolean {
   return error instanceof Error && error.name === 'TimeoutError';
 }
 
+/**
+ * Pass a streamed upstream body through, and call `onCutoff` if the deadline
+ * in `signal` aborts it before the body finishes. By then the response status
+ * has already gone out, so the browser sees a cut-off 200 and nothing else
+ * reports it. A body that finishes, or a browser that disconnects, is quiet.
+ */
+export function reportDeadlineCutoff(
+  body: ReadableStream<Uint8Array>,
+  signal: AbortSignal,
+  onCutoff: () => void
+): ReadableStream<Uint8Array> {
+  const onAbort = () => {
+    if (isUpstreamTimeout(signal.reason)) onCutoff();
+  };
+  signal.addEventListener('abort', onAbort, { once: true });
+  return body.pipeThrough(
+    new TransformStream<Uint8Array, Uint8Array>({
+      flush: () => signal.removeEventListener('abort', onAbort),
+    })
+  );
+}
+
 /** Body of the 504 the proxies answer with when the upstream deadline fires. */
 export const UPSTREAM_TIMEOUT_BODY = { error: 'Upstream request timed out' } as const;

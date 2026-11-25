@@ -1,5 +1,11 @@
-import { isUpstreamTimeout, UPSTREAM_TIMEOUT_BODY, upstreamSignal } from './upstream-deadline';
+import {
+  isUpstreamTimeout,
+  reportDeadlineCutoff,
+  UPSTREAM_TIMEOUT_BODY,
+  upstreamSignal,
+} from './upstream-deadline';
 import { isEmailNotVerifiedDenial } from '@/features/account/email-verification/email-verification-error';
+import { logger } from '@/modules/logger';
 import { getClientIP } from '@/server/middleware/client-ip';
 import { extractQuotaDenialLabels, quotaDeniedTotal } from '@/server/observability/quota-metrics';
 import type { Variables } from '@/server/types';
@@ -128,7 +134,20 @@ proxyRoutes.all('/*', async (c) => {
       return new Response(text, { status: response.status, headers: outHeaders });
     }
 
-    return new Response(response.body, {
+    // A watch has no deadline; any other body can be cut off mid-stream.
+    const body =
+      isWatch || !response.body
+        ? response.body
+        : reportDeadlineCutoff(response.body, signal, () =>
+            logger.warn('Upstream deadline cut off a streamed proxy response', {
+              method: c.req.method,
+              path,
+              status: response.status,
+              requestId: c.get('requestId'),
+            })
+          );
+
+    return new Response(body, {
       status: response.status,
       headers,
     });
