@@ -3,7 +3,7 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
-  "packageManager": "pnpm@11.28.9",
+  "packageManager": "pnpm@12.23.0",
   "scripts": {
     "build": "react-router build && vite build --config vite.observability.config.ts && node scripts/precompress-assets.ts",
     "dev": "node --env-file-if-exists=.env --import tsx ./observability/dev-start.js",
