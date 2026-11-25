@@ -1,10 +1,24 @@
 # pnpm settings for this repo. It is a single package, not a workspace: there
 # is no `packages:` list, and examples/sample-plugin keeps its own npm install.
 
+# Install only versions published at least a day ago (in minutes), so a
+# compromised release has time to be caught and pulled before it lands here.
+minimumReleaseAge: 1440
+
 # Our own packages are published and consumed across repos on the same day, so
 # the one-day release delay must not hold them back.
 minimumReleaseAgeExclude:
   - '@datum-cloud/*'
+
+# Refuse a version published with weaker provenance than an earlier one, the
+# usual sign of a hijacked publish.
+trustPolicy: no-downgrade
+
+# @mjackson/headers published with provenance up to 0.6.1 and without it
+# since, so every later version reads as a downgrade. remix-auth-oauth2 3.4.1,
+# its latest release, still needs ^0.10.0. Exempt that one version only.
+trustPolicyExclude:
+  - '@mjackson/headers@0.10.0'
 
 # Only scripts a local install needs: lefthook installs the git hooks, cypress
 # fetches its binary, esbuild and @sentry/cli check their platform binaries.
@@ -34,6 +48,9 @@ overrides:
   qs: ^6.17.1
   tinypool: ^2.1.2
   brace-expansion@2: ^2.1.7
+  # trustPolicy: semver 6.3.1 shipped without provenance after 7.5.1 had it,
+  # so it reads as a downgrade. 6.3.2 is published with provenance.
+  semver@6: ^6.3.2
   # GHSA-rj75-hqrm-r3gf: @tailwindcss/typography pins 6.0.10 exactly and its
   # latest release has not moved, so floor the version here.
   postcss-selector-parser@<6.1.5: ^6.1.5
