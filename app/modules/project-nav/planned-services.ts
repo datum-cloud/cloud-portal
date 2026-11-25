@@ -1,5 +1,5 @@
 import type { ProjectNavSection } from './types';
-import { AppWindowIcon, CableIcon, EarthIcon, HardDriveIcon, type LucideIcon } from 'lucide-react';
+import { AppWindowIcon, HardDriveIcon, type LucideIcon } from 'lucide-react';
 
 /**
  * Planned (not-yet-live) services shown in the project sidebar with a
@@ -12,8 +12,8 @@ import { AppWindowIcon, CableIcon, EarthIcon, HardDriveIcon, type LucideIcon } f
  * is registered — that way going live is a plugin-manifest change only. Keep
  * entries here for services that do not yet have a PortalPlugin at all.
  *
- * Marketing deep-links use the `feature-section` anchors on
- * https://www.datum.net/platform/{deliver,build,connect}.
+ * `roadmapUrl` points at the tracking issue in
+ * https://github.com/datum-cloud/enhancements where the work is planned.
  */
 export type PlannedService = {
   id: string;
@@ -30,20 +30,11 @@ export type PlannedService = {
 
 export const PLANNED_SERVICES: PlannedService[] = [
   {
-    id: 'gslb',
-    title: 'GSLB',
-    section: 'deliver',
-    description: 'Global server load balancing across regions and providers.',
-    roadmapUrl: 'https://www.datum.net/platform/deliver#global-load-balancer',
-    order: 40,
-    icon: EarthIcon,
-  },
-  {
     id: 'object-storage',
     title: 'Object Storage',
     section: 'build',
     description: 'Durable object storage for application data and assets.',
-    roadmapUrl: 'https://www.datum.net/platform/build#object-storage',
+    roadmapUrl: 'https://github.com/datum-cloud/enhancements/issues/837',
     order: 20,
     icon: HardDriveIcon,
   },
@@ -52,18 +43,9 @@ export const PLANNED_SERVICES: PlannedService[] = [
     title: 'Edge Apps',
     section: 'build',
     description: 'Deploy applications at the edge, close to your users.',
-    roadmapUrl: 'https://www.datum.net/platform/build#edge-apps',
+    roadmapUrl: 'https://github.com/datum-cloud/enhancements/issues/826',
     order: 30,
     icon: AppWindowIcon,
-  },
-  {
-    id: 'interconnects',
-    title: 'Interconnects',
-    section: 'connect',
-    description: 'Dedicated connectivity between Datum and your networks.',
-    roadmapUrl: 'https://www.datum.net/platform/connect#interconnect',
-    order: 30,
-    icon: CableIcon,
   },
 ];
 

@@ -55,8 +55,7 @@ export default function ProjectComingSoonPage() {
       userName={userName}
       title={`${service.title} is coming soon`}
       subtitle={
-        service.description?.trim() ||
-        'This service is still in the works. Check back soon, or learn more on our site.'
+        service.description?.trim() || 'This service is still in the works. Check back soon.'
       }
       actions={
         roadmapUrl
