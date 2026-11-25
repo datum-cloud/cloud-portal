@@ -8,9 +8,9 @@
  */
 import type { PluginRemoteRef } from './federation-host';
 import { getColumnExtensions } from './match-extension';
-import { useActiveServiceEntitlements } from './use-active-service-entitlements';
 import { useProjectPlugins } from './use-project-plugins';
 import type { ColumnProjectHomeExtension, PublicPlugin } from '@/modules/plugins/types';
+import { useActiveServiceEntitlements } from '@/resources/service-entitlements';
 import { useMemo } from 'react';
 
 export interface HomeColumn {
