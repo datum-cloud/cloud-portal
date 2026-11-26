@@ -21,6 +21,15 @@ export {
   type INameserverSetupStatus,
 } from './nameserver.helper';
 
+// DNSSEC risk helpers
+export {
+  buildDnssecRiskInput,
+  getDnssecRisk,
+  isDnssecOn,
+  type DnssecRisk,
+  type DnssecRiskInput,
+} from './dnssec.helper';
+
 // DNS setup validation helpers
 export { getDnsSetupStatus, type IDnsSetupStatus, type IDnsSetupRule } from './dns-setup.helper';
 

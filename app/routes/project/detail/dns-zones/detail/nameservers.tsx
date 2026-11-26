@@ -1,12 +1,19 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { NoteCard } from '@/components/note-card/note-card';
 import { RefreshNameserversButton } from '@/features/edge/dns-zone/components/refresh-nameservers-button';
+import { DnssecAlert } from '@/features/edge/domain/dnssec/dnssec-alert';
+import { isDnssecAlertRisk } from '@/features/edge/domain/dnssec/dnssec-alert-copy';
 import { NameserverTable } from '@/features/edge/nameservers';
 import { useGuardedRouteData } from '@/modules/rbac';
 import type { DnsZone } from '@/resources/dns-zones';
 import { useDomain, useDomainWatch, type Domain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
-import { getDnsZoneDelegationState, getNameserverSetupStatus } from '@/utils/helpers/dns';
+import {
+  getDnsZoneDelegationState,
+  buildDnssecRiskInput,
+  getDnssecRisk,
+  getNameserverSetupStatus,
+} from '@/utils/helpers/dns';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -49,8 +56,25 @@ export default function DnsZoneNameserversPage() {
   const datumNameservers: string[] = dnsZone?.status?.nameservers ?? [];
   const awaitingVerification = getDnsZoneDelegationState(dnsZone).reason === 'domainVerification';
 
+  const dnssecRisk = useMemo(
+    () => getDnssecRisk(buildDnssecRiskInput(domain, dnsZone)),
+    [domain, dnsZone]
+  );
+
   return (
     <Row gutter={[0, 32]}>
+      {domain && dnsZone && isDnssecAlertRisk(dnssecRisk) && (
+        <Col span={24}>
+          <DnssecAlert
+            risk={dnssecRisk}
+            domainName={dnsZone.domainName}
+            domainResourceName={domain.name}
+            projectId={projectId}
+            registration={domain.status?.registration}
+            desiredRefreshAttempt={domain.desiredRegistrationRefreshAttempt}
+          />
+        </Col>
+      )}
       <Col span={24}>
         <NameserverTable
           titleActions={

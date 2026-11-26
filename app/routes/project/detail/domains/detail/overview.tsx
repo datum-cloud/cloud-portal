@@ -1,6 +1,9 @@
 import { ResourceActivityFeed, useProjectActivityClient } from '@/features/activity';
+import { DnssecAlert } from '@/features/edge/domain/dnssec/dnssec-alert';
+import { isDnssecAlertRisk } from '@/features/edge/domain/dnssec/dnssec-alert-copy';
 import { DomainGeneralCard } from '@/features/edge/domain/overview/general-card';
 import { DomainReadyCard } from '@/features/edge/domain/overview/ready-card';
+import { DomainRegistrationCard } from '@/features/edge/domain/overview/registration-card';
 import { DomainVerificationCard } from '@/features/edge/domain/overview/verification-card';
 import { NotesList } from '@/features/notes';
 import { ResourceColumnFrame } from '@/features/project/home/resource-column';
@@ -9,6 +12,7 @@ import { ControlPlaneStatus } from '@/resources/base';
 import { type DnsZone } from '@/resources/dns-zones';
 import { type Domain, useDomain, useDomainWatch } from '@/resources/domains';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+import { buildDnssecRiskInput, getDnssecRisk } from '@/utils/helpers/dns';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text } from '@datum-cloud/datum-ui/typography';
@@ -48,6 +52,11 @@ export default function DomainOverviewPage() {
   // Prefer live data from React Query, fall back to SSR loader data
   const effectiveDomain = liveDomain ?? domain;
 
+  const risk = useMemo(
+    () => getDnssecRisk(buildDnssecRiskInput(effectiveDomain, dnsZone)),
+    [effectiveDomain, dnsZone]
+  );
+
   // Track previous status for transition detection
   const previousStatusRef = useRef<ControlPlaneStatus | null>(null);
 
@@ -79,6 +88,18 @@ export default function DomainOverviewPage() {
 
   return (
     <Row gutter={[24, 32]}>
+      {isDnssecAlertRisk(risk) && (
+        <Col span={24}>
+          <DnssecAlert
+            risk={risk}
+            domainName={effectiveDomain.domainName}
+            domainResourceName={effectiveDomain.name}
+            projectId={projectId ?? ''}
+            registration={effectiveDomain.status?.registration}
+            desiredRefreshAttempt={effectiveDomain.desiredRegistrationRefreshAttempt}
+          />
+        </Col>
+      )}
       <Col span={24}>
         {isVerified ? (
           <DomainReadyCard domain={effectiveDomain} projectId={projectId ?? ''} />
@@ -109,6 +130,11 @@ export default function DomainOverviewPage() {
           }
         />
       </Col>
+      {effectiveDomain?.status?.registration && (
+        <Col span={24}>
+          <DomainRegistrationCard domain={effectiveDomain} risk={risk} />
+        </Col>
+      )}
       <Col span={24}>
         <ResourceColumnFrame title="Activity" bodyClassName="h-auto">
           <ResourceActivityFeed
