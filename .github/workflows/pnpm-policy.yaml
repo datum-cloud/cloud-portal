@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   pnpm-policy:
-    uses: datum-cloud/actions/.github/workflows/pnpm-policy.yaml@v1.31.0
+    uses: datum-cloud/actions/.github/workflows/pnpm-policy.yaml@51f5aaf27abc090bdfd70c0a96d37aeb90273c9f # v1.31.0
     with:
       # examples/sample-plugin keeps its own npm lockfile on purpose, so
       # require-pnpm stays off here.
