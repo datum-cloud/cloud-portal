@@ -10,5 +10,5 @@ permissions: {}
 
 jobs:
   set-month:
-    uses: datum-cloud/actions/.github/workflows/set-project-month.yaml@5af25b6999a3540391f942c7ea9e61242192b6aa # v1.28.0
+    uses: datum-cloud/actions/.github/workflows/set-project-month.yaml@51f5aaf27abc090bdfd70c0a96d37aeb90273c9f # v1.31.0
     secrets: inherit

@@ -28,7 +28,7 @@ jobs:
       contents: read
       packages: write
       attestations: write
-    uses: datum-cloud/actions/.github/workflows/publish-docker.yaml@5af25b6999a3540391f942c7ea9e61242192b6aa # v1.28.0
+    uses: datum-cloud/actions/.github/workflows/publish-docker.yaml@51f5aaf27abc090bdfd70c0a96d37aeb90273c9f # v1.31.0
     with:
       image-name: cloud-portal
     # Token goes in as a BuildKit secret only; see the note in ci.yml.
@@ -43,7 +43,7 @@ jobs:
       id-token: write
       contents: read
       packages: write
-    uses: datum-cloud/actions/.github/workflows/publish-kustomize-bundle.yaml@5af25b6999a3540391f942c7ea9e61242192b6aa # v1.28.0
+    uses: datum-cloud/actions/.github/workflows/publish-kustomize-bundle.yaml@51f5aaf27abc090bdfd70c0a96d37aeb90273c9f # v1.31.0
     with:
       bundle-name: ghcr.io/datum-cloud/cloud-portal-kustomize
       bundle-path: config
