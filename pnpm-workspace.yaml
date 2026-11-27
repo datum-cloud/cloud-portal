@@ -56,8 +56,8 @@ overrides:
   postcss-selector-parser@<6.1.5: ^6.1.5
   '@graphql-tools/utils': ^12.0.2
   # GHSA-g3hv-75wg-m249: glob 13 bundles minimatch 10, so both move.
-  minimatch: 11.0.4
-  glob: 14.0.3
+  minimatch: 11.0.9
+  glob: 14.0.6
   # react-router-hono-server's peer floor; npm never enforced it.
   ws@^8: ^8.21.3
   '@hey-api/json-schema-ref-parser>js-yaml': ^4.3.2
